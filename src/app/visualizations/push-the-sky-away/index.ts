@@ -15,6 +15,7 @@ const pushTheSkyAway: Visualization = {
   settings: {
     samples: createSampleSettings(32, 16),
   },
+  spotifyUri: 'spotify:album:6CBN58EXbkJ7lIxvmLUxVA',
 };
 
 export default pushTheSkyAway;

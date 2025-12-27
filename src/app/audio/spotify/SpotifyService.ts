@@ -96,7 +96,7 @@ export class SpotifyService {
     return false;
   }
 
-  async playAlbumAndGetCurrentTrack(): Promise<any> {
+  async playAlbumAndGetCurrentTrack(spotifyUri?: string): Promise<any> {
     if (!this.accessToken) {
       throw new Error('Not authenticated with Spotify');
     }
@@ -105,7 +105,6 @@ export class SpotifyService {
     this.updateState({ isLoading: true });
     console.log('Starting Spotify playback...');
 
-    // First validate that we have the correct scopes
     const hasValidScopes = await this.validateScopes();
     if (!hasValidScopes) {
       this.isLoading = false;
@@ -129,8 +128,10 @@ export class SpotifyService {
 
       console.log('Spotify device ready, device ID:', this.deviceId);
 
-      // Hardcoded album ID from the URL: https://open.spotify.com/intl-de/album/5Dgqy4bBg09Rdw7CQM545s
-      const albumId = '5Dgqy4bBg09Rdw7CQM545s';
+      const albumUri = spotifyUri || 'spotify:album:5Dgqy4bBg09Rdw7CQM545s';
+      console.log('Using album URI:', albumUri);
+
+      const albumId = albumUri.split(':')[2];
 
       console.log('Setting active device...');
       const deviceResponse = await fetch('https://api.spotify.com/v1/me/player', {
@@ -163,7 +164,7 @@ export class SpotifyService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          context_uri: `spotify:album:${albumId}`,
+          context_uri: albumUri,
           device_id: this.deviceId,
         }),
       });

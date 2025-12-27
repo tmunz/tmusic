@@ -15,6 +15,7 @@ const vivaLaVida: Visualization = {
   settings: {
     samples: createSampleSettings(32, 32),
   },
+  spotifyUri: 'spotify:album:0cnd1tlGnbfScH1KWwgxan',
 };
 
 export default vivaLaVida;

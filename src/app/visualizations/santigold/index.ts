@@ -15,6 +15,7 @@ const santigold: Visualization = {
   settings: {
     samples: createSampleSettings(32, 32),
   },
+  spotifyUri: 'spotify:album:4TGvBVWFdYgARvdajEfAkU',
 };
 
 export default santigold;

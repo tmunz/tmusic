@@ -15,6 +15,7 @@ const theRiddle: Visualization = {
   settings: {
     samples: createSampleSettings(32, 64),
   },
+  spotifyUri: 'spotify:album:5aSbB0dVq5o7N5eSfnexjV',
 };
 
 export default theRiddle;

@@ -15,6 +15,7 @@ const violator: Visualization = {
   settings: {
     samples: createSampleSettings(64, 64),
   },
+  spotifyUri: 'spotify:album:45YmvYK4hB4CgQgTMuNRm8',
 };
 
 export default violator;

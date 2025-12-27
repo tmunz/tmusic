@@ -15,6 +15,7 @@ const karpatenhund: Visualization = {
   settings: {
     samples: createSampleSettings(32, 1),
   },
+  spotifyUri: 'spotify:album:7MSnJiBuHQMTckW9K3L6bu',
 };
 
 export default karpatenhund;

@@ -15,4 +15,5 @@ export interface Visualization {
   }) => React.JSX.Element;
   color: string;
   settings: Record<string, Settings>;
+  spotifyUri: string;
 }

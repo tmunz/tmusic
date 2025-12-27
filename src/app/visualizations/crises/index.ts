@@ -15,6 +15,7 @@ const crises: Visualization = {
   settings: {
     samples: createSampleSettings(64, 64),
   },
+  spotifyUri: 'spotify:album:56irNmW0iq9Flh41YbAv55',
 };
 
 export default crises;

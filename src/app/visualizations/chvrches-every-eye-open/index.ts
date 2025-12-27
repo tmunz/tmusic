@@ -42,6 +42,7 @@ const chvrchesEveryOpenEye: Visualization = {
       },
     },
   },
+  spotifyUri: 'spotify:album:0QNU8SCLBs3HEZsUQfCfy7',
 };
 
 export default chvrchesEveryOpenEye;

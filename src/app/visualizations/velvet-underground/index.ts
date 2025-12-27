@@ -15,6 +15,7 @@ const velvetUnderground: Visualization = {
   settings: {
     samples: createSampleSettings(),
   },
+  spotifyUri: 'spotify:album:4xwx0x7k6c5VuThz5qVqmV',
 };
 
 export default velvetUnderground;

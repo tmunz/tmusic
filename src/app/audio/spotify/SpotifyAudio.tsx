@@ -5,12 +5,14 @@ import { FaSpotify } from 'react-icons/fa';
 import { PiStop } from 'react-icons/pi';
 import { SpotifyPermissionDialog } from './SpotifyPermissionDialog';
 import { AudioProps } from '../AudioProps';
+import { useAppState } from '../../AppContext';
 
 interface SpotifyAudioProps extends AudioProps {
   onError: (error: string) => void;
 }
 
 export const SpotifyAudio = ({ isActive, onStreamCreated, onError }: SpotifyAudioProps) => {
+  const { appState } = useAppState();
   const [spotifyService] = useState(() => new SpotifyService(state => setSpotifyState(state)));
   const [spotifyState, setSpotifyState] = useState<SpotifyState>(() => spotifyService.getState());
   const [showDialog, setShowDialog] = useState<boolean>(false);
@@ -42,6 +44,14 @@ export const SpotifyAudio = ({ isActive, onStreamCreated, onError }: SpotifyAudi
     }
   }, [isActive]);
 
+  useEffect(() => {
+    if (spotifyState.currentTrack && appState.visualization?.spotifyUri) {
+      spotifyService.playAlbumAndGetCurrentTrack(appState.visualization.spotifyUri).catch(error => {
+        onError('Failed to switch album: ' + (error as Error).message);
+      });
+    }
+  }, [appState.visualization?.spotifyUri]);
+
   const handleSpotifyLogin = async () => {
     try {
       const authenticated = await spotifyService.authenticate();
@@ -57,7 +67,7 @@ export const SpotifyAudio = ({ isActive, onStreamCreated, onError }: SpotifyAudi
     setShowDialog(false);
     try {
       await startScreenCapture();
-      await spotifyService.playAlbumAndGetCurrentTrack();
+      await spotifyService.playAlbumAndGetCurrentTrack(appState.visualization?.spotifyUri);
     } catch (error) {
       onError('Failed to start Spotify recording: ' + (error as Error).message);
     }
@@ -170,7 +180,7 @@ export const SpotifyAudio = ({ isActive, onStreamCreated, onError }: SpotifyAudi
     if (spotifyState.isLoading) {
       return 'Loading...';
     }
-    return 'Play Spotify + Record (Will ask for screen sharing to capture audio)';
+    return 'Play Spotify (Will ask for screen sharing to capture audio)';
   };
 
   return (

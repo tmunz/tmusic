@@ -15,6 +15,7 @@ const transEuropeExpress: Visualization = {
   settings: {
     samples: createSampleSettings(32, 16),
   },
+  spotifyUri: 'spotify:album:0HHRIVjvBcnTepfeRVgS2f',
 };
 
 export default transEuropeExpress;

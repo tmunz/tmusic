@@ -30,6 +30,7 @@ const minorEarthMajorSky: Visualization = {
       },
     },
   },
+  spotifyUri: 'spotify:album:2aHH87T7YudCAyUieyIAow',
 };
 
 export default minorEarthMajorSky;

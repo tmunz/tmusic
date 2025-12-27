@@ -15,6 +15,7 @@ const unknownPleasures: Visualization = {
   settings: {
     samples: createSampleSettings(80, 32),
   },
+  spotifyUri: 'spotify:album:5Dgqy4bBg09Rdw7CQM545s',
 };
 
 export default unknownPleasures;

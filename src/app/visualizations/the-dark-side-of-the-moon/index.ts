@@ -79,6 +79,7 @@ const theDarkSideOfTheMoon: Visualization = {
       },
     },
   },
+  spotifyUri: 'spotify:album:4LH4d3cOWNNsVw41Gqt2kv',
 };
 
 export default theDarkSideOfTheMoon;
