@@ -1,0 +1,134 @@
+.spotify-permission-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+
+.spotify-permission-dialog {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 0;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  border: 1px solid #333;
+}
+
+.spotify-permission-header {
+  background: linear-gradient(135deg, #1db954, #1ed760);
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+.spotify-permission-header h3 {
+  margin: 0;
+  font-size: 1.3em;
+  font-weight: 600;
+}
+
+.spotify-permission-content {
+  padding: 24px;
+  color: #e0e0e0;
+  line-height: 1.6;
+}
+
+.spotify-permission-content p {
+  margin: 0 0 20px 0;
+  font-size: 0.95em;
+}
+
+.spotify-permission-steps {
+  margin: 20px 0;
+  padding: 16px;
+  background: #2a2a2a;
+  border-radius: 8px;
+  border-left: 4px solid #1db954;
+}
+
+.spotify-permission-steps h4 {
+  margin: 0 0 12px 0;
+  color: #1ed760;
+  font-size: 1em;
+  font-weight: 600;
+}
+
+.spotify-permission-steps ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.spotify-permission-steps li {
+  margin: 8px 0;
+  font-size: 0.9em;
+}
+
+.spotify-permission-steps strong {
+  color: #1ed760;
+  font-weight: 600;
+}
+
+.spotify-permission-note {
+  background: #2d2d2d;
+  border-radius: 6px;
+  padding: 12px;
+  border-left: 3px solid #ffa500;
+}
+
+.spotify-permission-note p {
+  margin: 0;
+  font-size: 0.85em;
+  color: #d0d0d0;
+}
+
+.spotify-permission-buttons {
+  padding: 20px 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  background: #1e1e1e;
+  border-top: 1px solid #333;
+}
+
+.spotify-permission-button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.9em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.spotify-permission-button--cancel {
+  background: #404040;
+  color: #e0e0e0;
+}
+
+.spotify-permission-button--cancel:hover {
+  background: #505050;
+}
+
+.spotify-permission-button--confirm {
+  background: #1db954;
+  color: white;
+}
+
+.spotify-permission-button--confirm:hover {
+  background: #1ed760;
+  transform: translateY(-1px);
+}
+
+.spotify-permission-button:active {
+  transform: translateY(0);
+}

@@ -39,12 +39,29 @@ export const createAudioStream = (
       };
 
       audio.addEventListener('canplay', onCanPlay);
-      audio.addEventListener('error', err => {
+      audio.addEventListener('error', () => {
         audio.removeEventListener('canplay', onCanPlay);
-        reject(new Error(`Failed to load audio stream: ${err.message}`));
+        reject(new Error(`Failed to load audio stream`));
       });
+
+      audio.load();
     } catch (err) {
       reject(err);
     }
   });
+};
+
+export const cleanupAudioStream = (audio: HTMLAudioElement, objectUrl?: string) => {
+  audio.pause();
+  audio.src = '';
+
+  if (objectUrl && objectUrl.startsWith('blob:')) {
+    URL.revokeObjectURL(objectUrl);
+  }
+
+  const source = connectedElements.get(audio);
+  if (source) {
+    source.disconnect();
+    connectedElements.delete(audio);
+  }
 };

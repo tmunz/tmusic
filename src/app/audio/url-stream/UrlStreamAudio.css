@@ -1,0 +1,25 @@
+.url-stream {
+  display: flex;
+  flex-direction: row;
+  .input-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    min-width: 0;
+
+    input {
+      background-color: transparent;
+      color: white;
+      border: none;
+      font-size: 1.2em;
+      margin: 0 1em;
+      border-radius: 0;
+      width: 100%;
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+}

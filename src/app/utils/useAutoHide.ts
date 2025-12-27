@@ -1,35 +1,39 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 export function useAutoHide(timeout: number = 3000, shouldHide: boolean = true) {
   const [visible, setVisible] = useState(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
+  const shouldHideRef = useRef(shouldHide);
 
-  const clearCurrentTimeout = () => {
+  useEffect(() => {
+    shouldHideRef.current = shouldHide;
+  }, [shouldHide]);
+
+  const clearCurrentTimeout = useCallback(() => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-  };
+  }, []);
 
-  const startTimeout = () => {
+  const startTimeout = useCallback(() => {
     clearCurrentTimeout();
     timeoutRef.current = setTimeout(() => {
-      if (shouldHide) {
+      if (shouldHideRef.current) {
         setVisible(false);
       }
     }, timeout);
-  };
+  }, [timeout, clearCurrentTimeout]);
 
-  const handleActivity = () => {
+  const handleActivity = useCallback(() => {
     const now = Date.now();
-    if (now - lastActivityRef.current < 100) return; 
+    if (now - lastActivityRef.current < 100) return;
 
     lastActivityRef.current = now;
     setVisible(true);
     startTimeout();
-  };
-
+  }, [startTimeout]);
 
   useEffect(() => {
     if (!shouldHide) {
@@ -38,7 +42,7 @@ export function useAutoHide(timeout: number = 3000, shouldHide: boolean = true) 
     } else {
       startTimeout();
     }
-  }, [shouldHide, timeout]);
+  }, [shouldHide, timeout, clearCurrentTimeout, startTimeout]);
 
   useEffect(() => {
     const events = ['mousemove', 'keydown', 'click'];
@@ -48,7 +52,7 @@ export function useAutoHide(timeout: number = 3000, shouldHide: boolean = true) 
       events.forEach(event => window.removeEventListener(event, handleActivity));
       clearCurrentTimeout();
     };
-  }, []);
+  }, [handleActivity, clearCurrentTimeout]);
 
   return visible;
 }

@@ -1,11 +1,10 @@
 import './IconToggleButton.css';
-import { ComponentType } from 'react';
-import { IconBaseProps } from 'react-icons';
+import { IconType } from 'react-icons';
 import { IconButton } from './IconButton';
 
 interface IconToggleButtonProps {
-  activeIcon: ComponentType<IconBaseProps>;
-  inactiveIcon: ComponentType<IconBaseProps>;
+  activeIcon: IconType;
+  inactiveIcon: IconType;
   isActive: boolean;
   onClick: () => void;
   className?: string;

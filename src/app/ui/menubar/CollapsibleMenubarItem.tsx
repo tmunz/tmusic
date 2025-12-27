@@ -1,12 +1,12 @@
 import './CollapsibleMenubarItem.css';
-import { useState, useRef, ReactNode, ComponentType, useEffect } from 'react';
-import { IconBaseProps } from 'react-icons';
+import { useState, useRef, ReactNode, useEffect } from 'react';
+import { IconType } from 'react-icons';
 import { PiX } from 'react-icons/pi';
 import { COLLAPSIBLE_MENUBAR_ITEM_TRANSITION_DURATION_MS } from './MenubarConstants';
 import { IconToggleButton } from '../icon-button/IconToggleButton';
 
 interface CollapsibleMenubarItemProps {
-  icon: ComponentType<IconBaseProps>;
+  icon: IconType;
   children: ReactNode;
   onActiveChange?: (isActive: boolean) => void;
 }

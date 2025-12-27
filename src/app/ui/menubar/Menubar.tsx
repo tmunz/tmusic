@@ -23,8 +23,9 @@ export const Menubar = ({ hideTimeout, children }: MenubarProps) => {
   }, []);
 
   const onActiveChanges = useMemo(() => {
-    return Array.from({ length: childrenCount }, (_, index) => 
-      (isActive: boolean) => updateActiveState(index, isActive)
+    return Array.from(
+      { length: childrenCount },
+      (_, index) => (isActive: boolean) => updateActiveState(index, isActive)
     );
   }, [childrenCount, updateActiveState]);
 
