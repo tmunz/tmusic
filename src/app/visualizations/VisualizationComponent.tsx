@@ -17,7 +17,7 @@ export const VisualizationComponent = ({
   canvas,
   isActive,
 }: VisualizationComponentProps) => {
-  const { visible, fadeStyle } = useFade(isActive, CAROUSEL_TRANSITION_DURATION_MS * 1);
+  const { visible, fadeStyle } = useFade(isActive, 600, CAROUSEL_TRANSITION_DURATION_MS);
 
   return (
     <div className="visualization-component" style={{ backgroundColor: visualization?.color }}>

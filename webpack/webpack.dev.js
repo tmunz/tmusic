@@ -4,6 +4,9 @@ const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin'
 module.exports = {
   mode: 'development',
   devtool: 'inline-source-map',
+  output: {
+    publicPath: '/',
+  },
   devServer: {
     static: {
       directory: path.join(__dirname, '..', 'public'),
