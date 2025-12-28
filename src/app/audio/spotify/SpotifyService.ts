@@ -1,3 +1,5 @@
+import { SpotifyAuth, SpotifyAuthState } from './SpotifyAuth';
+
 export interface SpotifyState {
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -6,8 +8,9 @@ export interface SpotifyState {
 }
 
 export class SpotifyService {
-  private accessToken: string | null = null;
-  private authServerUrl = 'https://spotify-auth-tmusic.vercel.app';
+  private static instanceCounter = 0;
+  
+  private auth: SpotifyAuth;
   private player: any = null;
   private deviceId: string | null = null;
   private currentTrack: any = null;
@@ -16,14 +19,32 @@ export class SpotifyService {
   private onPlaybackStart?: () => void;
 
   constructor(onStateChange?: (state: SpotifyState) => void, onPlaybackStart?: () => void) {
+    SpotifyService.instanceCounter++;
     this.onStateChange = onStateChange;
     this.onPlaybackStart = onPlaybackStart;
+    
+    this.auth = new SpotifyAuth((authState: SpotifyAuthState) => {
+      this.updateState({
+        isAuthenticated: authState.isAuthenticated,
+        isLoading: authState.isLoading,
+        error: authState.error,
+      });
+    });
+  }
+
+  destroy(): void {
+    this.auth.destroy();
+
+    if (this.player) {
+      this.player.disconnect();
+      this.player = null;
+    }
   }
 
   private updateState(updates: Partial<SpotifyState>) {
     if (this.onStateChange) {
       this.onStateChange({
-        isAuthenticated: this.isAuthenticated(),
+        isAuthenticated: this.auth.isAuthenticated(),
         isLoading: this.isLoading,
         currentTrack: this.currentTrack,
         error: null,
@@ -33,79 +54,24 @@ export class SpotifyService {
   }
 
   async authenticate(): Promise<boolean> {
-    this.isLoading = true;
-    this.updateState({ isLoading: true });
-
-    try {
-      const hash = window.location.hash.substring(1);
-      const params = new URLSearchParams(hash);
-      const accessToken = params.get('access_token');
-
-      if (accessToken) {
-        this.accessToken = accessToken;
-        localStorage.setItem('spotify_access_token', accessToken);
-        window.location.hash = '';
-        this.isLoading = false;
-        this.updateState({ isLoading: false });
-        return true;
-      }
-
-      const storedToken = localStorage.getItem('spotify_access_token');
-      if (storedToken) {
-        this.accessToken = storedToken;
-
-        // Validate the stored token has required scopes
-        const hasValidScopes = await this.validateScopes();
-        if (!hasValidScopes) {
-          console.log('Stored token lacks required scopes, removing and redirecting to re-auth');
-          this.clearAuthData();
-          // Redirect to login with proper scopes
-          window.location.href = this.getAuthUrl();
-          return false;
-        }
-
-        this.isLoading = false;
-        this.updateState({ isLoading: false });
-        return true;
-      }
-
-      const loginUrl = this.getAuthUrl();
-      console.log('Redirecting to Spotify login with required scopes:', loginUrl);
-      window.location.href = loginUrl;
-      return false;
-    } catch (error) {
-      console.error('Spotify authentication failed:', error);
-      this.isLoading = false;
-      this.updateState({ isLoading: false, error: 'Spotify authentication failed: ' + (error as Error).message });
-      return false;
-    }
+    return await this.auth.authenticate();
   }
 
   async checkForAuthOnLoad(): Promise<boolean> {
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    const accessToken = params.get('access_token');
-
-    if (accessToken) {
-      const authenticated = await this.authenticate();
-      if (authenticated) {
-        await this.playAlbumAndGetCurrentTrack();
-        return true;
-      }
-    }
-    return false;
+    return await this.auth.checkForAuthOnLoad();
   }
 
   async playAlbumAndGetCurrentTrack(spotifyUri?: string): Promise<any> {
-    if (!this.accessToken) {
+    const accessToken = this.auth.getAccessToken();
+    
+    if (!accessToken) {
       throw new Error('Not authenticated with Spotify');
     }
 
     this.isLoading = true;
     this.updateState({ isLoading: true });
-    console.log('Starting Spotify playback...');
 
-    const hasValidScopes = await this.validateScopes();
+    const hasValidScopes = await this.auth.validateScopes();
     if (!hasValidScopes) {
       this.isLoading = false;
       this.updateState({ isLoading: false });
@@ -114,30 +80,23 @@ export class SpotifyService {
 
     try {
       if (!this.player) {
-        console.log('Initializing Spotify Web Playback...');
         await this.initializeWebPlayback();
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
       if (!this.deviceId) {
-        console.error('Spotify device not ready after initialization');
         this.isLoading = false;
         this.updateState({ isLoading: false, error: 'Spotify device not ready. Please try again in a moment.' });
         throw new Error('Spotify device not ready. Please try again in a moment.');
       }
 
-      console.log('Spotify device ready, device ID:', this.deviceId);
-
       const albumUri = spotifyUri || 'spotify:album:5Dgqy4bBg09Rdw7CQM545s';
-      console.log('Using album URI:', albumUri);
-
       const albumId = albumUri.split(':')[2];
 
-      console.log('Setting active device...');
       const deviceResponse = await fetch('https://api.spotify.com/v1/me/player', {
         method: 'PUT',
         headers: {
-          Authorization: `Bearer ${this.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -147,20 +106,16 @@ export class SpotifyService {
       });
 
       if (!deviceResponse.ok) {
-        console.error('Failed to set active device:', deviceResponse.status, deviceResponse.statusText);
         const errorText = await deviceResponse.text();
-        console.error('Device error response:', errorText);
-      } else {
-        console.log('Active device set successfully');
+        console.error('Failed to set active device:', deviceResponse.status, deviceResponse.statusText, errorText);
       }
 
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      console.log('Starting album playback for album ID:', albumId);
       const playResponse = await fetch('https://api.spotify.com/v1/me/player/play', {
         method: 'PUT',
         headers: {
-          Authorization: `Bearer ${this.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -170,9 +125,8 @@ export class SpotifyService {
       });
 
       if (!playResponse.ok) {
-        console.error('Failed to start playback:', playResponse.status, playResponse.statusText);
         const errorText = await playResponse.text();
-        console.error('Playback error response:', errorText);
+        console.error('Failed to start playback:', playResponse.status, playResponse.statusText, errorText);
         this.isLoading = false;
         this.updateState({
           isLoading: false,
@@ -181,17 +135,18 @@ export class SpotifyService {
         throw new Error(`Failed to play album: ${playResponse.status} ${playResponse.statusText}`);
       }
 
-      console.log('Playback started successfully');
+      this.auth.clearJustAuthenticatedFlag();
 
-      // Notify that playback has started
       if (this.onPlaybackStart) {
         this.onPlaybackStart();
       }
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      this.auth.startPeriodicTokenCheck();
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
       const currentResponse = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
         headers: {
-          Authorization: `Bearer ${this.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
@@ -211,7 +166,7 @@ export class SpotifyService {
 
       const albumResponse = await fetch(`https://api.spotify.com/v1/albums/${albumId}`, {
         headers: {
-          Authorization: `Bearer ${this.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
@@ -237,7 +192,8 @@ export class SpotifyService {
   }
 
   async initializeWebPlayback(): Promise<boolean> {
-    if (!this.accessToken) {
+    const accessToken = this.auth.getAccessToken();
+    if (!accessToken) {
       throw new Error('Not authenticated with Spotify');
     }
 
@@ -258,20 +214,25 @@ export class SpotifyService {
   }
 
   private async setupPlayer(): Promise<boolean> {
-    console.log('Setting up Spotify player...');
     const SpotifyPlayer = (window as any).Spotify.Player;
 
     this.player = new SpotifyPlayer({
       name: 'TMusic Web Player',
-      getOAuthToken: (cb: (token: string) => void) => {
-        console.log('Spotify requesting OAuth token');
-        cb(this.accessToken!);
+      getOAuthToken: async (cb: (token: string) => void) => {
+        const isValid = await this.auth.ensureValidToken();
+        if (!isValid) {
+          this.updateState({
+            error: 'Spotify session expired. Please re-authenticate.',
+          });
+        }
+        
+        const accessToken = this.auth.getAccessToken();
+        cb(accessToken!);
       },
       volume: 0.8,
       enableMediaSession: true,
     });
 
-    // Error handling
     this.player.addListener('initialization_error', ({ message }: any) => {
       console.error('Spotify Player initialization error:', message);
     });
@@ -289,21 +250,20 @@ export class SpotifyService {
     });
 
     this.player.addListener('ready', ({ device_id }: any) => {
-      console.log('Spotify Player ready with device ID:', device_id);
       this.deviceId = device_id;
     });
 
     this.player.addListener('not_ready', ({ device_id }: any) => {
-      console.log('Spotify Player not ready with device ID:', device_id);
+      console.error('Spotify Player not ready:', device_id);
     });
 
     this.player.addListener('player_state_changed', (state: any) => {
-      console.log('Spotify player state changed:', state);
+      if (state) {
+        console.log('Spotify player state changed');
+      }
     });
 
-    console.log('Connecting Spotify player...');
     const success = await this.player.connect();
-    console.log('Spotify player connected:', success);
     return success;
   }
 
@@ -311,7 +271,6 @@ export class SpotifyService {
     if (this.player) {
       try {
         await this.player.pause();
-        console.log('Spotify playback stopped');
         this.currentTrack = null;
         this.updateState({ currentTrack: null });
       } catch (error) {
@@ -330,7 +289,7 @@ export class SpotifyService {
 
   getState(): SpotifyState {
     return {
-      isAuthenticated: this.isAuthenticated(),
+      isAuthenticated: this.auth.isAuthenticated(),
       isLoading: this.isLoading,
       currentTrack: this.currentTrack,
       error: null,
@@ -338,82 +297,15 @@ export class SpotifyService {
   }
 
   async validateScopes(): Promise<boolean> {
-    if (!this.accessToken) {
-      return false;
-    }
-
-    try {
-      // Check token info to see what scopes we have
-      const response = await fetch('https://api.spotify.com/v1/me', {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        console.error('Failed to validate token:', response.status, response.statusText);
-        return false;
-      }
-
-      const userData = await response.json();
-      console.log('Spotify user data:', userData);
-
-      // Try a test call that requires streaming scope
-      const testResponse = await fetch('https://api.spotify.com/v1/me/player/devices', {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-      });
-
-      if (testResponse.status === 401) {
-        console.error('❌ Token missing required scopes for Web Playback SDK');
-        console.error('Required scopes: user-read-playback-state, user-modify-playback-state, streaming');
-        this.updateState({
-          isLoading: false,
-          error: 'Spotify token missing required permissions. Please re-authenticate with proper scopes.',
-        });
-        return false;
-      }
-
-      console.log('✓ Token validation successful');
-      return true;
-    } catch (error) {
-      console.error('Token validation error:', error);
-      return false;
-    }
+    return await this.auth.validateScopes();
   }
 
   async checkUserPremium(): Promise<boolean> {
-    if (!this.accessToken) {
-      return false;
-    }
-
-    try {
-      const response = await fetch('https://api.spotify.com/v1/me', {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        console.log('Spotify user data:', userData);
-        const isPremium = userData.product === 'premium';
-        console.log('User has Spotify Premium:', isPremium);
-        return isPremium;
-      } else {
-        console.error('Failed to fetch user data:', response.status, response.statusText);
-        return false;
-      }
-    } catch (error) {
-      console.error('Error checking user premium status:', error);
-      return false;
-    }
+    return await this.auth.checkUserPremium();
   }
 
   clearAuthData(): void {
-    this.accessToken = null;
-    localStorage.removeItem('spotify_access_token');
+    this.auth.clearAuthData();
     this.updateState({
       isAuthenticated: false,
       isLoading: false,
@@ -423,14 +315,10 @@ export class SpotifyService {
   }
 
   getAuthUrl(): string {
-    const currentOrigin = window.location.origin;
-    // Make sure the auth server requests the required scopes
-    return `${this.authServerUrl}/login?origin=${encodeURIComponent(
-      currentOrigin
-    )}&scopes=user-read-playback-state,user-modify-playback-state,streaming`;
+    return this.auth.getAuthUrl();
   }
 
   isAuthenticated(): boolean {
-    return this.accessToken !== null;
+    return this.auth.isAuthenticated();
   }
 }

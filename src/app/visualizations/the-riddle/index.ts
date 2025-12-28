@@ -4,12 +4,12 @@ import { TheRiddle } from './visualization/TheRiddle';
 
 const theRiddle: Visualization = {
   id: 'the-riddle',
-  title: 'The Riddle',
+  title: "L'Amour Toujours",
   artist: "Gigi D'Agostino",
   design: 'Ged Haney, Andreas Hykade',
   imgSrc: require('./the-riddle.png'),
   description:
-    "This is not album cover art; it is a visualization inspired by the iconic music video of Gigi D'Agostino's track. The landscape is shaped by the audio samples, and you can start the experience to see music and visual movement interact.",
+    "This visualization is actually not based on the album cover art, it is inspired by the iconic animated music videos of Gigi D'Agostino's 1999 masterpiece L'Amour Toujours. The distinctive stick-figure aesthetic from videos like 'The Riddle' and 'Bla Bla Bla' captured the essence of late 90s electronic music culture. This visualization reimagines that minimalist charm with a dynamic audio-reactive landscape where hills and valleys pulse and morph in perfect sync with the music, creating a mesmerizing journey through sound and motion.",
   component: TheRiddle,
   color: '#01A101',
   settings: {

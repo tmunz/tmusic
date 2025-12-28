@@ -13,7 +13,11 @@ interface SpotifyAudioProps extends AudioProps {
 
 export const SpotifyAudio = ({ isActive, onStreamCreated, onError }: SpotifyAudioProps) => {
   const { appState } = useAppState();
-  const [spotifyService] = useState(() => new SpotifyService(state => setSpotifyState(state)));
+  const [spotifyService] = useState(() => {
+    const service = new SpotifyService(state => setSpotifyState(state));
+    console.log('📦 SpotifyAudio: Created SpotifyService instance');
+    return service;
+  });
   const [spotifyState, setSpotifyState] = useState<SpotifyState>(() => spotifyService.getState());
   const [showDialog, setShowDialog] = useState<boolean>(false);
   const [activeStreams, setActiveStreams] = useState<{
@@ -21,11 +25,26 @@ export const SpotifyAudio = ({ isActive, onStreamCreated, onError }: SpotifyAudi
     audioContext?: AudioContext;
   }>({});
 
+  // Log dialog state changes
+  useEffect(() => {
+    console.log('🎭 Dialog state changed:', showDialog ? 'SHOWING' : 'HIDDEN');
+  }, [showDialog]);
+
   useEffect(() => {
     const checkAuthOnLoad = async () => {
       try {
-        await spotifyService.checkForAuthOnLoad();
+        console.log('🔍 SpotifyAudio: Checking for auth on component mount...');
+        const wasAuthenticating = await spotifyService.checkForAuthOnLoad();
+        console.log('🔍 SpotifyAudio: checkForAuthOnLoad returned:', wasAuthenticating);
+        if (wasAuthenticating) {
+          // User just completed authentication, show the dialog to start playback
+          console.log('🎵 User authenticated, showing permission dialog');
+          setShowDialog(true);
+        } else {
+          console.log('ℹ️  No authentication detected, dialog will not show');
+        }
       } catch (error) {
+        console.error('❌ Error checking Spotify authentication:', error);
         onError('Failed to check Spotify authentication: ' + (error as Error).message);
       }
     };
@@ -53,28 +72,41 @@ export const SpotifyAudio = ({ isActive, onStreamCreated, onError }: SpotifyAudi
   }, [appState.visualization?.spotifyUri]);
 
   const handleSpotifyLogin = async () => {
+    console.log('🎵 Spotify button clicked');
     try {
       const authenticated = await spotifyService.authenticate();
+      console.log('🔐 Authentication result:', authenticated);
       if (authenticated) {
+        // User is authenticated (either just now or has existing token)
+        // Always show the dialog to get screen share permission
+        console.log('✅ User authenticated, showing permission dialog');
         setShowDialog(true);
       }
     } catch (error) {
+      console.error('❌ Spotify login failed:', error);
       onError('Spotify login failed: ' + (error as Error).message);
     }
   };
 
   const handleDialogConfirm = async () => {
+    console.log('✅ User confirmed permission dialog, starting screen capture...');
     setShowDialog(false);
     try {
       await startScreenCapture();
+      console.log('✅ Screen capture successful, starting playback...');
       await spotifyService.playAlbumAndGetCurrentTrack(appState.visualization?.spotifyUri);
     } catch (error) {
+      console.error('❌ Error in handleDialogConfirm:', error);
       onError('Failed to start Spotify recording: ' + (error as Error).message);
     }
   };
 
   const handleDialogCancel = () => {
+    console.log('❌ User cancelled permission dialog');
     setShowDialog(false);
+    // Clear the authentication flag since user cancelled
+    localStorage.removeItem('spotify_just_authenticated');
+    console.log('🧹 Cleared spotify_just_authenticated flag after user cancellation');
     onError('Screen sharing is required to capture Spotify audio. Please try again when ready.');
   };
 
