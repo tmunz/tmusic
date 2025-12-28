@@ -61,6 +61,7 @@ module.exports = (env) => ({
       "process.env": {
         "APP_VERSION": JSON.stringify(pkg.version),
         "MODE": JSON.stringify(env),
+        "PUBLIC_PATH": JSON.stringify(env === "production" ? '/tmusic' : '/'),
       }
     }),
   ],

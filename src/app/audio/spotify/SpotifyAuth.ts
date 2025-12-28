@@ -454,24 +454,21 @@ export class SpotifyAuth {
   }
 
   getAuthUrl(): string {
-    const currentOrigin = window.location.origin;
     const currentPath = window.location.pathname;
-    const isGitHubPages = window.location.hostname === 'tmunz.github.io';
-    
-    const isRootPath = isGitHubPages 
-      ? (currentPath === '/' || currentPath === '/tmusic' || currentPath === '/tmusic/')
-      : (currentPath === '/');
+    const basePath = (process.env.PUBLIC_PATH || '/').replace(/\/$/, '');
+    const isRootPath = currentPath === basePath || currentPath === basePath + '/';
     
     if (!isRootPath) {
       console.log('💾 Saving current route before auth:', currentPath);
       localStorage.setItem(SpotifyAuth.STORAGE_KEYS.PRE_AUTH_PATH, currentPath);
     }
     
-    const redirectUrl = isGitHubPages ? currentOrigin + '/tmusic' : currentOrigin;
+    const redirectUrl = window.location.origin + basePath;
     let authUrl = `${this.authServerUrl}/login?origin=${encodeURIComponent(redirectUrl)}`;
     authUrl += `&scopes=user-read-playback-state,user-modify-playback-state,streaming`;
     
     console.log('🔗 Auth URL:', authUrl);
+    console.log('📋 Redirect URL:', redirectUrl);
     console.log('📋 Requested scopes:', 'user-read-playback-state,user-modify-playback-state,streaming');
     return authUrl;
   }
