@@ -11,8 +11,10 @@ import minorEarthMajorSky from './minor-earth-major-sky';
 import violator from './violator';
 import transEuropeExpress from './trans-europe-express';
 import theRiddle from './the-riddle';
+import tron from './tron';
 
 export default [
+  tron,
   unknownPleasures,
   theDarkSideOfTheMoon,
   transEuropeExpress,
