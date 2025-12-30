@@ -7,9 +7,9 @@ export interface ControlsState {
   decelerate: boolean;
 }
 
-export const useLightCycleControls = () => {
+export const useVehicleControls = () => {
   const keysPressed = useRef<Set<string>>(new Set());
-  
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
@@ -17,27 +17,27 @@ export const useLightCycleControls = () => {
         keysPressed.current.add(key);
       }
     };
-    
+
     const handleKeyUp = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
       keysPressed.current.delete(key);
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
-    
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
   }, []);
-  
+
   const getControlsState = (): ControlsState => ({
     left: keysPressed.current.has('a'),
     right: keysPressed.current.has('d'),
     accelerate: keysPressed.current.has('w'),
     decelerate: keysPressed.current.has('s'),
   });
-  
+
   return getControlsState;
 };

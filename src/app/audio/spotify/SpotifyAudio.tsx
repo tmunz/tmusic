@@ -179,7 +179,7 @@ export const SpotifyAudio = ({ isActive, onStreamCreated, onError }: SpotifyAudi
       }
 
       onError(errorMessage);
-      
+
       await spotifyService.stopPlayback();
     }
   };
