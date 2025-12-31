@@ -12,6 +12,6 @@ module.exports = {
   coverageReporters: ['text-summary'],
   moduleNameMapper: {
     '\\.(css|styl)$': '<rootDir>/__mocks__/styleMock.js',
-    '\\.(jpg|jpeg|png|gif|svg|webp|ico|webmanifest)$': '<rootDir>/__mocks__/fileMock.js',
+    '\\.(jpg|jpeg|png|gif|svg|webp|ico|webmanifest|glb|gltf)$': '<rootDir>/__mocks__/fileMock.js',
   },
 };
