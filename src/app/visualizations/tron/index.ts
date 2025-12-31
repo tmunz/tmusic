@@ -1,5 +1,7 @@
+import { PiKeyboard } from 'react-icons/pi';
 import { createSampleSettings } from '../../audio/SampleSettings';
 import { Visualization } from '../Visualization';
+import { TronInstructions } from './TronInstructions';
 import { Tron } from './visualization/Tron';
 
 const tron: Visualization = {
@@ -16,6 +18,7 @@ const tron: Visualization = {
     samples: createSampleSettings(64, 64),
   },
   spotifyUri: 'spotify:album:3AMXFnwHWXCvNr5NCCpLZI',
+  menuItems: [{ icon: PiKeyboard, component: TronInstructions }],
 };
 
 export default tron;

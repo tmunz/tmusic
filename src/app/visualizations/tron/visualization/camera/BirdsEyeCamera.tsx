@@ -7,7 +7,7 @@ interface BirdsEyeCameraProps {
   height?: number;
 }
 
-export const BirdsEyeCamera = ({ targetRef, height = 20 }: BirdsEyeCameraProps) => {
+export const BirdsEyeCamera = ({ targetRef, height = 30 }: BirdsEyeCameraProps) => {
   const { camera } = useThree();
 
   useEffect(() => {

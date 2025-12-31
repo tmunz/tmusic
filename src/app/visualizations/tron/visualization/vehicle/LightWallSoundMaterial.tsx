@@ -7,31 +7,47 @@ export interface LightWallSoundMaterialProps {
   updateSampleTexture: () => void;
   color?: string;
   opacity?: number;
+  side?: THREE.Side;
+  depthWrite?: boolean;
 }
 
 export const useLightWallSoundMaterial = ({
   sampleTexture,
   updateSampleTexture,
   color = '#00ffff',
-  opacity = 0.2,
+  opacity = 0.6,
+  side = THREE.DoubleSide,
+  depthWrite = false,
 }: LightWallSoundMaterialProps) => {
-  // Create shader material
+  useFrame(() => {
+    updateSampleTexture();
+    if (shaderMaterial.uniforms.sampleData) {
+      shaderMaterial.uniforms.sampleData.value = sampleTexture;
+    }
+  });
+
   const shaderMaterial = useMemo(() => {
     const baseColor = new THREE.Color(color);
+    sampleTexture.minFilter = THREE.NearestFilter;
+    sampleTexture.magFilter = THREE.NearestFilter;
 
     return new THREE.ShaderMaterial({
       transparent: true,
-      side: THREE.DoubleSide,
+      side,
       toneMapped: false,
+      depthWrite,
       uniforms: {
         sampleData: { value: sampleTexture },
         baseColor: { value: baseColor },
         opacity: { value: opacity },
       },
       vertexShader: `
+        attribute vec4 color;
         varying vec2 vUv;
+        varying vec4 vColor;
         void main() {
           vUv = uv;
+          vColor = color;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
@@ -39,39 +55,18 @@ export const useLightWallSoundMaterial = ({
         uniform sampler2D sampleData;
         uniform vec3 baseColor;
         uniform float opacity;
+        uniform float fixedAlpha;
         varying vec2 vUv;
+        varying vec4 vColor;
         
         void main() {
-          // The sampleData texture has:
-          // - Width = frequencyBands (X axis)
-          // - Height = sampleSize (Y axis, time)
-          // We only want the NEWEST sample (y = 0 in texture coordinates)
-          // and map frequency bands across the full width (vUv.x)
-          
-          // Sample only the newest row (y = 0.0), with frequency mapped to x
-          float audioValue = texture2D(sampleData, vec2(vUv.x, 0.0)).r;
-          
-          // Calculate intensity and alpha based on audio value
-          float intensity = 1.0 + audioValue * 3.0;
-          float alpha = audioValue * opacity * 2.0;
-          
-          // Add minimum alpha for visibility
-          alpha = max(alpha, 0.05);
-          
-          vec3 color = baseColor * intensity;
-          gl_FragColor = vec4(color, alpha);
+          float audioValue = texture2D(sampleData, vec2(vUv.y, vUv.x)).r;
+          float alpha = audioValue * opacity * vColor.a;
+          gl_FragColor = vec4(baseColor, alpha);
         }
       `,
     });
   }, [color, opacity]);
-
-  // Update texture and uniforms on each frame
-  useFrame(() => {
-    updateSampleTexture();
-    if (shaderMaterial.uniforms.sampleData) {
-      shaderMaterial.uniforms.sampleData.value = sampleTexture;
-    }
-  });
 
   return shaderMaterial;
 };

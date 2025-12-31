@@ -14,9 +14,9 @@ import theRiddle from './the-riddle';
 import tron from './tron';
 
 export default [
-  tron,
   unknownPleasures,
   theDarkSideOfTheMoon,
+  tron,
   transEuropeExpress,
   violator,
   karpatenhund,

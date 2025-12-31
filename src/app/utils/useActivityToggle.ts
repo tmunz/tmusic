@@ -1,7 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-export function useAutoHide(timeout: number = 3000, shouldHide: boolean = true) {
-  const [visible, setVisible] = useState(true);
+export function useActivityToggle(
+  initialState: boolean = true,
+  shouldHide: boolean = true,
+  timeout: number = 3000,
+  events = ['mousemove', 'keydown', 'click']
+) {
+  const [visible, setVisible] = useState(initialState);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
   const shouldHideRef = useRef(shouldHide);
@@ -45,14 +50,13 @@ export function useAutoHide(timeout: number = 3000, shouldHide: boolean = true) 
   }, [shouldHide, timeout, clearCurrentTimeout, startTimeout]);
 
   useEffect(() => {
-    const events = ['mousemove', 'keydown', 'click'];
     events.forEach(event => window.addEventListener(event, handleActivity, { passive: true }));
 
     return () => {
       events.forEach(event => window.removeEventListener(event, handleActivity));
       clearCurrentTimeout();
     };
-  }, [handleActivity, clearCurrentTimeout]);
+  }, [handleActivity, clearCurrentTimeout, events]);
 
   return visible;
 }

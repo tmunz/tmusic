@@ -13,5 +13,14 @@ export const ObserverCamera = forwardRef<any, { targetRef: React.RefObject<Mesh>
     }
   });
 
-  return <OrbitControls ref={controlsRef} enableDamping dampingFactor={0.05} minDistance={3} maxDistance={50} />;
+  return (
+    <OrbitControls
+      ref={controlsRef}
+      enableDamping
+      dampingFactor={0.05}
+      minDistance={3}
+      maxDistance={50}
+      maxPolarAngle={Math.PI / 2 - 0.01}
+    />
+  );
 });

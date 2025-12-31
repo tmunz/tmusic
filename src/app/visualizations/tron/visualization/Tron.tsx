@@ -6,9 +6,10 @@ import { FollowCamera } from './camera/FollowCamera';
 import { ObserverCamera } from './camera/ObserverCamera';
 import { BirdsEyeCamera } from './camera/BirdsEyeCamera';
 import { World } from './world/World';
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import { CameraMode } from './camera/CameraMode';
+import { useActivityToggle } from '../../../utils/useActivityToggle';
 
 export interface TronProps {
   sampleProvider: SampleProvider;
@@ -33,6 +34,26 @@ export interface SceneProps {
 
 export const Scene = ({ width, height, sampleProvider, cameraMode = CameraMode.FOLLOW }: SceneProps) => {
   const targetRef = useRef<THREE.Mesh>(null);
+  const [currentCameraMode, setCurrentCameraMode] = useState<CameraMode>(cameraMode);
+  const gameMode = useActivityToggle(false, true, 10000, ['keydown']);
+  const colors = ['#66EEFF'];
+
+  const cameraModes = [CameraMode.FOLLOW, CameraMode.OBSERVER, CameraMode.BIRDS_EYE];
+
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key === 'c' || event.key === 'C') {
+        setCurrentCameraMode(prevMode => {
+          const currentIndex = cameraModes.indexOf(prevMode);
+          const nextIndex = (currentIndex + 1) % cameraModes.length;
+          return cameraModes[nextIndex];
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
 
   return (
     <div style={{ width, height }}>
@@ -40,7 +61,6 @@ export const Scene = ({ width, height, sampleProvider, cameraMode = CameraMode.F
         camera={{ position: [0, 1, 3], fov: 60 }}
         gl={{
           antialias: true,
-          toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1.2,
         }}
       >
@@ -49,18 +69,17 @@ export const Scene = ({ width, height, sampleProvider, cameraMode = CameraMode.F
         <ambientLight intensity={0.3} />
         <directionalLight position={[10, 10, 5]} intensity={2} castShadow />
         <directionalLight position={[-10, 10, -5]} intensity={0.8} />
-        <pointLight position={[0, 5, 0]} intensity={3} color="#00ffff" />
-        <pointLight position={[5, 3, 5]} intensity={2} color="#ff00ff" />
-        <pointLight position={[-5, 3, -5]} intensity={2} color="#00ff00" />
-        <hemisphereLight args={['#ffffff', '#0066ff', 0.5]} />
-        <Vehicle ref={targetRef} sampleProvider={sampleProvider} />
-        {cameraMode === CameraMode.OBSERVER && <ObserverCamera targetRef={targetRef} />}
-        {cameraMode === CameraMode.FOLLOW && <FollowCamera targetRef={targetRef} />}
-        {cameraMode === CameraMode.BIRDS_EYE && <BirdsEyeCamera targetRef={targetRef} />}
+        <hemisphereLight args={['#ffffff', colors[0], 0.5]} />
+        <Vehicle ref={targetRef} sampleProvider={sampleProvider} color={colors[0]} />
+        {/* <Vehicle sampleProvider={sampleProvider} color="#ff0000" position={[-1, 0, 0]} rotation={[1, 0, 0]} />
+        <Vehicle sampleProvider={sampleProvider} color="#ffbf00" position={[1, 0, 0]} rotation={[0, 0, 0]} /> */}
+        {currentCameraMode === CameraMode.OBSERVER && <ObserverCamera targetRef={targetRef} />}
+        {currentCameraMode === CameraMode.FOLLOW && <FollowCamera targetRef={targetRef} drift={gameMode ? 0 : 2} />}
+        {currentCameraMode === CameraMode.BIRDS_EYE && <BirdsEyeCamera targetRef={targetRef} />}
         <World targetRef={targetRef} tileSize={50} viewDistance={3} />
 
         <EffectComposer>
-          <Bloom intensity={1.2} luminanceThreshold={0.02} luminanceSmoothing={0.1} mipmapBlur radius={0.3} />
+          <Bloom intensity={1.4} luminanceThreshold={0.02} luminanceSmoothing={0.1} mipmapBlur radius={0.3} />
         </EffectComposer>
       </Canvas>
     </div>

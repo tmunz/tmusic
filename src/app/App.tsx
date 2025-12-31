@@ -72,6 +72,14 @@ export function App() {
         <CollapsibleMenubarItem icon={PiSlidersHorizontalDuotone}>
           <SettingsComponent />
         </CollapsibleMenubarItem>
+        {appState.visualization?.menuItems?.map((item, index) => {
+          const ItemComponent = item.component;
+          return (
+            <CollapsibleMenubarItem key={index} icon={item.icon}>
+              <ItemComponent />
+            </CollapsibleMenubarItem>
+          );
+        })}
         <SampleProviderComponent
           onSampleProviderChange={setSampleProvider}
           {...Object.fromEntries(

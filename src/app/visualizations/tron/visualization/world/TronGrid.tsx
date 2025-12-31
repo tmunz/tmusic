@@ -19,7 +19,7 @@ export const TronGrid = ({
   position,
   size,
   sectionSize = 5,
-  cellColor = '#004444',
+  cellColor = '#000000',
   sectionColor = '#002222',
   sparkColor = '#00aaaa',
   fadeDistance = 100,

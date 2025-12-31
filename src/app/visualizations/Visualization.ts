@@ -1,6 +1,7 @@
-import { ReactNode } from 'react';
+import { ReactNode, ComponentType } from 'react';
 import { Settings } from '../settings/Setting';
 import { SampleProvider } from '../audio/SampleProvider';
+import { IconType } from 'react-icons';
 
 export interface Visualization {
   id: string;
@@ -16,4 +17,5 @@ export interface Visualization {
   color: string;
   settings: Record<string, Settings>;
   spotifyUri: string;
+  menuItems?: [{ icon: IconType; component: ComponentType }];
 }
