@@ -2,7 +2,7 @@ import './Carousel.css';
 import React, { useEffect, useRef, useState } from 'react';
 import { PiCaretLeft, PiCaretRight } from 'react-icons/pi';
 import { IconButton } from '../icon-button/IconButton';
-import { useAutoHide } from '../../utils/useAutoHide';
+import { useActivityToggle } from '../../utils/useActivityToggle';
 import { CarouselItem } from './CarouselItem';
 import { CAROUSEL_TRANSITION_DURATION_CSS } from './CarouselConstants';
 
@@ -18,7 +18,7 @@ export const Carousel = ({ items, onSelect, selectedId, defaultFocus = false }: 
   const carouselRef = useRef<HTMLDivElement>(null);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const visible = useAutoHide();
+  const visible = useActivityToggle();
 
   const next = () => {
     const nextIndex = (index + 1) % items.length;

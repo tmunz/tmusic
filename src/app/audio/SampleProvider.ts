@@ -44,6 +44,9 @@ export class SampleProvider extends FixedSizeQueue<Uint8Array> {
     const prevActive = this._active;
     if (sample === undefined) {
       this._active = false;
+      for (let i = 0; i < this.size; i++) {
+        super.push(new Uint8Array(this._frequencyBands));
+      }
     } else {
       this._active = true;
       super.push(sample);

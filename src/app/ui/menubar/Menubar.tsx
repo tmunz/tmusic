@@ -1,6 +1,6 @@
 import './Menubar.css';
 import React, { HTMLAttributes, useState, useCallback, useMemo } from 'react';
-import { useAutoHide } from '../../utils/useAutoHide';
+import { useActivityToggle } from '../../utils/useActivityToggle';
 
 interface MenubarProps extends HTMLAttributes<HTMLDivElement> {
   hideTimeout: number;
@@ -29,7 +29,7 @@ export const Menubar = ({ hideTimeout, children }: MenubarProps) => {
     );
   }, [childrenCount, updateActiveState]);
 
-  const visible = useAutoHide(hideTimeout, activeItems.size === 0);
+  const visible = useActivityToggle(true, activeItems.size === 0, hideTimeout);
 
   return (
     <div className={`menubar ${visible ? 'visible' : 'hidden'}`}>

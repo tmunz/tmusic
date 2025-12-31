@@ -9,7 +9,7 @@ export interface SpotifyState {
 
 export class SpotifyService {
   private static instanceCounter = 0;
-  
+
   private auth: SpotifyAuth;
   private player: any = null;
   private deviceId: string | null = null;
@@ -22,7 +22,7 @@ export class SpotifyService {
     SpotifyService.instanceCounter++;
     this.onStateChange = onStateChange;
     this.onPlaybackStart = onPlaybackStart;
-    
+
     this.auth = new SpotifyAuth((authState: SpotifyAuthState) => {
       this.updateState({
         isAuthenticated: authState.isAuthenticated,
@@ -63,7 +63,7 @@ export class SpotifyService {
 
   async playAlbumAndGetCurrentTrack(spotifyUri?: string): Promise<any> {
     const accessToken = this.auth.getAccessToken();
-    
+
     if (!accessToken) {
       throw new Error('Not authenticated with Spotify');
     }
@@ -225,7 +225,7 @@ export class SpotifyService {
             error: 'Spotify session expired. Please re-authenticate.',
           });
         }
-        
+
         const accessToken = this.auth.getAccessToken();
         cb(accessToken!);
       },
