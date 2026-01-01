@@ -20,6 +20,9 @@ export const TronInstructions = (props: {}) => {
         <li>
           <kbd>C</kbd> Switch Camera
         </li>
+        <li>
+          <kbd>M</kbd> Toggle Debug Mode
+        </li>
       </ul>
     </div>
   );

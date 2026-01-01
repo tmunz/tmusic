@@ -2,6 +2,7 @@ import { useRef, useState, RefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { TronGrid } from './TronGrid';
+import { TronCube } from './TronCube';
 
 interface WorldProps {
   targetRef: RefObject<THREE.Mesh>;
@@ -76,6 +77,11 @@ export const World = ({ targetRef, tileSize = 50, viewDistance = 3 }: WorldProps
           fadeDistance={100}
         />
       ))}
+
+      <TronCube id="cube-0" position={[5, 0.5, 5]} rotation={[0, Math.PI / 4, 0]} />
+      <TronCube id="cube-1" position={[-5, 0.5, 5]} />
+      <TronCube id="cube-2" position={[5, 0.5, -5]} />
+      <TronCube id="cube-3" position={[-5, 0.5, -5]} />
     </group>
   );
 };

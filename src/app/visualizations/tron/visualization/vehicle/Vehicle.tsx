@@ -6,6 +6,8 @@ import { LightWall, LightWallHandle } from './LightWall';
 import { useVehicleControls } from './VehicleControls';
 import { SampleProvider } from '../../../../audio/SampleProvider';
 import { useSampleProviderActive } from '../../../../audio/useSampleProviderActive';
+import { useCollision } from '../collision/CollisionContext';
+import { registerDynamicCollisionObject } from '../collision/useDynamicCollisionObject';
 
 interface VehicleProps {
   sampleProvider: SampleProvider;
@@ -20,6 +22,7 @@ export const Vehicle = forwardRef<THREE.Mesh, VehicleProps>(
     const lightWallRef = useRef<LightWallHandle>(null);
     const getControlsState = useVehicleControls();
     const isActive = useSampleProviderActive(sampleProvider);
+    const { unregisterObject, checkCollision, registerObject, getAllObjects } = useCollision();
 
     const speedRef = useRef(0);
     const currentTurnSpeed = useRef(1);
@@ -27,12 +30,46 @@ export const Vehicle = forwardRef<THREE.Mesh, VehicleProps>(
     const currentTilt = useRef({ x: 0, z: 0 });
     const direction = useRef(new THREE.Vector3());
     const shouldAutoAccelerate = useRef(false);
+    const vehicleId = useRef(`vehicle-${Math.random()}`);
+    const previousPosition = useRef(new THREE.Vector3());
+    const collisionBoxRef = useRef<THREE.Mesh>(null);
+    const modelBoundingBoxSize = useRef<THREE.Vector3>(new THREE.Vector3(1, 1, 1));
+    const modelBoundingBoxCenter = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
 
     useEffect(() => {
       if (isActive && speedRef.current < 1) {
         shouldAutoAccelerate.current = true;
       }
     }, [isActive]);
+
+    // Compute model bounding box size once when model is loaded
+    useEffect(() => {
+      const vehicleModel = lightCycleRef.current?.vehicleModel;
+      const mesh = lightCycleRef.current?.meshRef.current;
+      if (vehicleModel && mesh) {
+        // Store original transform
+        const originalPosition = mesh.position.clone();
+        const originalRotation = mesh.rotation.clone();
+
+        // Reset mesh to origin for consistent bounding box calculation
+        mesh.position.set(0, 0, 0);
+        mesh.rotation.set(0, 0, 0);
+        mesh.updateMatrixWorld(true);
+
+        const bbox = new THREE.Box3().setFromObject(vehicleModel);
+        bbox.getSize(modelBoundingBoxSize.current);
+
+        // Get the center of the bounding box (now calculated at origin)
+        const localCenter = new THREE.Vector3();
+        bbox.getCenter(localCenter);
+        modelBoundingBoxCenter.current.copy(localCenter);
+
+        // Restore original transform
+        mesh.position.copy(originalPosition);
+        mesh.rotation.copy(originalRotation);
+        mesh.updateMatrixWorld(true);
+      }
+    }, [lightCycleRef.current?.vehicleModel]);
 
     useImperativeHandle(ref, () => lightCycleRef.current?.meshRef.current!, []);
 
@@ -143,14 +180,58 @@ export const Vehicle = forwardRef<THREE.Mesh, VehicleProps>(
 
       applyTilt(targetTurnTilt, delta, tiltSmoothness, cycle?.playerRef?.current);
 
+      previousPosition.current.copy(mesh.position);
+
       direction.current.set(0, 0, -1);
       direction.current.applyQuaternion(mesh.quaternion);
       mesh.position.addScaledVector(direction.current, speedRef.current * delta);
+
+      const collisionQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), mesh.rotation.y);
+
+      registerDynamicCollisionObject({
+        registerObject,
+        id: vehicleId.current,
+        position: mesh.position,
+        rotation: collisionQuaternion,
+        size: modelBoundingBoxSize.current,
+        localCenter: modelBoundingBoxCenter.current,
+        type: 'vehicle',
+      });
+
+      const size = modelBoundingBoxSize.current;
+      const localCenter = modelBoundingBoxCenter.current;
+      const worldCenter = localCenter.clone();
+      worldCenter.applyQuaternion(collisionQuaternion);
+      worldCenter.add(mesh.position);
+
+      if (collisionBoxRef.current) {
+        collisionBoxRef.current.position.copy(worldCenter);
+        collisionBoxRef.current.scale.set(size.x, size.y, size.z);
+        collisionBoxRef.current.rotation.set(0, mesh.rotation.y, 0);
+      }
+
+      const allObjects = getAllObjects();
+      const registeredVehicle = allObjects.find(obj => obj.id === vehicleId.current);
+      let collisions: any[] = [];
+      if (registeredVehicle) {
+        collisions = checkCollision(registeredVehicle);
+      }
+
+      if (collisions.length > 0) {
+        mesh.position.copy(previousPosition.current);
+        speedRef.current = 0;
+      }
 
       if (lightWallRef.current) {
         lightWallRef.current.update();
       }
     });
+
+    useEffect(() => {
+      return () => {
+        unregisterObject(vehicleId.current);
+      };
+    }, [unregisterObject]);
 
     return (
       <>

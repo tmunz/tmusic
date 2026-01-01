@@ -10,6 +10,7 @@ interface LightCycleProps {
 export interface LightCycleHandle {
   meshRef: React.RefObject<THREE.Mesh>;
   playerRef: React.RefObject<THREE.Group>;
+  vehicleModel: THREE.Object3D | null;
   params: VehicleParams;
   getLightWallSpawnPoints: () => { lower: THREE.Vector3; upper: THREE.Vector3 } | null;
 }
@@ -50,6 +51,7 @@ export const LightCycle = forwardRef<LightCycleHandle, LightCycleProps>(({ color
   useImperativeHandle(ref, () => ({
     meshRef,
     playerRef,
+    vehicleModel: vehicle,
     getLightWallSpawnPoints,
     params,
   }));

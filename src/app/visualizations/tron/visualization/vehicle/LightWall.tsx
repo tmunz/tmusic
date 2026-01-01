@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { SampleProvider } from '../../../../audio/SampleProvider';
 import { useSampleProviderTexture } from '../../../../audio/useSampleProviderTexture';
 import { useLightWallSoundMaterial } from './LightWallSoundMaterial';
+import { useCollision } from '../collision/CollisionContext';
 
 interface LightWallProps {
   getSpawnPoints: () => { lower: THREE.Vector3; upper: THREE.Vector3 } | null;
@@ -38,6 +39,8 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
     const trailGeometry = useRef<THREE.BufferGeometry>(null!);
     const positionAttribute = useRef<THREE.BufferAttribute>(null!);
     const colorAttribute = useRef<THREE.BufferAttribute>(null!);
+    const { registerObject, unregisterObject } = useCollision();
+    const wallId = useRef(`wall-${Math.random()}`);
 
     const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider);
 
@@ -143,6 +146,12 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
       }
     }, [maxPoints]);
 
+    useEffect(() => {
+      return () => {
+        unregisterObject(wallId.current);
+      };
+    }, [unregisterObject]);
+
     const updateWall = () => {
       const spawnPoints = getSpawnPoints();
       if (!spawnPoints || !positionAttribute.current) return;
@@ -244,6 +253,74 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
         colorAttribute.current.needsUpdate = true;
         (trailGeometry.current.getAttribute('uv') as THREE.BufferAttribute).needsUpdate = true;
         const numQuads = trailPoints.current.length - 1;
+
+        // Register wall segments as collision objects
+        unregisterObject(wallId.current);
+        if (trailPoints.current.length > 1) {
+          const spawnPoints = getSpawnPoints();
+          if (spawnPoints) {
+            const spawnPos = spawnPoints.lower;
+            const exclusionDistance = 1;
+
+            for (let i = 0; i < trailPoints.current.length - 1; i++) {
+              const point1 = trailPoints.current[i];
+              const point2 = trailPoints.current[i + 1];
+
+              // Check if this segment is outside the exclusion zone
+              const dx1 = Math.abs(point1.lower.x - spawnPos.x);
+              const dz1 = Math.abs(point1.lower.z - spawnPos.z);
+              const dx2 = Math.abs(point2.lower.x - spawnPos.x);
+              const dz2 = Math.abs(point2.lower.z - spawnPos.z);
+
+              const isOutside =
+                (dx1 > exclusionDistance || dz1 > exclusionDistance) &&
+                (dx2 > exclusionDistance || dz2 > exclusionDistance);
+
+              if (isOutside) {
+                const segmentBounds = new THREE.Box3();
+                segmentBounds.expandByPoint(point1.lower);
+                segmentBounds.expandByPoint(point1.upper);
+                segmentBounds.expandByPoint(point2.lower);
+                segmentBounds.expandByPoint(point2.upper);
+
+                const center = new THREE.Vector3();
+                segmentBounds.getCenter(center);
+
+                // Calculate OBB corners for this segment
+                // Each segment is a quad defined by point1.lower, point1.upper, point2.lower, point2.upper
+                // Use perpendicular vector for thickness
+                let perpendicular = new THREE.Vector3();
+                perpendicular.subVectors(point2.lower, point1.lower).normalize();
+                perpendicular
+                  .cross(new THREE.Vector3(0, 1, 0))
+                  .normalize()
+                  .multiplyScalar(thickness / 2);
+
+                // 8 corners: lower/upper at both ends, offset by +/- perpendicular
+                const corners = [
+                  // Start (point1)
+                  new THREE.Vector3(point1.lower.x - perpendicular.x, point1.lower.y, point1.lower.z - perpendicular.z), // 0: bottom-left
+                  new THREE.Vector3(point1.lower.x + perpendicular.x, point1.lower.y, point1.lower.z + perpendicular.z), // 1: bottom-right
+                  new THREE.Vector3(point1.upper.x - perpendicular.x, point1.upper.y, point1.upper.z - perpendicular.z), // 2: top-left
+                  new THREE.Vector3(point1.upper.x + perpendicular.x, point1.upper.y, point1.upper.z + perpendicular.z), // 3: top-right
+                  // End (point2)
+                  new THREE.Vector3(point2.lower.x - perpendicular.x, point2.lower.y, point2.lower.z - perpendicular.z), // 4: bottom-left
+                  new THREE.Vector3(point2.lower.x + perpendicular.x, point2.lower.y, point2.lower.z + perpendicular.z), // 5: bottom-right
+                  new THREE.Vector3(point2.upper.x - perpendicular.x, point2.upper.y, point2.upper.z - perpendicular.z), // 6: top-left
+                  new THREE.Vector3(point2.upper.x + perpendicular.x, point2.upper.y, point2.upper.z + perpendicular.z), // 7: top-right
+                ];
+
+                registerObject({
+                  id: `${wallId.current}-segment-${i}`,
+                  position: center,
+                  boundingBox: segmentBounds,
+                  orientedCorners: corners,
+                  type: 'wall',
+                });
+              }
+            }
+          }
+        }
 
         trailGeometry.current.clearGroups();
         trailGeometry.current.addGroup(0, 6, 3);
