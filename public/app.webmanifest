@@ -2,11 +2,11 @@
     "theme_color": "#000000",
     "background_color": "#000000",
     "display": "standalone",
-    "scope": "https://tmunz.github.io/musicbox-gui/",
-    "start_url": "https://tmunz.github.io/musicbox-gui/",
+    "scope": "https://tmunz.github.io/tmusic/",
+    "start_url": "https://tmunz.github.io/tmusic/",
     "description": "Music Visualizer",
-    "name": "Musicbox Gui",
-    "short_name": "Musicbox",
+    "name": "tmusic",
+    "short_name": "tmusic",
     "icons": [
         {
             "src": "icon-192x192.png",
