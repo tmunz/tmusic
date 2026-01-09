@@ -13,7 +13,7 @@ const velvetUnderground: Visualization = {
   component: VelvetUnderground,
   color: '#fafafa',
   settings: {
-    samples: createSampleSettings(),
+    samples: createSampleSettings(32, 8),
   },
   spotifyUri: 'spotify:album:4xwx0x7k6c5VuThz5qVqmV',
 };

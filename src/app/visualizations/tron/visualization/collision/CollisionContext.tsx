@@ -48,7 +48,8 @@ export const CollisionProvider = ({ children }: { children: ReactNode }) => {
       new THREE.Vector3().subVectors(corners[4], corners[0]).normalize(),
     ];
     const projectOntoAxis = (corners: THREE.Vector3[], axis: THREE.Vector3) => {
-      let min = Infinity, max = -Infinity;
+      let min = Infinity,
+        max = -Infinity;
       for (const corner of corners) {
         const projection = corner.dot(axis);
         min = Math.min(min, projection);

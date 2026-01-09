@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
-import { Bananas } from './Bananas';
 import { Overlay } from './Overlay';
 import { SampleProvider } from '../../../audio/SampleProvider';
+import { BananaScene } from './BananaScene';
 
 export interface VelvetUndergroundProps {
   sampleProvider: SampleProvider;
@@ -20,7 +20,7 @@ export const VelvetUnderground = (props: VelvetUndergroundProps) => {
       }}
     >
       <Suspense fallback={null}>
-        <Bananas sampleProvider={props.sampleProvider} />
+        <BananaScene sampleProvider={props.sampleProvider} />
       </Suspense>
       <Overlay />
     </div>

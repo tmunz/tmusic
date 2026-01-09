@@ -11,7 +11,14 @@ interface TronCubeProps {
   id: string;
 }
 
-export const TronCube = ({ position, rotation = [0, 0, 0], size = 1, color = 'white', baseColor = 'black', id }: TronCubeProps) => {
+export const TronCube = ({
+  position,
+  rotation = [0, 0, 0],
+  size = 1,
+  color = 'white',
+  baseColor = 'black',
+  id,
+}: TronCubeProps) => {
   useCollisionObject({
     id,
     position,

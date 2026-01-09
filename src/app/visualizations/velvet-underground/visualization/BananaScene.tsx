@@ -7,7 +7,7 @@ import { Group, PerspectiveCamera as ThreePerspectiveCamera, Vector3 } from 'thr
 import { Banana } from './Banana';
 import { SampleProvider } from '../../../audio/SampleProvider';
 
-export const Bananas = ({ sampleProvider, depth = 20 }: { sampleProvider: SampleProvider; depth?: number }) => {
+export const BananaScene = ({ sampleProvider, depth = 20 }: { sampleProvider: SampleProvider; depth?: number }) => {
   const cameraRef = useRef<ThreePerspectiveCamera>(null);
   const cameraDistance = 10;
   const [bananaPeeled, setBananaPeeled] = useState(false);
@@ -33,7 +33,7 @@ export const Bananas = ({ sampleProvider, depth = 20 }: { sampleProvider: Sample
       />
       <OrbitControls enabled={false} />
       <color attach="background" args={['#fffffa']} />
-      <Scene bananaPeeled={bananaPeeled} />
+      <Scene bananaPeeled={bananaPeeled} sampleProvider={sampleProvider} />
       <EffectComposer enableNormalPass={false} multisampling={0}>
         <DepthOfField
           target={[0, 0, 0]}
@@ -50,12 +50,18 @@ export const Bananas = ({ sampleProvider, depth = 20 }: { sampleProvider: Sample
   );
 };
 
-const Scene = ({ bananaPeeled = false }: { bananaPeeled?: boolean }) => {
+const Scene = ({
+  bananaPeeled = false,
+  sampleProvider,
+}: {
+  bananaPeeled?: boolean;
+  sampleProvider: SampleProvider;
+}) => {
   const bananaRef = useRef<Group>(null);
 
   return (
     <>
-      <Banana ref={bananaRef} peeled={bananaPeeled} />
+      <Banana ref={bananaRef} peeled={bananaPeeled} sampleProvider={sampleProvider} />
       <ambientLight intensity={3} />
       <pointLight position={[0, 1, 2]} intensity={5} />
     </>
