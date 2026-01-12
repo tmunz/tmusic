@@ -30,6 +30,10 @@ export const TronGrid = ({
 }: TronGridProps) => {
   return (
     <>
+      <mesh position={[position[0], position[1] - 0.1, position[2]]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[10000, 10000]} />
+        <meshBasicMaterial color="#000000" toneMapped={false} />
+      </mesh>
       <Grid
         args={[size, size]}
         sectionSize={sectionSize}
@@ -37,9 +41,9 @@ export const TronGrid = ({
         cellColor={cellColor}
         sectionColor={sectionColor}
         fadeDistance={fadeDistance}
-        fadeStrength={2}
+        fadeStrength={5}
         cellThickness={0}
-        sectionThickness={1.5}
+        sectionThickness={2}
       />
       {enableSparks && (
         <GridSparks

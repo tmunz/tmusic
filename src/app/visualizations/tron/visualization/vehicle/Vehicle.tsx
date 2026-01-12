@@ -3,139 +3,89 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { LightCycle, LightCycleHandle } from './LightCycle';
 import { LightWall, LightWallHandle } from './LightWall';
-import { useVehicleControls } from './VehicleControls';
 import { SampleProvider } from '../../../../audio/SampleProvider';
-import { useSampleProviderActive } from '../../../../audio/useSampleProviderActive';
 import { useCollision } from '../collision/CollisionContext';
 import { registerDynamicCollisionObject } from '../collision/useDynamicCollisionObject';
+import { useVehicleMovement } from './useVehicleMovement';
+import { useTronGameState, TronGameAction } from '../TronGameContext';
+
+interface ControlsState {
+  accelerate: boolean;
+  decelerate: boolean;
+  left: boolean;
+  right: boolean;
+}
 
 interface VehicleProps {
-  sampleProvider: SampleProvider;
+  sampleProvider?: SampleProvider;
   color?: string;
   position?: [number, number, number];
   rotation?: [number, number, number];
+  getControlsState?: () => ControlsState;
 }
 
 export const Vehicle = forwardRef<THREE.Mesh, VehicleProps>(
-  ({ sampleProvider, color, position = [0, 0, 0], rotation = [0, 0, 0] }, ref) => {
+  ({ sampleProvider, color, position = [0, 0, 0], rotation = [0, 0, 0], getControlsState }, ref) => {
     const lightCycleRef = useRef<LightCycleHandle>(null);
     const lightWallRef = useRef<LightWallHandle>(null);
-    const getControlsState = useVehicleControls();
-    const isActive = useSampleProviderActive(sampleProvider);
     const { unregisterObject, checkCollision, registerObject, getAllObjects } = useCollision();
+    const movement = useVehicleMovement();
+    const { dispatch, tronGameState } = useTronGameState();
 
-    const speedRef = useRef(0);
-    const currentTurnSpeed = useRef(1);
-    const currentTurnDirection = useRef(0); // 1 for left, 0 for neutral, -1 for right
-    const currentTilt = useRef({ x: 0, z: 0 });
     const direction = useRef(new THREE.Vector3());
-    const shouldAutoAccelerate = useRef(false);
     const vehicleId = useRef(`vehicle-${Math.random()}`);
-    const previousPosition = useRef(new THREE.Vector3());
-    const collisionBoxRef = useRef<THREE.Mesh>(null);
-    const modelBoundingBoxSize = useRef<THREE.Vector3>(new THREE.Vector3(1, 1, 1));
-    const modelBoundingBoxCenter = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
+    const modelBoundingBoxSize = useRef(new THREE.Vector3(1, 1, 1));
+    const modelBoundingBoxCenter = useRef(new THREE.Vector3(0, 0, 0));
 
-    useEffect(() => {
-      if (isActive && speedRef.current < 1) {
-        shouldAutoAccelerate.current = true;
-      }
-    }, [isActive]);
-
-    // Compute model bounding box size once when model is loaded
     useEffect(() => {
       const vehicleModel = lightCycleRef.current?.vehicleModel;
       const mesh = lightCycleRef.current?.meshRef.current;
-      if (vehicleModel && mesh) {
-        // Store original transform
-        const originalPosition = mesh.position.clone();
-        const originalRotation = mesh.rotation.clone();
+      if (!vehicleModel || !mesh) return;
 
-        // Reset mesh to origin for consistent bounding box calculation
-        mesh.position.set(0, 0, 0);
-        mesh.rotation.set(0, 0, 0);
-        mesh.updateMatrixWorld(true);
+      // Calculate bounding box in local space
+      const originalPosition = mesh.position.clone();
+      const originalRotation = mesh.rotation.clone();
 
-        const bbox = new THREE.Box3().setFromObject(vehicleModel);
-        bbox.getSize(modelBoundingBoxSize.current);
+      mesh.position.set(0, 0, 0);
+      mesh.rotation.set(0, 0, 0);
+      mesh.updateMatrixWorld(true);
 
-        // Get the center of the bounding box (now calculated at origin)
-        const localCenter = new THREE.Vector3();
-        bbox.getCenter(localCenter);
-        modelBoundingBoxCenter.current.copy(localCenter);
+      const bbox = new THREE.Box3().setFromObject(vehicleModel);
+      bbox.getSize(modelBoundingBoxSize.current);
+      bbox.getCenter(modelBoundingBoxCenter.current);
 
-        // Restore original transform
-        mesh.position.copy(originalPosition);
-        mesh.rotation.copy(originalRotation);
-        mesh.updateMatrixWorld(true);
-      }
+      mesh.position.copy(originalPosition);
+      mesh.rotation.copy(originalRotation);
+      mesh.updateMatrixWorld(true);
     }, [lightCycleRef.current?.vehicleModel]);
 
     useImperativeHandle(ref, () => lightCycleRef.current?.meshRef.current!, []);
 
-    const updateSpeed = (delta: number, maxSpeed: number, speedChangeRate: number, minSpeed: number, controls: any) => {
-      if (shouldAutoAccelerate.current) {
-        speedRef.current = Math.min(maxSpeed, speedRef.current + speedChangeRate * delta);
-        if (speedRef.current >= maxSpeed) {
-          shouldAutoAccelerate.current = false;
-        }
-      } else if (controls.accelerate) {
-        speedRef.current = Math.min(maxSpeed, speedRef.current + speedChangeRate * delta);
+    const TARGET_SPEED_CHANGE_RATE = 60; // Units per second for target speed changes
+
+    const updateTargetSpeed = (
+      delta: number,
+      params: { maxSpeed: number; minSpeed: number },
+      controls: ControlsState,
+      currentTarget: number
+    ) => {
+      const { maxSpeed, minSpeed } = params;
+      const speedDelta = TARGET_SPEED_CHANGE_RATE * delta;
+      let newTarget = currentTarget;
+
+      if (controls.accelerate) {
+        newTarget = Math.min(maxSpeed, currentTarget + speedDelta);
       }
+
       if (controls.decelerate) {
-        speedRef.current = Math.max(minSpeed, speedRef.current - speedChangeRate * delta);
-      }
-    };
-
-    const updateTurning = (
-      delta: number,
-      controls: any,
-      mesh: THREE.Mesh,
-      maxSpeed: number,
-      baseTurnSpeed: number,
-      maxTurnSpeed: number,
-      turnSpeedIncreaseRate: number,
-      maxTurnTilt: number
-    ) => {
-      let targetTurnTilt = 0;
-      const desiredDirection = controls.left ? 1 : controls.right ? -1 : 0;
-      Math.pow(speedRef.current / maxSpeed, 0.2);
-
-      if (speedRef.current > 0 && desiredDirection !== 0) {
-        if (currentTurnDirection.current !== 0 && currentTurnDirection.current !== desiredDirection) {
-          currentTurnSpeed.current = Math.max(
-            baseTurnSpeed,
-            currentTurnSpeed.current - turnSpeedIncreaseRate * delta * 5
-          );
-          if (currentTurnSpeed.current <= baseTurnSpeed) {
-            currentTurnSpeed.current = baseTurnSpeed;
-            currentTurnDirection.current = 0;
-          }
-        } else {
-          currentTurnDirection.current = desiredDirection;
-          currentTurnSpeed.current = Math.min(maxTurnSpeed, currentTurnSpeed.current + turnSpeedIncreaseRate * delta);
-          const rotationDelta = currentTurnSpeed.current * delta * desiredDirection;
-          mesh.rotation.y += rotationDelta;
-          targetTurnTilt = maxTurnTilt * (currentTurnSpeed.current / maxTurnSpeed) * desiredDirection;
-        }
-      } else {
-        currentTurnSpeed.current = baseTurnSpeed;
-        currentTurnDirection.current = 0;
+        newTarget = Math.max(minSpeed, currentTarget - speedDelta);
       }
 
-      return targetTurnTilt;
-    };
-
-    const applyTilt = (
-      targetTurnTilt: number,
-      delta: number,
-      tiltSmoothness: number,
-      player: THREE.Group | null = null
-    ) => {
-      currentTilt.current.z += (targetTurnTilt - currentTilt.current.z) * tiltSmoothness * delta;
-      if (player) {
-        player.rotation.x = currentTilt.current.x / 4;
-        player.rotation.z = currentTilt.current.z / 4;
+      if (newTarget !== currentTarget && getControlsState) {
+        dispatch({
+          type: TronGameAction.SET_TARGET_SPEED,
+          target: newTarget,
+        });
       }
     };
 
@@ -148,9 +98,16 @@ export const Vehicle = forwardRef<THREE.Mesh, VehicleProps>(
         mesh.position.set(...position);
         mesh.rotation.set(...rotation);
         mesh.userData.initialized = true;
+        if (getControlsState) {
+          dispatch({
+            type: TronGameAction.SET_VEHILE_PARAMS,
+            min: cycle.params.minSpeed,
+            max: cycle.params.maxSpeed,
+          });
+        }
       }
 
-      const controls = getControlsState();
+      const controls = getControlsState?.() ?? { accelerate: false, decelerate: false, left: false, right: false };
       const {
         minSpeed,
         maxSpeed,
@@ -162,65 +119,57 @@ export const Vehicle = forwardRef<THREE.Mesh, VehicleProps>(
         tiltSmoothness,
       } = cycle.params;
 
-      updateSpeed(delta, maxSpeed, speedChangeRate, minSpeed, controls);
+      const currentTargetSpeed = getControlsState ? tronGameState.userVehicle.speed.target : 0;
+      updateTargetSpeed(delta, { maxSpeed, minSpeed }, controls, currentTargetSpeed);
+      movement.setTargetSpeed(currentTargetSpeed);
 
-      const targetTurnTilt = updateTurning(
-        delta,
-        controls,
-        mesh,
-        maxSpeed,
+      const actualSpeed = movement.getActualSpeed();
+      if (getControlsState) {
+        dispatch({
+          type: TronGameAction.UPDATE_VEHICLE_SPEED,
+          actual: actualSpeed,
+        });
+      }
+
+      const targetTurnTilt = movement.updateTurning(delta, controls, mesh, {
         baseTurnSpeed,
         maxTurnSpeed,
         turnSpeedIncreaseRate,
-        maxTurnTilt
-      );
+        maxTurnTilt,
+        tiltSmoothness,
+      });
 
-      mesh.rotation.x = currentTilt.current.x;
-      mesh.rotation.z = currentTilt.current.z;
-
-      applyTilt(targetTurnTilt, delta, tiltSmoothness, cycle?.playerRef?.current);
-
-      previousPosition.current.copy(mesh.position);
+      movement.applyTilt(targetTurnTilt, delta, tiltSmoothness, mesh, cycle?.playerRef?.current);
 
       direction.current.set(0, 0, -1);
       direction.current.applyQuaternion(mesh.quaternion);
-      mesh.position.addScaledVector(direction.current, speedRef.current * delta);
 
-      const collisionQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), mesh.rotation.y);
+      const checkVehicleCollision = (newPosition: THREE.Vector3): boolean => {
+        const collisionQuaternion = new THREE.Quaternion().setFromAxisAngle(
+          new THREE.Vector3(0, 1, 0),
+          mesh.rotation.y
+        );
 
-      registerDynamicCollisionObject({
-        registerObject,
-        id: vehicleId.current,
-        position: mesh.position,
-        rotation: collisionQuaternion,
-        size: modelBoundingBoxSize.current,
-        localCenter: modelBoundingBoxCenter.current,
-        type: 'vehicle',
-      });
+        registerDynamicCollisionObject({
+          registerObject,
+          id: vehicleId.current,
+          position: newPosition,
+          rotation: collisionQuaternion,
+          size: modelBoundingBoxSize.current,
+          localCenter: modelBoundingBoxCenter.current,
+          type: 'vehicle',
+        });
 
-      const size = modelBoundingBoxSize.current;
-      const localCenter = modelBoundingBoxCenter.current;
-      const worldCenter = localCenter.clone();
-      worldCenter.applyQuaternion(collisionQuaternion);
-      worldCenter.add(mesh.position);
+        const allObjects = getAllObjects();
+        const registeredVehicle = allObjects.find(obj => obj.id === vehicleId.current);
+        if (registeredVehicle) {
+          const collisions = checkCollision(registeredVehicle);
+          return collisions.length === 0;
+        }
+        return true;
+      };
 
-      if (collisionBoxRef.current) {
-        collisionBoxRef.current.position.copy(worldCenter);
-        collisionBoxRef.current.scale.set(size.x, size.y, size.z);
-        collisionBoxRef.current.rotation.set(0, mesh.rotation.y, 0);
-      }
-
-      const allObjects = getAllObjects();
-      const registeredVehicle = allObjects.find(obj => obj.id === vehicleId.current);
-      let collisions: any[] = [];
-      if (registeredVehicle) {
-        collisions = checkCollision(registeredVehicle);
-      }
-
-      if (collisions.length > 0) {
-        mesh.position.copy(previousPosition.current);
-        speedRef.current = 0;
-      }
+      movement.updateAndApplyMovement(mesh, delta, direction.current, { speedChangeRate }, checkVehicleCollision);
 
       if (lightWallRef.current) {
         lightWallRef.current.update();

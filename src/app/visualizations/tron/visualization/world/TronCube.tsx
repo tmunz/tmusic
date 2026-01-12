@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import * as THREE from 'three';
 import { useCollisionObject } from '../collision/useCollisionObject';
 

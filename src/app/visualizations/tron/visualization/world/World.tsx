@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { TronGrid } from './TronGrid';
 import { TronCube } from './TronCube';
+import { useTronGameState } from '../TronGameContext';
 
 interface WorldProps {
   targetRef: RefObject<THREE.Mesh>;
@@ -19,6 +20,8 @@ export interface WorldTile {
 }
 
 export const World = ({ targetRef, tileSize = 50, viewDistance = 3 }: WorldProps) => {
+  const BATTLE_GROUND_SIZE = 100; // tileSize must be considered in the current implementation
+  const { tronGameState } = useTronGameState();
   const getInitialTiles = () => {
     const initialTiles: WorldTile[] = [];
     for (let x = -viewDistance; x <= viewDistance; x++) {
@@ -68,15 +71,27 @@ export const World = ({ targetRef, tileSize = 50, viewDistance = 3 }: WorldProps
 
   return (
     <group>
-      {tiles.map(tile => (
-        <TronGrid
-          key={tile.key}
-          position={[tile.worldX, 0, tile.worldZ]}
-          size={50}
-          sectionSize={5}
-          fadeDistance={100}
-        />
-      ))}
+
+      {tiles.map(tile => {
+        const isGameActive = tronGameState.userVehicle.game.active;
+        const gamePos = tronGameState.userVehicle.game.position;
+        const withinBattleGround =
+          !isGameActive ||
+          (Math.abs(tile.worldX - gamePos.x) <= BATTLE_GROUND_SIZE &&
+            Math.abs(tile.worldZ - gamePos.z) <= BATTLE_GROUND_SIZE);
+
+        return (
+          <TronGrid
+            key={tile.key}
+            position={[tile.worldX, 0, tile.worldZ]}
+            size={50}
+            sectionSize={5}
+            fadeDistance={150}
+            sectionColor={withinBattleGround ? '#002222' : '#330000'}
+            cellColor={withinBattleGround ? '#000000' : '#330000'}
+          />
+        );
+      })}
 
       <TronCube id="cube-0" position={[5, 0.5, 5]} rotation={[0, Math.PI / 4, 0]} />
       <TronCube id="cube-1" position={[-5, 0.5, 5]} />

@@ -1,0 +1,35 @@
+.speed-bar-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  border-radius: 4px;
+  width: 200px;
+  .speed-bar-track {
+    position: relative;
+    width: 100%;
+    height: 20px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+  }
+
+  .speed-bar-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    will-change: width;
+  }
+
+  .speed-bar-target-line {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background-color: white;
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+    will-change: left;
+  }
+}
