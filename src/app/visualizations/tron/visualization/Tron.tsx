@@ -1,13 +1,13 @@
 import { Canvas } from '@react-three/fiber';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { EffectComposer, Bloom, TiltShift2 } from '@react-three/postprocessing';
 import { Stats } from '@react-three/drei';
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider, createDummySampleProvider } from '../../../audio/SampleProvider';
 import { Vehicle } from './vehicle/Vehicle';
 import { FollowCamera } from './camera/FollowCamera';
 import { ObserverCamera } from './camera/ObserverCamera';
 import { BirdsEyeCamera } from './camera/BirdsEyeCamera';
 import { World } from './world/World';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { CameraMode } from './camera/CameraMode';
 import { useActivityToggle } from '../../../utils/useActivityToggle';
@@ -18,6 +18,7 @@ import { TronGameProvider, useTronGameState, TronGameAction } from './TronGameCo
 import { SpeedBar } from './ui/SpeedBar';
 import { useSampleProviderActive } from '../../../audio/useSampleProviderActive';
 import { TronSkyBox } from './world/TronSkyBox';
+import { Minimap } from './ui/Minimap';
 
 export interface TronProps {
   sampleProvider: SampleProvider;
@@ -42,14 +43,14 @@ export interface SceneProps {
 
 export const Scene = ({ width, height, sampleProvider, cameraMode = CameraMode.FOLLOW }: SceneProps) => {
   const targetRef = useRef<THREE.Mesh>(null);
-  const [debugMode, setDebugMode] = useState(false);
+  const [debugMode, setDebugMode] = useState(0);
   const gameMode = useActivityToggle(false, true, 10000, ['keydown']);
   const colors = ['#66EEFF'];
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.key === 'm' || event.key === 'M') {
-        setDebugMode(prev => !prev);
+        setDebugMode(prev => (prev + 1) % 3);
       }
     };
 
@@ -77,7 +78,7 @@ interface SceneContentProps {
   height: number;
   sampleProvider: SampleProvider;
   targetRef: React.RefObject<THREE.Mesh>;
-  debugMode: boolean;
+  debugMode: number;
   gameMode: boolean;
   colors: string[];
 }
@@ -88,6 +89,9 @@ const SceneContent = ({ width, height, sampleProvider, targetRef, debugMode, gam
   const hasAutoAccelerated = useRef(false);
   const userVehicleControls = useGameInput();
 
+  const fakeSampleProvider = useMemo(() => createDummySampleProvider(64, 255), []);
+  const effectiveSampleProvider = isActive ? sampleProvider : (tronGameState.userVehicle.game.active ? fakeSampleProvider : sampleProvider);
+
   // start game on vehicle control input
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -95,6 +99,7 @@ const SceneContent = ({ width, height, sampleProvider, targetRef, debugMode, gam
       if (!tronGameState.userVehicle.game.active && (key === 'w' || key === 'a' || key === 's' || key === 'd')) {
         const target = targetRef.current;
         if (target) {
+          hasAutoAccelerated.current = true;
           dispatch({
             type: TronGameAction.START_GAME,
             position: { x: target.position.x, y: target.position.y, z: target.position.z },
@@ -132,22 +137,20 @@ const SceneContent = ({ width, height, sampleProvider, targetRef, debugMode, gam
         }}
       >
         <color attach="background" args={['#000000']} />
-        <fog attach="fog" args={['#000000', 20, 200]} />
+        {/* <fog attach="fog" args={['#000000', 20, 200]} /> */}
         <ambientLight intensity={0.3} />
         <directionalLight position={[10, 10, 5]} intensity={1.4} castShadow />
         <directionalLight position={[-10, 10, -5]} intensity={0.8} />
         <hemisphereLight args={['#ffffff', colors[0], 0.5]} />
         <CollisionProvider>
-          {debugMode && <CollisionDebugVisualizer />}
-          {debugMode && <Stats />}
+          {debugMode >= 2 && <CollisionDebugVisualizer />}
+          {debugMode >= 1 && <Stats />}
           <Vehicle
             ref={targetRef}
-            sampleProvider={sampleProvider}
+            sampleProvider={effectiveSampleProvider}
             color={colors[0]}
             getControlsState={userVehicleControls}
           />
-          {/* <Vehicle color="#ff0000" position={[-1, 0, 0]} rotation={[1, 0, 0]} />
-          <Vehicle color="#ffbf00" position={[1, 0, 0]} rotation={[0, 0, 0]} /> */}
           {tronGameState.cameraMode === CameraMode.OBSERVER && <ObserverCamera targetRef={targetRef} />}
           {tronGameState.cameraMode === CameraMode.FOLLOW && (
             <FollowCamera targetRef={targetRef} drift={gameMode ? 0 : 2} />
@@ -156,18 +159,15 @@ const SceneContent = ({ width, height, sampleProvider, targetRef, debugMode, gam
           <World targetRef={targetRef} tileSize={50} viewDistance={3} />
           <TronSkyBox targetRef={targetRef} />
         </CollisionProvider>
-
-        <EffectComposer>
+        {tronGameState.userVehicle.game.active && <>
+          <Minimap targetRef={targetRef} size={150} />
+          <SpeedBar color={colors[0]} width={150} />
+        </>}
+        <EffectComposer enableNormalPass multisampling={4}>
+          <TiltShift2 blur={tronGameState.userVehicle.speed.actual * 0.002} />
           <Bloom intensity={1.4} luminanceThreshold={0.02} luminanceSmoothing={0.1} mipmapBlur radius={0.3} />
         </EffectComposer>
       </Canvas>
-      <SpeedBar
-        actual={tronGameState.userVehicle.speed.actual}
-        target={tronGameState.userVehicle.speed.target}
-        min={tronGameState.userVehicle.speed.min}
-        max={tronGameState.userVehicle.speed.max}
-        color={colors[0]}
-      />
     </div>
   );
 };

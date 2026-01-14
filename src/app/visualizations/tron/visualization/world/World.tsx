@@ -71,7 +71,6 @@ export const World = ({ targetRef, tileSize = 50, viewDistance = 3 }: WorldProps
 
   return (
     <group>
-
       {tiles.map(tile => {
         const isGameActive = tronGameState.userVehicle.game.active;
         const gamePos = tronGameState.userVehicle.game.position;
@@ -92,6 +91,11 @@ export const World = ({ targetRef, tileSize = 50, viewDistance = 3 }: WorldProps
           />
         );
       })}
+
+      <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[10000, 10000]} />
+        <meshBasicMaterial color="#000000" toneMapped={false} />
+      </mesh>
 
       <TronCube id="cube-0" position={[5, 0.5, 5]} rotation={[0, Math.PI / 4, 0]} />
       <TronCube id="cube-1" position={[-5, 0.5, 5]} />

@@ -10,13 +10,13 @@ interface TronSkyBoxProps {
   groundColor?: string;
 }
 
-export const TronSkyBox = ({ 
-  targetRef, 
-  radius = 500, 
+export const TronSkyBox = ({
+  targetRef,
+  radius = 500,
   horizonColor = '#0e0006',
   skyColor = '#000011',
-  groundColor = '#000000'
-}: TronSkyBoxProps) => { 
+  groundColor = '#000000',
+}: TronSkyBoxProps) => {
   const sphereRef = useRef<THREE.Mesh>(null);
 
   useFrame(() => {
@@ -31,7 +31,7 @@ export const TronSkyBox = ({
       skyColor: { value: new THREE.Color(skyColor) },
       groundColor: { value: new THREE.Color(groundColor) },
       horizonHeight: { value: 0.05 },
-      horizonWidth: { value: 0.2},
+      horizonWidth: { value: 0.2 },
     },
     vertexShader: `
       varying vec3 vPosition;

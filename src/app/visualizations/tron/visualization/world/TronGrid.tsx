@@ -30,10 +30,6 @@ export const TronGrid = ({
 }: TronGridProps) => {
   return (
     <>
-      <mesh position={[position[0], position[1] - 0.1, position[2]]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[10000, 10000]} />
-        <meshBasicMaterial color="#000000" toneMapped={false} />
-      </mesh>
       <Grid
         args={[size, size]}
         sectionSize={sectionSize}
