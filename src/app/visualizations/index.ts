@@ -12,27 +12,33 @@ import violator from './violator';
 import transEuropeExpress from './trans-europe-express';
 import theRiddle from './the-riddle';
 import tron from './tron';
+import parallelLines from './parallel-lines';
+import radioActivity from './radio-activity';
 
 export default [
   unknownPleasures,
   theDarkSideOfTheMoon,
   tron,
   transEuropeExpress,
+  radioActivity,
   violator,
   karpatenhund,
   chvrchesEveryEyeOpen,
   crises,
   pushTheSkyAway,
+  // vivaLaVida,
   santigold,
   velvetUnderground,
   minorEarthMajorSky,
   theRiddle,
-  // vivaLaVida,
+  parallelLines
 ];
 
 // Kraftwerk
 // The Sounds
-// Blondie - Parallel Lines
+// Keane - Under the Iron Sea
+// The Who - Who's Next
+// 
 // Green Day - American Idiot
 // Yeah Yeah Yeahs - It's Blitz!
 // Led Zeppelin - Led Zeppelin

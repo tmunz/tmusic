@@ -14,11 +14,13 @@ import { useActivityToggle } from '../../../utils/useActivityToggle';
 import { CollisionProvider } from './collision/CollisionContext';
 import { CollisionDebugVisualizer } from './collision/CollisionDebugVisualizer';
 import { useGameInput } from './TronGameInput';
-import { TronGameProvider, useTronGameState, TronGameAction } from './TronGameContext';
+import { TronStateProvider, useTronState, TronAction } from './TronContext';
 import { SpeedBar } from './ui/SpeedBar';
 import { useSampleProviderActive } from '../../../audio/useSampleProviderActive';
 import { TronSkyBox } from './world/TronSkyBox';
 import { Minimap } from './ui/Minimap';
+import { DirectionIndicator } from './ui/DirectionIndicator';
+import { TronStateManager } from './TronStateManager';
 
 export interface TronProps {
   sampleProvider: SampleProvider;
@@ -59,7 +61,7 @@ export const Scene = ({ width, height, sampleProvider, cameraMode = CameraMode.F
   }, []);
 
   return (
-    <TronGameProvider>
+    <TronStateProvider>
       <SceneContent
         width={width}
         height={height}
@@ -69,7 +71,7 @@ export const Scene = ({ width, height, sampleProvider, cameraMode = CameraMode.F
         gameMode={gameMode}
         colors={colors}
       />
-    </TronGameProvider>
+    </TronStateProvider>
   );
 };
 
@@ -84,24 +86,24 @@ interface SceneContentProps {
 }
 
 const SceneContent = ({ width, height, sampleProvider, targetRef, debugMode, gameMode, colors }: SceneContentProps) => {
-  const { tronGameState, dispatch } = useTronGameState();
+  const { tronState, dispatch } = useTronState();
   const isActive = useSampleProviderActive(sampleProvider);
   const hasAutoAccelerated = useRef(false);
   const userVehicleControls = useGameInput();
 
-  const fakeSampleProvider = useMemo(() => createDummySampleProvider(64, 255), []);
-  const effectiveSampleProvider = isActive ? sampleProvider : (tronGameState.userVehicle.game.active ? fakeSampleProvider : sampleProvider);
+  const fakeSampleProvider = useMemo(() => createDummySampleProvider(64), []);
+  const effectiveSampleProvider = isActive ? sampleProvider : (tronState.game.active ? fakeSampleProvider : sampleProvider);
 
   // start game on vehicle control input
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
-      if (!tronGameState.userVehicle.game.active && (key === 'w' || key === 'a' || key === 's' || key === 'd')) {
+      if (!tronState.game.active && (key === 'w' || key === 'a' || key === 's' || key === 'd')) {
         const target = targetRef.current;
         if (target) {
           hasAutoAccelerated.current = true;
           dispatch({
-            type: TronGameAction.START_GAME,
+            type: TronAction.START_GAME,
             position: { x: target.position.x, y: target.position.y, z: target.position.z },
           });
         }
@@ -109,23 +111,23 @@ const SceneContent = ({ width, height, sampleProvider, targetRef, debugMode, gam
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [tronGameState.userVehicle.game.active, dispatch, targetRef]);
+  }, [tronState.game.active, dispatch, targetRef]);
 
   // Auto-accelerate to max speed when sampleProvider becomes active
   useEffect(() => {
     if (
       isActive &&
       !hasAutoAccelerated.current &&
-      tronGameState.userVehicle.speed.target < 1 &&
-      tronGameState.userVehicle.speed.max > 0
+      tronState.user.vehicle.speed.target < 1 &&
+      tronState.user.vehicle.speed.max > 0
     ) {
       dispatch({
-        type: TronGameAction.SET_TARGET_SPEED,
-        target: tronGameState.userVehicle.speed.max,
+        type: TronAction.SET_TARGET_SPEED,
+        target: tronState.user.vehicle.speed.max,
       });
       hasAutoAccelerated.current = true;
     }
-  }, [isActive, dispatch, tronGameState.userVehicle.speed.target, tronGameState.userVehicle.speed.max]);
+  }, [isActive, dispatch, tronState.user.vehicle.speed.target, tronState.user.vehicle.speed.max]);
 
   return (
     <div style={{ width, height }}>
@@ -145,26 +147,28 @@ const SceneContent = ({ width, height, sampleProvider, targetRef, debugMode, gam
         <CollisionProvider>
           {debugMode >= 2 && <CollisionDebugVisualizer />}
           {debugMode >= 1 && <Stats />}
+          <TronStateManager targetRef={targetRef} />
           <Vehicle
             ref={targetRef}
             sampleProvider={effectiveSampleProvider}
             color={colors[0]}
             getControlsState={userVehicleControls}
           />
-          {tronGameState.cameraMode === CameraMode.OBSERVER && <ObserverCamera targetRef={targetRef} />}
-          {tronGameState.cameraMode === CameraMode.FOLLOW && (
+          {tronState.cameraMode === CameraMode.OBSERVER && <ObserverCamera targetRef={targetRef} />}
+          {tronState.cameraMode === CameraMode.FOLLOW && (
             <FollowCamera targetRef={targetRef} drift={gameMode ? 0 : 2} />
           )}
-          {tronGameState.cameraMode === CameraMode.BIRDS_EYE && <BirdsEyeCamera targetRef={targetRef} />}
-          <World targetRef={targetRef} tileSize={50} viewDistance={3} />
+          {tronState.cameraMode === CameraMode.BIRDS_EYE && <BirdsEyeCamera targetRef={targetRef} />}
+          <World targetRef={targetRef} tileSize={tronState.world.tileSize} viewDistance={3} />
           <TronSkyBox targetRef={targetRef} />
         </CollisionProvider>
-        {tronGameState.userVehicle.game.active && <>
+        {tronState.game.active && <>
           <Minimap targetRef={targetRef} size={150} />
           <SpeedBar color={colors[0]} width={150} />
+          <DirectionIndicator targetRef={targetRef} battlefieldSize={tronState.game.battlegroundSize} />
         </>}
         <EffectComposer enableNormalPass multisampling={4}>
-          <TiltShift2 blur={tronGameState.userVehicle.speed.actual * 0.002} />
+          <TiltShift2 blur={tronState.user.vehicle.speed.actual * 0.002} />
           <Bloom intensity={1.4} luminanceThreshold={0.02} luminanceSmoothing={0.1} mipmapBlur radius={0.3} />
         </EffectComposer>
       </Canvas>

@@ -89,11 +89,18 @@ export class SampleProvider extends FixedSizeQueue<Uint8Array> {
   };
 }
 
-export function createDummySampleProvider(size: number, max: number = 255): SampleProvider {
-  const provider = new SampleProvider(size, new Uint8Array([0]));
+export function createDummySampleProvider(size: number, frequencyBands: number = 1, max: number = 255): SampleProvider {
+  const provider = new SampleProvider(size, new Uint8Array(frequencyBands));
   for (let i = 0; i < size; i++) {
-    const value = Math.round((i / (size - 1)) * max);
-    provider.push(new Uint8Array([value]));
+    const sample = new Uint8Array(frequencyBands);
+    for (let j = 0; j < frequencyBands; j++) {
+      const linearIndex = i * frequencyBands + j;
+      const totalValues = size * frequencyBands;
+      const value = Math.round((linearIndex / (totalValues - 1)) * max);
+      sample[j] = value;
+    }
+    provider.push(sample);
   }
+  console.log('Created dummy SampleProvider', provider);
   return provider;
 }

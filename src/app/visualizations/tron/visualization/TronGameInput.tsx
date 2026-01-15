@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { useTronGameState, TronGameAction } from './TronGameContext';
+import { useTronState, TronAction } from './TronContext';
 import { CameraMode } from './camera/CameraMode';
 
 export interface ControlsState {
@@ -11,7 +11,7 @@ export interface ControlsState {
 
 export const useGameInput = () => {
   const keysPressed = useRef<Set<string>>(new Set());
-  const { tronGameState, dispatch } = useTronGameState();
+  const { tronState, dispatch } = useTronState();
 
   useEffect(() => {
     const cameraModes = [CameraMode.FOLLOW, CameraMode.OBSERVER, CameraMode.BIRDS_EYE];
@@ -21,15 +21,17 @@ export const useGameInput = () => {
 
       // Vehicle controls
       if (key === 'a' || key === 'd' || key === 'w' || key === 's') {
+        e.preventDefault();
         keysPressed.current.add(key);
       }
 
       // Camera mode switching
       if (key === 'c') {
-        const currentIndex = cameraModes.indexOf(tronGameState.cameraMode);
+        e.preventDefault();
+        const currentIndex = cameraModes.indexOf(tronState.cameraMode);
         const nextIndex = (currentIndex + 1) % cameraModes.length;
         dispatch({
-          type: TronGameAction.SET_CAMERA_MODE,
+          type: TronAction.SET_CAMERA_MODE,
           mode: cameraModes[nextIndex],
         });
       }
@@ -47,7 +49,7 @@ export const useGameInput = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [tronGameState.cameraMode, dispatch]);
+  }, [tronState.cameraMode, dispatch]);
 
   const getControlsState = (): ControlsState => ({
     left: keysPressed.current.has('a'),

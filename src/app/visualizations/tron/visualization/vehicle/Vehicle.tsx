@@ -7,7 +7,7 @@ import { SampleProvider } from '../../../../audio/SampleProvider';
 import { useCollision } from '../collision/CollisionContext';
 import { registerDynamicCollisionObject } from '../collision/useDynamicCollisionObject';
 import { useVehicleMovement } from './useVehicleMovement';
-import { useTronGameState, TronGameAction } from '../TronGameContext';
+import { useTronState, TronAction } from '../TronContext';
 
 interface ControlsState {
   accelerate: boolean;
@@ -30,7 +30,7 @@ export const Vehicle = forwardRef<THREE.Mesh, VehicleProps>(
     const lightWallRef = useRef<LightWallHandle>(null);
     const { unregisterObject, checkCollision, registerObject, getAllObjects } = useCollision();
     const movement = useVehicleMovement();
-    const { dispatch, tronGameState } = useTronGameState();
+    const { dispatch, tronState } = useTronState();
 
     const direction = useRef(new THREE.Vector3());
     const vehicleId = useRef(`vehicle-${Math.random()}`);
@@ -83,7 +83,7 @@ export const Vehicle = forwardRef<THREE.Mesh, VehicleProps>(
 
       if (newTarget !== currentTarget && getControlsState) {
         dispatch({
-          type: TronGameAction.SET_TARGET_SPEED,
+          type: TronAction.SET_TARGET_SPEED,
           target: newTarget,
         });
       }
@@ -100,7 +100,7 @@ export const Vehicle = forwardRef<THREE.Mesh, VehicleProps>(
         mesh.userData.initialized = true;
         if (getControlsState) {
           dispatch({
-            type: TronGameAction.SET_VEHILE_PARAMS,
+            type: TronAction.SET_VEHILE_PARAMS,
             min: cycle.params.minSpeed,
             max: cycle.params.maxSpeed,
           });
@@ -119,14 +119,14 @@ export const Vehicle = forwardRef<THREE.Mesh, VehicleProps>(
         tiltSmoothness,
       } = cycle.params;
 
-      const currentTargetSpeed = getControlsState ? tronGameState.userVehicle.speed.target : 0;
+      const currentTargetSpeed = getControlsState ? tronState.user.vehicle.speed.target : 0;
       updateTargetSpeed(delta, { maxSpeed, minSpeed }, controls, currentTargetSpeed);
       movement.setTargetSpeed(currentTargetSpeed);
 
       const actualSpeed = movement.getActualSpeed();
       if (getControlsState) {
         dispatch({
-          type: TronGameAction.UPDATE_VEHICLE_SPEED,
+          type: TronAction.UPDATE_VEHICLE_SPEED,
           actual: actualSpeed,
         });
       }

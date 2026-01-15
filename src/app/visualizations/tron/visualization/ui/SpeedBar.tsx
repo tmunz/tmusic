@@ -2,7 +2,7 @@ import { createPortal, useFrame, useThree } from '@react-three/fiber';
 import { useRef, useMemo } from 'react';
 import { Scene, Vector3 } from 'three';
 import * as THREE from 'three';
-import { useTronGameState } from '../TronGameContext';
+import { useTronState } from '../TronContext';
 
 interface SpeedBarProps {
   color: string;
@@ -10,12 +10,12 @@ interface SpeedBarProps {
 }
 
 export const SpeedBar = ({ color, width = 200 }: SpeedBarProps) => {
-  const { tronGameState } = useTronGameState();
+  const { tronState } = useTronState();
   const virtualScene = useMemo(() => new Scene(), []);
   const { size: screenSize } = useThree();
   const speedBarCamera = useRef<THREE.OrthographicCamera>(null);
 
-  const { actual, target, min, max } = tronGameState.userVehicle.speed;
+  const { actual, target, min, max } = tronState.user.vehicle.speed;
   const actualPercentage = ((actual - min) / (max - min));
   const targetPercentage = ((target - min) / (max - min));
 
