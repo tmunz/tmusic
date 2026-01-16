@@ -1,0 +1,24 @@
+.speed-bar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  height: 20px;
+  background-color: rgba(68, 68, 68, 0.8);
+  overflow: hidden;
+
+  .speed-bar-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+  }
+
+  .speed-bar-target {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background-color: #ffffff;
+    transform: translateX(-1px);
+  }
+}

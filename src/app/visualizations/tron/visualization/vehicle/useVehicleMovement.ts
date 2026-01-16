@@ -27,7 +27,7 @@ export const useVehicleMovement = () => {
   const updateTurning = (
     delta: number,
     controls: { left: boolean; right: boolean },
-    mesh: THREE.Mesh,
+    object: THREE.Object3D,
     params: TurningParams
   ): number => {
     const { baseTurnSpeed, maxTurnSpeed, turnSpeedIncreaseRate, maxTurnTilt } = params;
@@ -48,7 +48,7 @@ export const useVehicleMovement = () => {
         currentTurnDirection.current = desiredDirection;
         currentTurnSpeed.current = Math.min(maxTurnSpeed, currentTurnSpeed.current + turnSpeedIncreaseRate * delta);
         const rotationDelta = currentTurnSpeed.current * delta * desiredDirection;
-        mesh.rotation.y += rotationDelta;
+        object.rotation.y += rotationDelta;
         targetTurnTilt = maxTurnTilt * (currentTurnSpeed.current / maxTurnSpeed) * desiredDirection;
       }
     } else {
@@ -63,12 +63,12 @@ export const useVehicleMovement = () => {
     targetTurnTilt: number,
     delta: number,
     tiltSmoothness: number,
-    mesh: THREE.Mesh,
+    object: THREE.Object3D,
     player: THREE.Group | null = null
   ) => {
     currentTilt.current.z += (targetTurnTilt - currentTilt.current.z) * tiltSmoothness * delta;
-    mesh.rotation.x = currentTilt.current.x;
-    mesh.rotation.z = currentTilt.current.z;
+    object.rotation.x = currentTilt.current.x;
+    object.rotation.z = currentTilt.current.z;
     if (player) {
       player.rotation.x = currentTilt.current.x / 4;
       player.rotation.z = currentTilt.current.z / 4;
@@ -76,7 +76,7 @@ export const useVehicleMovement = () => {
   };
 
   const updateAndApplyMovement = (
-    mesh: THREE.Mesh,
+    object: THREE.Object3D,
     delta: number,
     direction: THREE.Vector3,
     params: MovementParams,
@@ -90,8 +90,8 @@ export const useVehicleMovement = () => {
       actualSpeedRef.current = Math.max(targetSpeedRef.current, actualSpeedRef.current - speedChangeRate * delta);
     }
 
-    const previousPosition = mesh.position.clone();
-    const newPosition = mesh.position.clone();
+    const previousPosition = object.position.clone();
+    const newPosition = object.position.clone();
     newPosition.addScaledVector(direction, actualSpeedRef.current * delta);
 
     let positionValid = true;
@@ -100,9 +100,9 @@ export const useVehicleMovement = () => {
     }
 
     if (positionValid) {
-      mesh.position.copy(newPosition);
+      object.position.copy(newPosition);
     } else {
-      actualSpeedRef.current = 0.1; // needs small speed to enable movement away from collision
+      actualSpeedRef.current = 0.1;
     }
 
     return actualSpeedRef.current;

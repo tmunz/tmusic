@@ -15,7 +15,7 @@ export const TronStateManager = ({ targetRef }: TronStateManagerProps) => {
     if (!targetRef.current) return;
 
     const currentPos = targetRef.current.position;
-    
+
     if (
       lastPositionRef.current.x !== currentPos.x ||
       lastPositionRef.current.y !== currentPos.y ||

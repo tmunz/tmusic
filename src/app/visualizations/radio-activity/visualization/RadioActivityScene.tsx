@@ -11,7 +11,13 @@ export interface RadioActivitySceneProps {
   radiationDataRatio?: number;
 }
 
-export const RadioActivityScene = ({ width, height, sampleProvider, centerDataRatio = 0.5, radiationDataRatio = 0.8 }: RadioActivitySceneProps) => {
+export const RadioActivityScene = ({
+  width,
+  height,
+  sampleProvider,
+  centerDataRatio = 0.5,
+  radiationDataRatio = 0.8,
+}: RadioActivitySceneProps) => {
   const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider);
 
   const getUniforms = () => {
@@ -19,7 +25,7 @@ export const RadioActivityScene = ({ width, height, sampleProvider, centerDataRa
     return {
       sampleData: { value: sampleTexture },
       sampleDataSize: { value: { x: sampleTexture.image.width, y: sampleTexture.image.height } },
-      volume: { value: sampleProvider.getAvg()[0] / 255. },
+      volume: { value: sampleProvider.getAvg()[0] / 255 },
       centerDataRatio: { value: centerDataRatio },
       radiationDataRatio: { value: radiationDataRatio },
     };

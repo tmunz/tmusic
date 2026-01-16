@@ -9,11 +9,7 @@ export interface ParallelLinesProps {
 export const ParallelLines = ({ sampleProvider, canvas }: ParallelLinesProps) => {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-      <ParallelLinesShaderImage
-        width={canvas.width}
-        height={canvas.height}
-        sampleProvider={sampleProvider}
-      />
+      <ParallelLinesShaderImage width={canvas.width} height={canvas.height} sampleProvider={sampleProvider} />
     </div>
   );
 };

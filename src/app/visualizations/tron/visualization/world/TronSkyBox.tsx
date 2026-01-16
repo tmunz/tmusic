@@ -1,9 +1,9 @@
-import { useRef, RefObject } from 'react';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { useTronState } from '../TronContext';
 
 interface TronSkyBoxProps {
-  targetRef: RefObject<THREE.Mesh>;
   radius?: number;
   horizonColor?: string;
   skyColor?: string;
@@ -11,17 +11,18 @@ interface TronSkyBoxProps {
 }
 
 export const TronSkyBox = ({
-  targetRef,
   radius = 500,
-  horizonColor = '#0e0006',
-  skyColor = '#000011',
+  horizonColor = '#4e0122',
+  skyColor = '#000044',
   groundColor = '#000000',
 }: TronSkyBoxProps) => {
+  const { tronState } = useTronState();
   const sphereRef = useRef<THREE.Mesh>(null);
 
   useFrame(() => {
-    if (targetRef.current && sphereRef.current) {
-      sphereRef.current.position.copy(targetRef.current.position);
+    if (sphereRef.current) {
+      const userPos = tronState.user.position;
+      sphereRef.current.position.set(userPos.x, userPos.y, userPos.z);
     }
   });
 

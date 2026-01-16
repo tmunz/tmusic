@@ -24,9 +24,9 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
   (
     {
       getSpawnPoints,
-      color = '#66EEFF',
-      opacity = 0.4,
-      maxPoints = 250,
+      color = '#ffffff',
+      opacity = 0.6,
+      maxPoints = 500,
       updateDistance = 0.1,
       thickness = 0.03,
       fadeSegments = 1,

@@ -87,6 +87,7 @@ const applyColorToModel = (model: THREE.Object3D, color: string) => {
       if (isEmissive) {
         if (material.emissive) {
           material.emissive.set(color);
+          material.emissiveIntensity = 2.0;
         }
       }
     }

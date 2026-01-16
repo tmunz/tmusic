@@ -31,14 +31,14 @@ export default [
   velvetUnderground,
   minorEarthMajorSky,
   theRiddle,
-  parallelLines
+  parallelLines,
 ];
 
 // Kraftwerk
 // The Sounds
 // Keane - Under the Iron Sea
 // The Who - Who's Next
-// 
+//
 // Green Day - American Idiot
 // Yeah Yeah Yeahs - It's Blitz!
 // Led Zeppelin - Led Zeppelin

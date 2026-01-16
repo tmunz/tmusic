@@ -8,6 +8,7 @@ export interface TronState {
       y: number;
       z: number;
     };
+    color: string;
     vehicle: {
       speed: {
         actual: number;
@@ -108,7 +109,7 @@ const tronStateReducer = (state: TronState, action: Action): TronState => {
       const tileZ = Math.round(action.position.z / tileSize);
       const snappedX = tileX * tileSize;
       const snappedZ = tileZ * tileSize;
-      
+
       return {
         ...state,
         game: {
@@ -142,14 +143,13 @@ const tronStateReducer = (state: TronState, action: Action): TronState => {
   }
 };
 
-const TronContext = createContext<{ tronState: TronState; dispatch: Dispatch<Action> } | undefined>(
-  undefined
-);
+const TronContext = createContext<{ tronState: TronState; dispatch: Dispatch<Action> } | undefined>(undefined);
 
 export const TronStateProvider = ({ children }: { children: ReactNode }) => {
   const [tronState, dispatch] = useReducer(tronStateReducer, {
     user: {
       position: { x: 0, y: 0, z: 0 },
+      color: '#66eeff',
       vehicle: {
         speed: { actual: 0, target: 0, max: 0, min: 0 },
       },

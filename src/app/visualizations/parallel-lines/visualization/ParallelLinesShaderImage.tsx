@@ -12,7 +12,7 @@ export interface ParallelLinesShaderImageProps {
 
 export const ParallelLinesShaderImage = ({ sampleProvider, width, height }: ParallelLinesShaderImageProps) => {
   const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider);
-  
+
   const [cumulativeTexture, setCumulativeTexture] = useState<DataTexture>(
     new DataTexture(new Float32Array(1), 1, 1, RedFormat, FloatType)
   );
@@ -22,23 +22,23 @@ export const ParallelLinesShaderImage = ({ sampleProvider, width, height }: Para
     const sampleSize = sp.sampleSize;
     const result = new Float32Array(numBands * sampleSize);
     const samples = sp.samples;
-    
+
     for (let y = 0; y < sampleSize; y++) {
       let totalFreqValue = 0;
       for (let x = 0; x < numBands; x++) {
         totalFreqValue += samples[y][x];
       }
-      
+
       let cumulativePosition = 0;
       for (let x = 0; x < numBands; x++) {
         const freqValue = samples[y][x];
         const proportionalWidth = totalFreqValue > 0 ? freqValue / totalFreqValue : 1.0 / numBands;
         cumulativePosition += proportionalWidth;
-        
+
         result[y * numBands + x] = x === numBands - 1 ? 1.0 : cumulativePosition;
       }
     }
-    
+
     return result;
   };
 

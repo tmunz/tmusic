@@ -25,7 +25,7 @@ export const LightCycle = forwardRef<LightCycleHandle, LightCycleProps>(({ color
   const params: VehicleParams = {
     minSpeed: 0,
     maxSpeed: 60,
-    speedChangeRate: 30,
+    speedChangeRate: 20,
     baseTurnSpeed: 1,
     maxTurnSpeed: 2,
     turnSpeedIncreaseRate: 4,
@@ -37,12 +37,18 @@ export const LightCycle = forwardRef<LightCycleHandle, LightCycleProps>(({ color
 
   const getLightWallSpawnPoints = () => {
     if (!meshRef.current) return null;
+
+    const worldPosition = new THREE.Vector3();
+    const worldQuaternion = new THREE.Quaternion();
+    meshRef.current.getWorldPosition(worldPosition);
+    meshRef.current.getWorldQuaternion(worldQuaternion);
+
     const backwardOffset = new THREE.Vector3(0, 0, params.lightWallOffset);
-    backwardOffset.applyQuaternion(meshRef.current.quaternion);
-    const lower = meshRef.current.position.clone().add(backwardOffset);
+    backwardOffset.applyQuaternion(worldQuaternion);
+    const lower = worldPosition.clone().add(backwardOffset);
 
     const upperOffset = new THREE.Vector3(0, params.lightWallHeight, 0);
-    upperOffset.applyQuaternion(meshRef.current.quaternion);
+    upperOffset.applyQuaternion(worldQuaternion);
     const upper = lower.clone().add(upperOffset);
 
     return { lower, upper };

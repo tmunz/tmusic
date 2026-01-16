@@ -36,6 +36,7 @@ export const useLightWallSoundMaterial = ({
       side,
       toneMapped: false,
       depthWrite,
+      blending: THREE.AdditiveBlending,
       uniforms: {
         sampleData: { value: sampleTexture },
         baseColor: { value: baseColor },
@@ -61,8 +62,10 @@ export const useLightWallSoundMaterial = ({
         
         void main() {
           float audioValue = texture2D(sampleData, vec2(vUv.y, vUv.x)).r;
+          float intensity = 1.0 + audioValue * 2.0;
+          vec3 color = baseColor * intensity;
           float alpha = audioValue * opacity * vColor.a;
-          gl_FragColor = vec4(baseColor, alpha);
+          gl_FragColor = vec4(color, alpha);
         }
       `,
     });

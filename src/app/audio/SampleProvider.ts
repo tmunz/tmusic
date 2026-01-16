@@ -101,6 +101,17 @@ export function createDummySampleProvider(size: number, frequencyBands: number =
     }
     provider.push(sample);
   }
-  console.log('Created dummy SampleProvider', provider);
+  return provider;
+}
+
+export function createMaxSampleProvider(size: number, frequencyBands: number = 1, max: number = 255): SampleProvider {
+  const provider = new SampleProvider(size, new Uint8Array(frequencyBands));
+  for (let i = 0; i < size; i++) {
+    const sample = new Uint8Array(frequencyBands);
+    for (let j = 0; j < frequencyBands; j++) {
+      sample[j] = max;
+    }
+    provider.push(sample);
+  }
   return provider;
 }

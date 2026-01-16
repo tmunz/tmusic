@@ -12,9 +12,9 @@ export const RadioActivity = ({ sampleProvider, canvas, centerDataRatio, radiati
   const sizeRatio = 0.9;
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-      <RadioActivityScene 
-        width={canvas.width * sizeRatio} 
-        height={canvas.height * sizeRatio} 
+      <RadioActivityScene
+        width={canvas.width * sizeRatio}
+        height={canvas.height * sizeRatio}
         sampleProvider={sampleProvider}
         centerDataRatio={centerDataRatio}
         radiationDataRatio={radiationDataRatio}

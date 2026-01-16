@@ -10,7 +10,7 @@ const radioActivity: Visualization = {
   design: 'Emil Schult',
   imgSrc: require('./radio-activity.jpg'),
   description:
-   "Radio-Activity is the fifth studio album by Kraftwerk, released in 1975. The album explores themes of radio communication and nuclear energy, blending electronic soundscapes with innovative production techniques. Its minimalist reissue cover features a bold, stripped-down design that mirrors the album's futuristic and experimental spirit. Tracks such as 'Radioactivity' and 'Antenna' highlight Kraftwerk's pioneering approach to electronic music, cementing the album's lasting influence on the genre.",
+    "Radio-Activity is the fifth studio album by Kraftwerk, released in 1975. The album explores themes of radio communication and nuclear energy, blending electronic soundscapes with innovative production techniques. Its minimalist reissue cover features a bold, stripped-down design that mirrors the album's futuristic and experimental spirit. Tracks such as 'Radioactivity' and 'Antenna' highlight Kraftwerk's pioneering approach to electronic music, cementing the album's lasting influence on the genre.",
   component: RadioActivity,
   color: '#fbff36',
   settings: {
