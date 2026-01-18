@@ -84,9 +84,13 @@ export const useAudioAnalysis = (
   useEffect(() => {
     const actualSampleRate = analyserRef.current?.context.sampleRate ?? 44100;
     const interval = (1000 * fftSize) / actualSampleRate;
+    
     const intervalId = setInterval(() => {
       const audioData = getFrequencyData();
       if (audioData) {
+        // Calculate and set hz when audio is active
+        const hz = 1000 / (interval * sampleSize);
+        audioFrames.hz = hz;
         audioFrames.push(audioData);
       } else {
         audioFrames.push();
@@ -95,7 +99,7 @@ export const useAudioAnalysis = (
     return () => {
       clearInterval(intervalId);
     };
-  }, [audioFrames, fftSize]);
+  }, [audioFrames, fftSize, sampleSize]);
 
   return audioFrames;
 };

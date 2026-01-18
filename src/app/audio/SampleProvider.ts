@@ -5,6 +5,7 @@ export class SampleProvider extends FixedSizeQueue<Uint8Array> {
   private _active = false;
   private _frequencyBands = 1;
   private _activeListeners: ActiveListener[] = [];
+  private _hz = 0;
 
   constructor(size: number, defaultValue: Uint8Array) {
     super(size, defaultValue);
@@ -32,6 +33,14 @@ export class SampleProvider extends FixedSizeQueue<Uint8Array> {
     return this._frequencyBands;
   }
 
+  get hz() {
+    return this._hz;
+  }
+
+  set hz(value: number) {
+    this._hz = value;
+  }
+
   get sampleSize() {
     return this.size;
   }
@@ -44,6 +53,7 @@ export class SampleProvider extends FixedSizeQueue<Uint8Array> {
     const prevActive = this._active;
     if (sample === undefined) {
       this._active = false;
+      this._hz = 0;
       for (let i = 0; i < this.size; i++) {
         super.push(new Uint8Array(this._frequencyBands));
       }

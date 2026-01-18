@@ -10,9 +10,10 @@ import { useAppState, VisualizationAction } from './AppContext';
 import { Carousel } from './ui/carousel';
 import { VisualizationComponent } from './visualizations/VisualizationComponent';
 import { CollapsibleMenubarItem } from './ui/menubar/CollapsibleMenubarItem';
-import { PiInfo, PiSlidersHorizontalDuotone } from 'react-icons/pi';
+import { PiInfo, PiSlidersHorizontalDuotone, PiVinylRecord } from 'react-icons/pi';
 import { VisualizationInfo } from './visualizations/VisualizationInfo';
 import { SampleProvider } from './audio/SampleProvider';
+import { AboutComponent } from './AboutComponent';
 
 export function App() {
   const elementRef = useRef<HTMLDivElement>(null);
@@ -63,10 +64,13 @@ export function App() {
   });
 
   return (
-    <div className="musicbox" ref={elementRef} style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+    <div className="tmusic" ref={elementRef} style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
       <Carousel items={items} selectedId={appState.visualization?.id} onSelect={selectVisualization} defaultFocus />
       <Menubar hideTimeout={3000}>
         <CollapsibleMenubarItem icon={PiInfo}>
+          <AboutComponent />
+        </CollapsibleMenubarItem>
+        <CollapsibleMenubarItem icon={PiVinylRecord}>
           <VisualizationInfo visualization={appState.visualization} />
         </CollapsibleMenubarItem>
         <CollapsibleMenubarItem icon={PiSlidersHorizontalDuotone}>

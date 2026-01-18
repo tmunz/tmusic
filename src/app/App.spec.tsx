@@ -4,7 +4,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { App } from './App';
 import { AppStateProvider } from './AppContext';
 
-test('renders an element with class "musicbox"', () => {
+test('renders an element with class "tmusic"', () => {
   const { container } = render(
     <Router>
       <AppStateProvider>
@@ -12,6 +12,6 @@ test('renders an element with class "musicbox"', () => {
       </AppStateProvider>
     </Router>
   );
-  const element = container.querySelector('.musicbox');
+  const element = container.querySelector('.tmusic');
   expect(element).toBeInTheDocument();
 });

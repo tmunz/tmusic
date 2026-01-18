@@ -4,6 +4,7 @@ import { PiPlay, PiStop } from 'react-icons/pi';
 import { IconToggleButton } from '../../ui/icon-button/IconToggleButton';
 import { AudioProps } from '../AudioProps';
 import { createAudioStream, cleanupAudioStream } from '../AudioStream';
+import { Input } from '../../ui/input/Input';
 
 export const UrlStreamAudio = ({ isActive, onStreamCreated }: AudioProps) => {
   const [audioPlayer, setAudioPlayer] = useState<HTMLAudioElement | null>(null);
@@ -57,14 +58,12 @@ export const UrlStreamAudio = ({ isActive, onStreamCreated }: AudioProps) => {
 
   return (
     <div className="url-stream">
-      <div className="input-wrapper">
-        <input
-          value={url}
-          onChange={e => setUrl(e.target.value)}
-          placeholder="Enter audio URL..."
-          disabled={isPlaying}
-        />
-      </div>
+      <Input
+        value={url}
+        onChange={e => setUrl(e.target.value)}
+        placeholder="Enter audio URL..."
+        disabled={isPlaying}
+      />
       <IconToggleButton
         activeIcon={PiStop}
         inactiveIcon={PiPlay}

@@ -2,13 +2,13 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Group, Vector3 } from 'three';
 import { Bit } from '../object/Bit';
-import { useTronState } from '../TronContext';
 import { WireframeTransitionObject } from '../object/WireframeTransitionObject';
+import { useTronState } from '../state/TronContext';
 
 interface CompanionProps { }
 
 export const Companion = ({ }: CompanionProps) => {
-  const { tronState } = useTronState();
+  const { tronState, getUserCharacter, getUserPlayer } = useTronState();
   const groupRef = useRef<Group>(null);
   const timeRef = useRef(0);
   const prevSpeedRef = useRef(0);
@@ -21,10 +21,13 @@ export const Companion = ({ }: CompanionProps) => {
     if (!groupRef.current) return;
 
     timeRef.current += delta;
-    const isOutside = !tronState.game.userInsideBattleground;
+    const userPlayer = getUserPlayer();
+    const isOutside = userPlayer ? !userPlayer.insideBattleground : true;
+    const userChar = getUserCharacter();
+    if (!userChar) return;
 
-    const speedChange = tronState.user.vehicle.speed.actual - prevSpeedRef.current;
-    prevSpeedRef.current = tronState.user.vehicle.speed.actual;
+    const speedChange = userChar.vehicle.speed.actual - prevSpeedRef.current;
+    prevSpeedRef.current = userChar.vehicle.speed.actual;
 
     if (speedChange > 0) {
       speedLagRef.current = Math.min(speedLagRef.current + speedChange * 0.3, 1.5);
@@ -33,9 +36,9 @@ export const Companion = ({ }: CompanionProps) => {
     speedLagRef.current = Math.max(0, speedLagRef.current - delta * 1.5);
 
     const targetVehiclePos = new Vector3(
-      tronState.user.position.x,
-      tronState.user.position.y,
-      tronState.user.position.z
+      userChar.position.x,
+      userChar.position.y,
+      userChar.position.z
     );
 
     if (prevVehiclePosRef.current.length() === 0) {
@@ -98,10 +101,12 @@ export const Companion = ({ }: CompanionProps) => {
     }
   });
 
+  const userPlayer = getUserPlayer();
+
   return (
     <group ref={groupRef}>
       <WireframeTransitionObject>
-        <Bit position={[0, 0, 0]} activated={!tronState.game.userInsideBattleground} />
+        <Bit position={[0, 0, 0]} activated={userPlayer ? !userPlayer.insideBattleground : true} />
       </WireframeTransitionObject>
     </group>
   );

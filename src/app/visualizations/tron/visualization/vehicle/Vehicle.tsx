@@ -6,9 +6,10 @@ import { SampleProvider } from '../../../../audio/SampleProvider';
 import { useCollision } from '../collision/CollisionContext';
 import { registerDynamicCollisionObject } from '../collision/useDynamicCollisionObject';
 import { useVehicleMovement } from './useVehicleMovement';
-import { useTronState, TronAction } from '../TronContext';
 import { WireframeTransitionObject, WireframeTransitionHandle } from '../object/WireframeTransitionObject';
 import { Box3, Mesh, Object3D, Quaternion, Vector3 } from 'three';
+import { useTronState } from '../state/TronContext';
+import { TronAction } from '../state/TronAction';
 
 interface ControlsState {
   accelerate: boolean;
@@ -33,7 +34,7 @@ export const Vehicle = forwardRef<Object3D, VehicleProps>(
     const targetMeshRef = useRef<Mesh>(null);
     const { unregisterObject, checkCollision, registerObject, getAllObjects } = useCollision();
     const movement = useVehicleMovement();
-    const { dispatch, tronState } = useTronState();
+    const { dispatch, getUserCharacter, getUserPlayer } = useTronState();
 
     const direction = useRef(new Vector3());
     const vehicleId = useRef(`vehicle-${Math.random()}`);
@@ -94,10 +95,14 @@ export const Vehicle = forwardRef<Object3D, VehicleProps>(
       }
 
       if (newTarget !== currentTarget && getControlsState) {
-        dispatch({
-          type: TronAction.SET_TARGET_SPEED,
-          target: newTarget,
-        });
+        const userPlayer = getUserPlayer();
+        if (userPlayer) {
+          dispatch({
+            type: TronAction.SET_TARGET_SPEED,
+            characterId: userPlayer.id,
+            target: newTarget,
+          });
+        }
       }
     };
 
@@ -112,11 +117,15 @@ export const Vehicle = forwardRef<Object3D, VehicleProps>(
         object.rotation.set(...rotation);
         object.userData.initialized = true;
         if (getControlsState) {
-          dispatch({
-            type: TronAction.SET_VEHILE_PARAMS,
-            min: vehicle.params.minSpeed,
-            max: vehicle.params.maxSpeed,
-          });
+          const userPlayer = getUserPlayer();
+          if (userPlayer) {
+            dispatch({
+              type: TronAction.SET_VEHILE_PARAMS,
+              characterId: userPlayer.id,
+              min: vehicle.params.minSpeed,
+              max: vehicle.params.maxSpeed,
+            });
+          }
         }
       }
 
@@ -132,16 +141,21 @@ export const Vehicle = forwardRef<Object3D, VehicleProps>(
         tiltSmoothness,
       } = vehicle.params;
 
-      const currentTargetSpeed = getControlsState ? tronState.user.vehicle.speed.target : 0;
+      const userChar = getUserCharacter();
+      const currentTargetSpeed = getControlsState && userChar ? userChar.vehicle.speed.target : 0;
       updateTargetSpeed(delta, { maxSpeed, minSpeed }, controls, currentTargetSpeed);
       movement.setTargetSpeed(currentTargetSpeed);
 
       const actualSpeed = movement.getActualSpeed();
       if (getControlsState) {
-        dispatch({
-          type: TronAction.UPDATE_VEHICLE_SPEED,
-          actual: actualSpeed,
-        });
+        const userPlayer = getUserPlayer();
+        if (userPlayer) {
+          dispatch({
+            type: TronAction.UPDATE_VEHICLE_SPEED,
+            characterId: userPlayer.id,
+            actual: actualSpeed,
+          });
+        }
       }
 
       const targetTurnTilt = movement.updateTurning(delta, controls, object, {

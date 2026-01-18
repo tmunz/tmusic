@@ -14,10 +14,12 @@ import theRiddle from './the-riddle';
 import tron from './tron';
 import parallelLines from './parallel-lines';
 import radioActivity from './radio-activity';
+import blueMonday from './blue-monday';
 
 export default [
   unknownPleasures,
   theDarkSideOfTheMoon,
+  blueMonday,
   tron,
   transEuropeExpress,
   radioActivity,

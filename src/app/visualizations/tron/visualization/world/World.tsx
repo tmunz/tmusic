@@ -2,8 +2,8 @@ import { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { TronGrid } from './TronGrid';
 import { TronCube } from '../object/TronCube';
-import { useTronState } from '../TronContext';
 import { TronSkyBox } from './TronSkyBox';
+import { useTronState } from '../state/TronContext';
 
 interface WorldProps {
   tileSize: number;
@@ -19,7 +19,7 @@ export interface WorldTile {
 }
 
 export const World = ({ tileSize, viewDistance = 0 }: WorldProps) => {
-  const { tronState } = useTronState();
+  const { tronState, getUserCharacter } = useTronState();
   const getInitialTiles = () => {
     const initialTiles: WorldTile[] = [];
     for (let x = -viewDistance; x <= viewDistance; x++) {
@@ -40,7 +40,9 @@ export const World = ({ tileSize, viewDistance = 0 }: WorldProps) => {
   const lastPlayerTile = useRef({ x: 0, z: 0 });
 
   useFrame(() => {
-    const playerPos = tronState.user.position;
+    const userChar = getUserCharacter();
+    if (!userChar) return;
+    const playerPos = userChar.position;
 
     const currentTileX = Math.floor(playerPos.x / tileSize);
     const currentTileZ = Math.floor(playerPos.z / tileSize);

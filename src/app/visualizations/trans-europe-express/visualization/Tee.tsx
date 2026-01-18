@@ -14,6 +14,7 @@ export interface TeeProps {
 
 export const Tee = ({ width, height, sampleProvider, intensity = 1 }: TeeProps) => {
   const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider);
+
   const { current: imageUrls } = useRef({
     image: require('./tee.png'),
   });

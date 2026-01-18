@@ -1,0 +1,22 @@
+.input {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: var(--color-background);
+  backdrop-filter: blur(10px);
+  min-width: 0;
+
+  input {
+    font-family: 'Courier New', monospace;
+    background-color: transparent;
+    color: var(--color-action);
+    font-size: 1.2em;
+    border-radius: 0;
+    width: 100%;
+    border: none;
+
+    &:focus {
+      outline: none;
+    }
+  }
+}

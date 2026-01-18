@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
-import { useTronState } from '../TronContext';
+import { useTronState } from '../state/TronContext';
+import { BackSide, Color, Mesh, ShaderMaterial } from 'three';
 
 interface TronSkyBoxProps {
   radius?: number;
@@ -16,21 +16,23 @@ export const TronSkyBox = ({
   skyColor = '#000044',
   groundColor = '#000000',
 }: TronSkyBoxProps) => {
-  const { tronState } = useTronState();
-  const sphereRef = useRef<THREE.Mesh>(null);
+  const { getUserCharacter } = useTronState();
+  const sphereRef = useRef<Mesh>(null);
 
   useFrame(() => {
     if (sphereRef.current) {
-      const userPos = tronState.user.position;
+      const userChar = getUserCharacter();
+      if (!userChar) return;
+      const userPos = userChar.position;
       sphereRef.current.position.set(userPos.x, userPos.y, userPos.z);
     }
   });
 
-  const sphereMaterial = new THREE.ShaderMaterial({
+  const sphereMaterial = new ShaderMaterial({
     uniforms: {
-      horizonColor: { value: new THREE.Color(horizonColor) },
-      skyColor: { value: new THREE.Color(skyColor) },
-      groundColor: { value: new THREE.Color(groundColor) },
+      horizonColor: { value: new Color(horizonColor) },
+      skyColor: { value: new Color(skyColor) },
+      groundColor: { value: new Color(groundColor) },
       horizonHeight: { value: 0.05 },
       horizonWidth: { value: 0.2 },
     },
@@ -53,32 +55,26 @@ export const TronSkyBox = ({
       
       void main() {
         float height = vPosition.y / length(vPosition);
-        
-        // Create narrow horizon band
+
         float distFromHorizon = abs(height - horizonHeight);
         float horizonMask = 1.0 - smoothstep(0.0, horizonWidth, distFromHorizon);
-        
-        // Base color (sky or ground)
+
         vec3 baseColor;
         if (height > horizonHeight + horizonWidth) {
-          // Sky - dark blue/black
           baseColor = skyColor;
         } else if (height < horizonHeight - horizonWidth) {
-          // Ground - black
           baseColor = groundColor;
         } else {
-          // Transition zone
           float t = (height - (horizonHeight - horizonWidth)) / (horizonWidth * 2.0);
           baseColor = mix(groundColor, skyColor, t);
         }
         
-        // Mix in horizon glow
         vec3 color = mix(baseColor, horizonColor, horizonMask);
         
         gl_FragColor = vec4(color, 1.0);
       }
     `,
-    side: THREE.BackSide,
+    side: BackSide,
     depthWrite: false,
   });
 

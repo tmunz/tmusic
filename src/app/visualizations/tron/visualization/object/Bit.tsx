@@ -19,7 +19,7 @@ export const Bit = ({ position = [0, 0, 0], scale = 1, activated = false }: BitP
     const phi = (1 + Math.sqrt(5)) / 2;
     const scale = 0.04;
     const baseSpikeHeight = 0.01;
-    const extendedSpikeHeight = 0.08;
+    const extendedSpikeHeight = 0.07;
 
     const vertices = [
       [1, 1, 1],
@@ -102,8 +102,8 @@ export const Bit = ({ position = [0, 0, 0], scale = 1, activated = false }: BitP
     if (!groupRef.current || !meshRef.current) return;
     timeRef.current += delta;
     const frequency = activated ? 10 : 1;
-    const pulseAmount = Math.sin(timeRef.current * frequency) * 0.1;
-    const targetActivation = activated ? 1.0 + 4 * pulseAmount : pulseAmount;
+    const pulseAmount = Math.sin(timeRef.current * frequency) * 0.5;
+    const targetActivation = activated ? 2.5 + 5 * pulseAmount : pulseAmount;
     activationRef.current += (targetActivation - activationRef.current) * delta * 5;
     if (meshRef.current.morphTargetInfluences) {
       meshRef.current.morphTargetInfluences[0] = activationRef.current;
@@ -112,10 +112,9 @@ export const Bit = ({ position = [0, 0, 0], scale = 1, activated = false }: BitP
     groupRef.current.rotation.y += delta * 0.03;
   });
 
-  const getCurrentColor = () => {
-    const t = activationRef.current;
-    const r = Math.floor(100 + t * 155);
-    const g = Math.floor(150 - t * 150);
+  const getColor = (t: number) => {
+    const r = Math.floor(120 + t * 135);
+    const g = Math.floor(100 - t * 100);
     const b = Math.floor(255 - t * 155);
     return `rgb(${r}, ${g}, ${b})`;
   };
@@ -124,8 +123,8 @@ export const Bit = ({ position = [0, 0, 0], scale = 1, activated = false }: BitP
     <group ref={groupRef} position={position} scale={scale}>
       <mesh ref={meshRef} geometry={spikyGeometry} morphTargetInfluences={[0]}>
         <meshStandardMaterial
-          color={getCurrentColor()}
-          emissive={getCurrentColor()}
+          color={getColor(activationRef.current)}
+          emissive={getColor(activationRef.current)}
           emissiveIntensity={0.5 + activationRef.current * 0.3}
           metalness={0.8 + activationRef.current * 0.1}
           roughness={0.2 - activationRef.current * 0.1}

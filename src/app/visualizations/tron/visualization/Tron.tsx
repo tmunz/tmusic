@@ -13,13 +13,14 @@ import { useActivityToggle } from '../../../utils/useActivityToggle';
 import { CollisionProvider } from './collision/CollisionContext';
 import { CollisionDebugVisualizer } from './collision/CollisionDebugVisualizer';
 import { useGameInput } from './TronGameInput';
-import { TronStateProvider, useTronState, TronAction } from './TronContext';
 import { SpeedBar } from './ui/SpeedBar';
 import { useSampleProviderActive } from '../../../audio/useSampleProviderActive';
 import { MinimapRenderer, Minimap } from './ui/Minimap';
-import { TronStateManager } from './TronStateManager';
+import { TronStateManager } from './state/TronStateManager';
 import { TronLightningEnvironment } from './TronLightningEnvironment';
 import { Companion } from './vehicle/Companion';
+import { TronStateProvider, useTronState } from './state/TronContext';
+import { TronAction } from './state/TronAction';
 
 export interface TronProps {
   sampleProvider: SampleProvider;
@@ -73,7 +74,7 @@ interface TronSceneProps {
 }
 
 const TronScene = ({ sampleProvider, targetRef, debugMode, gameMode }: TronSceneProps) => {
-  const { tronState, dispatch } = useTronState();
+  const { tronState, dispatch, getUserCharacter, getUserPlayer } = useTronState();
   const isActive = useSampleProviderActive(sampleProvider);
   const hasAutoAccelerated = useRef(false);
   const userVehicleControls = useGameInput();
@@ -107,19 +108,24 @@ const TronScene = ({ sampleProvider, targetRef, debugMode, gameMode }: TronScene
 
   // Auto-accelerate to max speed when sampleProvider becomes active
   useEffect(() => {
+    const userChar = getUserCharacter();
+    const userPlayer = getUserPlayer();
     if (
       isActive &&
       !hasAutoAccelerated.current &&
-      tronState.user.vehicle.speed.target < 1 &&
-      tronState.user.vehicle.speed.max > 0
+      userChar &&
+      userPlayer &&
+      userChar.vehicle.speed.target < 1 &&
+      userChar.vehicle.speed.max > 0
     ) {
       dispatch({
         type: TronAction.SET_TARGET_SPEED,
-        target: tronState.user.vehicle.speed.max,
+        characterId: userPlayer.id,
+        target: userChar.vehicle.speed.max,
       });
       hasAutoAccelerated.current = true;
     }
-  }, [isActive, dispatch, tronState.user.vehicle.speed.target, tronState.user.vehicle.speed.max]);
+  }, [isActive, dispatch, tronState]);
 
   return (
     <>
@@ -132,7 +138,7 @@ const TronScene = ({ sampleProvider, targetRef, debugMode, gameMode }: TronScene
           <Vehicle
             ref={targetRef}
             sampleProvider={effectiveSampleProvider}
-            color={tronState.user.color}
+            color={getUserCharacter()?.color ?? '#66eeff'}
             getControlsState={userVehicleControls}
           />
           <Companion />
@@ -145,8 +151,8 @@ const TronScene = ({ sampleProvider, targetRef, debugMode, gameMode }: TronScene
       </Canvas>
       {tronState.game.active && (
         <>
-          <SpeedBar color={tronState.user.color} width={150} />
-          <Minimap color={tronState.user.color} targetRef={targetRef} size={150} onCanvasReady={setMinimapCanvas} />
+          <SpeedBar color={getUserCharacter()?.color ?? '#66eeff'} width={150} />
+          <Minimap color={getUserCharacter()?.color ?? '#66eeff'} targetRef={targetRef} size={150} onCanvasReady={setMinimapCanvas} />
         </>
       )}
     </>

@@ -29,6 +29,8 @@ export function MinimapRenderer({ targetRef, canvasElement }: MinimapRendererPro
     minimapRenderer.current = renderer;
 
     const camera = new THREE.OrthographicCamera(-mapSize / 2, mapSize / 2, mapSize / 2, -mapSize / 2, 0.1, 200);
+    camera.layers.enable(0); // Default layer
+    camera.layers.disable(1); // Disable effects layer for minimap
     mapCamera.current = camera;
 
     return () => {
@@ -47,7 +49,36 @@ export function MinimapRenderer({ targetRef, canvasElement }: MinimapRendererPro
     mapCamera.current.lookAt(playerPos.x, playerPos.y, playerPos.z);
     mapCamera.current.updateMatrixWorld();
 
+    // Store original material properties
+    const materialCache = new Map<THREE.Material, { envMapIntensity?: number; metalness?: number; roughness?: number }>();
+    
+    scene.traverse((obj) => {
+      if ('material' in obj && obj.material) {
+        const material = obj.material as THREE.Material;
+        if ('envMapIntensity' in material || 'metalness' in material) {
+          const standardMaterial = material as THREE.MeshStandardMaterial;
+          materialCache.set(material, {
+            envMapIntensity: standardMaterial.envMapIntensity,
+            metalness: standardMaterial.metalness,
+            roughness: standardMaterial.roughness,
+          });
+          // Reduce reflections for minimap
+          standardMaterial.envMapIntensity = 0;
+          standardMaterial.metalness = 0;
+          standardMaterial.roughness = 1;
+        }
+      }
+    });
+
     minimapRenderer.current.render(scene, mapCamera.current);
+
+    // Restore original material properties
+    materialCache.forEach((cached, material) => {
+      const standardMaterial = material as THREE.MeshStandardMaterial;
+      if (cached.envMapIntensity !== undefined) standardMaterial.envMapIntensity = cached.envMapIntensity;
+      if (cached.metalness !== undefined) standardMaterial.metalness = cached.metalness;
+      if (cached.roughness !== undefined) standardMaterial.roughness = cached.roughness;
+    });
   });
 
   return null;

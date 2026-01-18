@@ -1,20 +1,23 @@
 import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 import { Mesh } from 'three';
-import { useTronState, TronAction } from './TronContext';
+import { useTronState } from './TronContext';
+import { TronAction } from './TronAction';
 
 interface TronStateManagerProps {
   targetRef: React.RefObject<Mesh>;
 }
 
 export const TronStateManager = ({ targetRef }: TronStateManagerProps) => {
-  const { tronState, dispatch } = useTronState();
+  const { tronState, dispatch, getUserPlayer } = useTronState();
   const lastPositionRef = useRef({ x: 0, y: 0, z: 0 });
 
   useFrame(() => {
     if (!targetRef.current) return;
 
     const currentPos = targetRef.current.position;
+    const userPlayer = getUserPlayer();
+    if (!userPlayer) return;
 
     if (
       lastPositionRef.current.x !== currentPos.x ||
@@ -22,7 +25,8 @@ export const TronStateManager = ({ targetRef }: TronStateManagerProps) => {
       lastPositionRef.current.z !== currentPos.z
     ) {
       dispatch({
-        type: TronAction.UPDATE_USER_POSITION,
+        type: TronAction.UPDATE_CHARACTER_POSITION,
+        characterId: userPlayer.id,
         position: { x: currentPos.x, y: currentPos.y, z: currentPos.z },
       });
 
@@ -39,9 +43,10 @@ export const TronStateManager = ({ targetRef }: TronStateManagerProps) => {
         currentPos.z >= battlefieldPos.z - battlegroundSize / 2 &&
         currentPos.z <= battlefieldPos.z + battlegroundSize / 2;
 
-      if (isInside !== tronState.game.userInsideBattleground) {
+      if (isInside !== userPlayer.insideBattleground) {
         dispatch({
-          type: TronAction.UPDATE_USER_BATTLEGROUND_STATUS,
+          type: TronAction.UPDATE_PLAYER_BATTLEGROUND_STATUS,
+          playerId: userPlayer.id,
           inside: isInside,
         });
       }

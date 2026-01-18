@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react';
-import { useTronState, TronAction } from './TronContext';
 import { CameraMode } from './camera/CameraMode';
+import { useTronState } from './state/TronContext';
+import { TronAction } from './state/TronAction';
 
 export interface ControlsState {
   left: boolean;
