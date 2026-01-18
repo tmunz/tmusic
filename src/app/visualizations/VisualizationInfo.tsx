@@ -15,13 +15,13 @@ export const VisualizationInfo = ({ visualization, extended = true }: Visualizat
     <div className="visualization-info">
       {extended && (
         <>
-          <h1>{visualization.title}</h1>
-          <h2>
+          <h2>{visualization.title}</h2>
+          <h3>
             <label>Artist</label>
             <span>{visualization.artist}</span>
             <label>Design</label>
             <span>{visualization.design}</span>
-          </h2>
+          </h3>
           <div className="visualization-selector-description">{visualization.description}</div>
         </>
       )}

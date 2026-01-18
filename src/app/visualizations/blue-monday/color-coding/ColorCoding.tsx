@@ -143,7 +143,7 @@ export const ColorCoding = ({ squareSize = 30, gap = 5, charsPerRow = 10 }: Colo
 
   return (
     <div className='color-coding'>
-      <h2>Peter Saville Color Coding</h2>
+      <h2>Color Coding</h2>
       <Input
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
