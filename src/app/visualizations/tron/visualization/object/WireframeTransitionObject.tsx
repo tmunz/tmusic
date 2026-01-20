@@ -1,6 +1,8 @@
-import { useRef, useState, useEffect, forwardRef, useImperativeHandle, ReactNode } from 'react';
+import { useRef, useEffect, forwardRef, useImperativeHandle, ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Box3, Color, DoubleSide, Group, Material, Mesh, ShaderMaterial } from 'three';
+import { Group } from 'three';
+import { useWireframeCreate } from './useWireframeCreate';
+import { useWireframeDestruct } from './useWireframeDestruct';
 
 interface WireframeTransitionObjectProps {
   children: ReactNode;
@@ -9,182 +11,103 @@ interface WireframeTransitionObjectProps {
   holdDuration?: number;
   fadeDuration?: number;
   onComplete?: () => void;
+  autoStart?: boolean;
 }
+
+export type TransitionDirection = 'in' | 'out';
 
 export interface WireframeTransitionHandle {
   getObject: () => Group | null;
+  startTransition: (direction: TransitionDirection) => void;
 }
 
 export const WireframeTransitionObject = forwardRef<WireframeTransitionHandle, WireframeTransitionObjectProps>(
-  ({ children, color = '#00ffff', revealDuration = 0.8, holdDuration = 0.3, fadeDuration = 1.0, onComplete }, ref) => {
+  (
+    {
+      children,
+      color = '#00ffff',
+      revealDuration = 0.8,
+      holdDuration = 0.3,
+      fadeDuration = 1.0,
+      onComplete,
+      autoStart = false,
+    },
+    ref
+  ) => {
     const elementRef = useRef<Group>(null);
     const childrenGroupRef = useRef<Group>(null);
-    const progress = useRef(0);
-    const started = useRef(false);
-    const [wireframe, setWireframe] = useState<Group | null>(null);
-    const [showChildren, setShowChildren] = useState(false);
-    const originalMaterials = useRef<Map<Mesh, { transparent: boolean; opacity: number }>>(new Map());
+    const activeAnimationRef = useRef<'create' | 'destruct' | null>(null);
+
+    const createAnimation = useWireframeCreate({
+      color,
+      revealDuration,
+      holdDuration,
+      fadeDuration,
+      onComplete: () => {
+        activeAnimationRef.current = null;
+        onComplete?.();
+      },
+    });
+
+    const destructAnimation = useWireframeDestruct({
+      color,
+      fadeDuration,
+      holdDuration,
+      revealDuration,
+      onComplete: () => {
+        activeAnimationRef.current = null;
+        onComplete?.();
+      },
+    });
 
     useEffect(() => {
-      const timer = setTimeout(() => {
-        if (!childrenGroupRef.current) return;
-
-        const bbox = new Box3().setFromObject(childrenGroupRef.current);
-        const minY = bbox.min.y;
-        const maxY = bbox.max.y;
-
-        const wireframeClone = childrenGroupRef.current.clone(true);
-        wireframeClone.updateMatrixWorld(true);
-
-        wireframeClone.traverse(child => {
-          if (child instanceof Mesh && child.geometry) {
-            const wireframeMaterial = new ShaderMaterial({
-              uniforms: {
-                color: { value: new Color(color) },
-                revealProgress: { value: 0.0 },
-                opacity: { value: 1.0 },
-                minY: { value: minY },
-                maxY: { value: maxY },
-              },
-              vertexShader: `
-              varying vec3 vPosition;
-              void main() {
-                vPosition = position;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-              }
-            `,
-              fragmentShader: `
-              uniform vec3 color;
-              uniform float revealProgress;
-              uniform float opacity;
-              uniform float minY;
-              uniform float maxY;
-              varying vec3 vPosition;
-              
-              void main() {
-                float normalizedY = (vPosition.y - minY) / (maxY - minY);
-                
-                if (normalizedY > revealProgress) {
-                  discard;
-                }
-                
-                float edgeFade = smoothstep(revealProgress - 0.05, revealProgress, normalizedY);
-                float alpha = (1.0 - edgeFade * 0.3) * opacity;
-                
-                gl_FragColor = vec4(color, alpha);
-              }
-            `,
-              transparent: true,
-              wireframe: true,
-              side: DoubleSide,
-              depthTest: true,
-              depthWrite: false,
-            });
-
-            child.material = wireframeMaterial;
-            child.visible = true;
+      if (autoStart && childrenGroupRef.current) {
+        const timer = setTimeout(() => {
+          if (childrenGroupRef.current) {
+            activeAnimationRef.current = 'create';
+            createAnimation.startCreate(childrenGroupRef.current);
           }
-        });
-
-        wireframeClone.visible = true;
-        setWireframe(wireframeClone);
-
-        started.current = true;
-        progress.current = 0;
-      }, 100);
-
-      return () => clearTimeout(timer);
-    }, [color]);
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    }, [autoStart]);
 
     useImperativeHandle(ref, () => ({
       getObject: () => elementRef.current,
+      startTransition: (direction: TransitionDirection) => {
+        if (childrenGroupRef.current) {
+          if (direction === 'in') {
+            activeAnimationRef.current = 'create';
+            createAnimation.startCreate(childrenGroupRef.current);
+          } else {
+            activeAnimationRef.current = 'destruct';
+            destructAnimation.startDestruct(childrenGroupRef.current);
+          }
+        }
+      },
     }));
 
     useFrame((state, delta) => {
-      if (!started.current || !wireframe) return;
-
-      progress.current += delta;
-
-      if (progress.current <= revealDuration) {
-        const revealRatio = progress.current / revealDuration;
-        wireframe.traverse(child => {
-          if (child instanceof Mesh && child.material instanceof ShaderMaterial) {
-            child.material.uniforms.revealProgress.value = revealRatio;
-          }
-        });
-        return;
-      }
-
-      const holdStartTime = revealDuration;
-      if (progress.current <= holdStartTime + holdDuration) {
-        wireframe.traverse(child => {
-          if (child instanceof Mesh && child.material instanceof ShaderMaterial) {
-            child.material.uniforms.revealProgress.value = 1.0;
-          }
-        });
-        return;
-      }
-
-      const fadeStartTime = holdStartTime + holdDuration;
-      const fadeTime = progress.current - fadeStartTime;
-      const fadeRatio = Math.min(fadeTime / fadeDuration, 1);
-
-      if (!showChildren) {
-        setShowChildren(true);
-
-        if (childrenGroupRef.current) {
-          childrenGroupRef.current.traverse(child => {
-            if (child instanceof Mesh && child.material) {
-              const material = child.material as Material;
-              originalMaterials.current.set(child, {
-                transparent: material.transparent,
-                opacity: material.opacity,
-              });
-              material.transparent = true;
-              material.opacity = 0;
-            }
-          });
-        }
-      }
-
-      if (childrenGroupRef.current) {
-        childrenGroupRef.current.traverse(child => {
-          if (child instanceof Mesh && child.material) {
-            const material = child.material as Material;
-            material.opacity = fadeRatio;
-          }
-        });
-      }
-
-      wireframe.traverse(child => {
-        if (child instanceof Mesh && child.material instanceof ShaderMaterial) {
-          child.material.uniforms.revealProgress.value = 1.0;
-          child.material.uniforms.opacity.value = 1 - fadeRatio;
-        }
-      });
-
-      if (fadeRatio >= 1.0) {
-        wireframe.visible = false;
-
-        if (childrenGroupRef.current) {
-          childrenGroupRef.current.traverse(child => {
-            if (child instanceof Mesh && child.material) {
-              const original = originalMaterials.current.get(child);
-              if (original) {
-                const material = child.material as Material;
-                material.transparent = original.transparent;
-                material.opacity = original.opacity;
-              }
-            }
-          });
-          originalMaterials.current.clear();
-        }
-
-        if (onComplete) {
-          onComplete();
-        }
+      if (activeAnimationRef.current === 'create') {
+        createAnimation.animate(delta);
+      } else if (activeAnimationRef.current === 'destruct') {
+        destructAnimation.animate(delta);
       }
     });
+
+    const showChildren =
+      activeAnimationRef.current === 'create'
+        ? createAnimation.showChildren
+        : activeAnimationRef.current === 'destruct'
+        ? destructAnimation.showChildren
+        : true;
+
+    const wireframe =
+      activeAnimationRef.current === 'create'
+        ? createAnimation.wireframe
+        : activeAnimationRef.current === 'destruct'
+        ? destructAnimation.wireframe
+        : null;
 
     return (
       <group ref={elementRef}>

@@ -3,25 +3,35 @@ import * as THREE from 'three';
 import { RefObject, useEffect, useRef } from 'react';
 
 interface FollowCameraProps {
-  targetRef: RefObject<THREE.Mesh>;
+  targetRef: RefObject<THREE.Object3D>;
   fov?: number;
+  offset?: THREE.Vector3;
+  lookAtOffset?: THREE.Vector3;
+  stiffness?: number;
   drift?: number;
 }
 
-const DEFAULT_CAMERA_OFFSET = new THREE.Vector3(0, 1, 5);
+export const FollowCamera = ({
+  targetRef,
+  fov = 60,
+  offset = new THREE.Vector3(0, 1, 5),
+  lookAtOffset = new THREE.Vector3(0, 0.8, 0),
+  stiffness = 1,
+  drift = 0,
+}: FollowCameraProps) => {
+  const NORMALIZER = 25;
 
-export const FollowCamera = ({ targetRef, fov = 60, drift = 0 }: FollowCameraProps) => {
   const { camera } = useThree();
-  const currentRotation = useRef(0);
-  const currentDrift = useRef(new THREE.Vector3());
-  const targetDrift = useRef(new THREE.Vector3());
-  const driftTime = useRef(0);
-
+  const initialized = useRef(false);
+  const targetPosition = useRef(new THREE.Vector3());
+  const targetLookAt = useRef(new THREE.Vector3());
   const rotatedOffset = useRef(new THREE.Vector3());
-  const yAxis = useRef(new THREE.Vector3(0, 1, 0));
-  const xAxis = useRef(new THREE.Vector3(1, 0, 0));
-  const lookAtTarget = useRef(new THREE.Vector3());
-  const driftSmoothness = 2;
+  const driftTime = useRef(0);
+  const driftOffset = useRef(new THREE.Vector3());
+
+  const currentTargetPosition = useRef(new THREE.Vector3());
+  const currentDriftOffset = useRef(new THREE.Vector3());
+  const currentStiffness = useRef(stiffness);
 
   useEffect(() => {
     if (camera instanceof THREE.PerspectiveCamera) {
@@ -32,38 +42,33 @@ export const FollowCamera = ({ targetRef, fov = 60, drift = 0 }: FollowCameraPro
 
   useFrame((state, delta) => {
     if (targetRef.current) {
-      const targetRotation = targetRef.current.rotation.y;
-      const rotationDiff = targetRotation - currentRotation.current;
-      const smoothFactor = 5;
+      if (!initialized.current) {
+        rotatedOffset.current.copy(offset);
+        rotatedOffset.current.applyQuaternion(targetRef.current.quaternion);
+        const initialPos = targetRef.current.position.clone().add(rotatedOffset.current);
+        state.camera.position.copy(initialPos);
+        currentTargetPosition.current.copy(initialPos);
+        initialized.current = true;
+      }
 
-      currentRotation.current += rotationDiff * smoothFactor * delta;
-
-      // Update drift target based on sine/cosine for smooth left-right and up-down movement
       driftTime.current += delta;
-      targetDrift.current.x = Math.sin(driftTime.current * 0.5) * drift;
-      targetDrift.current.y = Math.sin(driftTime.current * 0.3) * drift * 0.3;
-      targetDrift.current.z = 0;
+      driftOffset.current.x = Math.sin(driftTime.current * 0.5) * drift;
+      driftOffset.current.y = Math.sin(driftTime.current * 0.3) * drift * 0.3;
+      driftOffset.current.z = 0;
+      currentDriftOffset.current.lerp(driftOffset.current, 2 * delta);
 
-      // Smoothly interpolate current drift to target drift
-      currentDrift.current.lerp(targetDrift.current, driftSmoothness * delta);
+      currentStiffness.current += (stiffness - currentStiffness.current) * 2 * delta;
+      rotatedOffset.current.copy(offset);
+      rotatedOffset.current.applyQuaternion(targetRef.current.quaternion);
+      targetPosition.current
+        .copy(targetRef.current.position)
+        .add(rotatedOffset.current)
+        .add(currentDriftOffset.current);
 
-      rotatedOffset.current.copy(DEFAULT_CAMERA_OFFSET);
-      rotatedOffset.current.applyAxisAngle(yAxis.current, currentRotation.current);
+      targetLookAt.current.copy(targetRef.current.position).add(lookAtOffset);
 
-      // Apply drift in camera-relative space
-      const driftOffset = new THREE.Vector3();
-      driftOffset.copy(xAxis.current).multiplyScalar(currentDrift.current.x);
-      driftOffset.applyAxisAngle(yAxis.current, currentRotation.current);
-      driftOffset.y += currentDrift.current.y;
-
-      state.camera.position.x = targetRef.current.position.x + rotatedOffset.current.x + driftOffset.x;
-      state.camera.position.y = targetRef.current.position.y + rotatedOffset.current.y + driftOffset.y;
-      state.camera.position.z = targetRef.current.position.z + rotatedOffset.current.z + driftOffset.z;
-
-      lookAtTarget.current.copy(targetRef.current.position);
-      lookAtTarget.current.y += 0.8;
-
-      state.camera.lookAt(lookAtTarget.current);
+      state.camera.position.lerp(targetPosition.current, currentStiffness.current * NORMALIZER * delta);
+      state.camera.lookAt(targetLookAt.current);
     }
   });
 

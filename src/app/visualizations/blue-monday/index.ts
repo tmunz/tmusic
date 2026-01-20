@@ -41,7 +41,7 @@ const blueMonday: Visualization = {
           max: 360,
           step: 1,
         },
-      }
+      },
     },
   },
   spotifyUri: 'spotify:album:4BPqSw0Zt0I85xBQVF38KF',

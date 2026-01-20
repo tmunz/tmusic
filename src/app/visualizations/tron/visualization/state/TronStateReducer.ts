@@ -1,4 +1,4 @@
-import { TronState } from './TronState';
+import { TronState, Mode } from './TronState';
 import { TronAction, TronActionType } from './TronAction';
 
 export const tronStateReducer = (state: TronState, action: TronActionType): TronState => {
@@ -67,10 +67,10 @@ export const tronStateReducer = (state: TronState, action: TronActionType): Tron
         },
       };
     }
-    case TronAction.SET_CAMERA_MODE:
+    case TronAction.SET_GAME_MODE:
       return {
         ...state,
-        cameraMode: action.mode,
+        mode: action.mode,
       };
     case TronAction.START_GAME:
       const tileSize = state.world.tileSize;
@@ -81,6 +81,7 @@ export const tronStateReducer = (state: TronState, action: TronActionType): Tron
 
       return {
         ...state,
+        mode: Mode.LIGHTCYCLE_BATTLE,
         game: {
           ...state.game,
           position: {
@@ -88,7 +89,6 @@ export const tronStateReducer = (state: TronState, action: TronActionType): Tron
             y: action.position.y,
             z: snappedZ,
           },
-          active: true,
         },
       };
     case TronAction.UPDATE_PLAYER_BATTLEGROUND_STATUS: {
@@ -194,6 +194,71 @@ export const tronStateReducer = (state: TronState, action: TronActionType): Tron
               ...player,
               alive: action.alive,
             },
+          },
+        },
+      };
+    }
+    case TronAction.RESPAWN_PLAYER: {
+      const character = state.characters[action.playerId];
+      if (!character) return state;
+
+      return {
+        ...state,
+        characters: {
+          ...state.characters,
+          [action.playerId]: {
+            ...character,
+            position: action.position,
+          },
+        },
+      };
+    }
+    case TronAction.VEHICLE_CRASH: {
+      const crashingPlayer = state.game.players[action.crashingPlayerId];
+      if (!crashingPlayer) return state;
+
+      // Update crashing player points
+      let newPlayers = {
+        ...state.game.players,
+        [action.crashingPlayerId]: {
+          ...crashingPlayer,
+          points: crashingPlayer.points - 1,
+        },
+      };
+
+      // Update wall owner points if different player
+      if (action.wallOwnerId && action.wallOwnerId !== action.crashingPlayerId) {
+        const wallOwner = state.game.players[action.wallOwnerId];
+        if (wallOwner) {
+          newPlayers = {
+            ...newPlayers,
+            [action.wallOwnerId]: {
+              ...wallOwner,
+              points: wallOwner.points + 1,
+            },
+          };
+        }
+      }
+
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          players: newPlayers,
+        },
+      };
+    }
+    case TronAction.SET_VEHICLE_DISINTEGRATING: {
+      const character = state.characters[action.characterId];
+      if (!character) return state;
+
+      return {
+        ...state,
+        characters: {
+          ...state.characters,
+          [action.characterId]: {
+            ...character,
+            isDisintegrated: action.isDisintegrated,
           },
         },
       };

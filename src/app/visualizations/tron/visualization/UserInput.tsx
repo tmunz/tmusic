@@ -1,14 +1,16 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 export interface ControlsState {
   left: boolean;
   right: boolean;
   accelerate: boolean;
   decelerate: boolean;
+  camera: number;
 }
 
-export const useGameInput = () => {
+export const useUserInput = () => {
   const keysPressed = useRef<Set<string>>(new Set());
+  const [cameraCounter, setCameraCounter] = useState<number>(0);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -18,6 +20,12 @@ export const useGameInput = () => {
       if (key === 'a' || key === 'd' || key === 'w' || key === 's') {
         e.preventDefault();
         keysPressed.current.add(key);
+      }
+
+      // Camera mode switching
+      if (key === 'c') {
+        e.preventDefault();
+        setCameraCounter(prev => prev + 1);
       }
     };
 
@@ -40,6 +48,7 @@ export const useGameInput = () => {
     right: keysPressed.current.has('d'),
     accelerate: keysPressed.current.has('w'),
     decelerate: keysPressed.current.has('s'),
+    camera: cameraCounter,
   });
 
   return getControlsState;

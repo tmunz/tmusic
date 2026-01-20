@@ -25,7 +25,6 @@ export interface ColorCodingProps {
 }
 
 export const ColorCoding = ({ squareSize = 30, gap = 5, charsPerRow = 10 }: ColorCodingProps) => {
-
   const [inputValue, setInputValue] = useState('FAC73 Blue Monday and The Beach New Order');
   const [extendedCharset, setExtendedCharset] = useState(false);
 
@@ -99,38 +98,20 @@ export const ColorCoding = ({ squareSize = 30, gap = 5, charsPerRow = 10 }: Colo
         const py = cy + r * Math.sin(angle);
         points.push(`${px},${py}`);
       }
-      return (
-        <polygon key={index} points={points.join(' ')} fill={NEUTRAL_COLOR} />
-      );
+      return <polygon key={index} points={points.join(' ')} fill={NEUTRAL_COLOR} />;
     }
 
     const colorMapping = getColorMapping(token);
 
     if (!colorMapping) {
-      return (
-        <rect
-          key={index}
-          x={x}
-          y={y}
-          width={squareSize}
-          height={squareSize}
-          fill={NEUTRAL_COLOR}
-        />
-      );
+      return <rect key={index} x={x} y={y} width={squareSize} height={squareSize} fill={NEUTRAL_COLOR} />;
     }
 
     const rectWidth = (squareSize - (colorMapping.length - 1)) / colorMapping.length;
     return (
       <g key={index}>
         {colorMapping.map((color, i) => (
-          <rect
-            key={i}
-            x={x + i * (rectWidth + 1)}
-            y={y}
-            width={rectWidth}
-            height={squareSize}
-            fill={color}
-          />
+          <rect key={i} x={x + i * (rectWidth + 1)} y={y} width={rectWidth} height={squareSize} fill={color} />
         ))}
       </g>
     );
@@ -142,13 +123,9 @@ export const ColorCoding = ({ squareSize = 30, gap = 5, charsPerRow = 10 }: Colo
   const svgHeight = rows * (squareSize + gap) - gap;
 
   return (
-    <div className='color-coding'>
+    <div className="color-coding">
       <h2>Color Coding</h2>
-      <Input
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        placeholder="Encode your text..."
-      />
+      <Input value={inputValue} onChange={e => setInputValue(e.target.value)} placeholder="Encode your text..." />
       <label>
         <input
           type="checkbox"
@@ -163,4 +140,4 @@ export const ColorCoding = ({ squareSize = 30, gap = 5, charsPerRow = 10 }: Colo
       </svg>
     </div>
   );
-}
+};

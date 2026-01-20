@@ -7,6 +7,7 @@ export function getCollisionObjectData({
   size,
   localCenter = new THREE.Vector3(0, 0, 0),
   type,
+  playerId,
 }: {
   id: string;
   position: THREE.Vector3 | [number, number, number];
@@ -14,6 +15,7 @@ export function getCollisionObjectData({
   size: THREE.Vector3;
   localCenter?: THREE.Vector3;
   type: 'vehicle' | 'wall' | 'worldObject';
+  playerId?: string;
 }) {
   const halfSize = size.clone().multiplyScalar(0.5);
   const worldPosition = position instanceof THREE.Vector3 ? position.clone() : new THREE.Vector3(...position);
@@ -36,7 +38,6 @@ export function getCollisionObjectData({
     new THREE.Vector3(halfSize.x, halfSize.y, halfSize.z),
   ];
 
-  // Calculate world center - clone localCenter to avoid mutating it
   const worldCenter = localCenter.clone().applyQuaternion(quaternion).add(worldPosition);
 
   const orientedCorners = localCorners.map(corner => {
@@ -54,5 +55,6 @@ export function getCollisionObjectData({
     boundingBox,
     orientedCorners,
     type,
+    playerId,
   };
 }

@@ -1,9 +1,9 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { RefObject, useEffect } from 'react';
-import * as THREE from 'three';
+import { Object3D } from 'three';
 
 interface BirdsEyeCameraProps {
-  targetRef: RefObject<THREE.Mesh>;
+  targetRef: RefObject<Object3D>;
   height?: number;
 }
 

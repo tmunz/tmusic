@@ -1,16 +1,22 @@
 import { useFrame } from '@react-three/fiber';
 import { useRef, RefObject, useEffect } from 'react';
-import { Mesh, WebGLRenderer } from 'three';
-import * as THREE from 'three';
+import {
+  Mesh,
+  Object3D,
+  WebGLRenderer,
+  OrthographicCamera as ThreeOrthographicCamera,
+  Material,
+  MeshStandardMaterial,
+} from 'three';
 import './Minimap.css';
 
 interface MinimapRendererProps {
-  targetRef: RefObject<Mesh>;
+  targetRef: RefObject<Object3D>;
   canvasElement: HTMLCanvasElement | null;
 }
 
 export function MinimapRenderer({ targetRef, canvasElement }: MinimapRendererProps): JSX.Element | null {
-  const mapCamera = useRef<THREE.OrthographicCamera | null>(null);
+  const mapCamera = useRef<ThreeOrthographicCamera | null>(null);
   const minimapRenderer = useRef<WebGLRenderer | null>(null);
 
   useEffect(() => {
@@ -28,7 +34,7 @@ export function MinimapRenderer({ targetRef, canvasElement }: MinimapRendererPro
     renderer.setClearColor(0x000000);
     minimapRenderer.current = renderer;
 
-    const camera = new THREE.OrthographicCamera(-mapSize / 2, mapSize / 2, mapSize / 2, -mapSize / 2, 0.1, 200);
+    const camera = new ThreeOrthographicCamera(-mapSize / 2, mapSize / 2, mapSize / 2, -mapSize / 2, 0.1, 200);
     camera.layers.enable(0); // Default layer
     camera.layers.disable(1); // Disable effects layer for minimap
     mapCamera.current = camera;
@@ -49,20 +55,18 @@ export function MinimapRenderer({ targetRef, canvasElement }: MinimapRendererPro
     mapCamera.current.lookAt(playerPos.x, playerPos.y, playerPos.z);
     mapCamera.current.updateMatrixWorld();
 
-    // Store original material properties
-    const materialCache = new Map<THREE.Material, { envMapIntensity?: number; metalness?: number; roughness?: number }>();
-    
-    scene.traverse((obj) => {
+    const materialCache = new Map<Material, { envMapIntensity?: number; metalness?: number; roughness?: number }>();
+
+    scene.traverse(obj => {
       if ('material' in obj && obj.material) {
-        const material = obj.material as THREE.Material;
+        const material = obj.material as Material;
         if ('envMapIntensity' in material || 'metalness' in material) {
-          const standardMaterial = material as THREE.MeshStandardMaterial;
+          const standardMaterial = material as MeshStandardMaterial;
           materialCache.set(material, {
             envMapIntensity: standardMaterial.envMapIntensity,
             metalness: standardMaterial.metalness,
             roughness: standardMaterial.roughness,
           });
-          // Reduce reflections for minimap
           standardMaterial.envMapIntensity = 0;
           standardMaterial.metalness = 0;
           standardMaterial.roughness = 1;
@@ -74,7 +78,7 @@ export function MinimapRenderer({ targetRef, canvasElement }: MinimapRendererPro
 
     // Restore original material properties
     materialCache.forEach((cached, material) => {
-      const standardMaterial = material as THREE.MeshStandardMaterial;
+      const standardMaterial = material as MeshStandardMaterial;
       if (cached.envMapIntensity !== undefined) standardMaterial.envMapIntensity = cached.envMapIntensity;
       if (cached.metalness !== undefined) standardMaterial.metalness = cached.metalness;
       if (cached.roughness !== undefined) standardMaterial.roughness = cached.roughness;
@@ -85,7 +89,7 @@ export function MinimapRenderer({ targetRef, canvasElement }: MinimapRendererPro
 }
 
 interface MinimapProps {
-  targetRef: RefObject<Mesh>;
+  targetRef: RefObject<Object3D>;
   size?: number;
   color: string;
   onCanvasReady: (canvas: HTMLCanvasElement) => void;
@@ -114,7 +118,10 @@ export function Minimap({ targetRef, size = 256, color, onCanvasReady }: Minimap
   }, [targetRef]);
 
   return (
-    <div className="minimap" style={{ width: `${size}px`, height: `${size}px`, '--player-color': color } as React.CSSProperties}>
+    <div
+      className="minimap"
+      style={{ width: `${size}px`, height: `${size}px`, '--player-color': color } as React.CSSProperties}
+    >
       <canvas ref={handleCanvasRef.current} width={size} height={size} />
       <div ref={playerMarker} className="minimap-marker" />
     </div>

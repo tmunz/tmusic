@@ -1,9 +1,9 @@
 import { OrbitControls } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { forwardRef, useRef } from 'react';
-import { Mesh } from 'three';
+import { Object3D } from 'three';
 
-export const ObserverCamera = forwardRef<any, { targetRef: React.RefObject<Mesh> }>(({ targetRef }, ref) => {
+export const ObserverCamera = forwardRef<any, { targetRef: React.RefObject<Object3D> }>(({ targetRef }, ref) => {
   const controlsRef = useRef<any>(null);
 
   useFrame(() => {

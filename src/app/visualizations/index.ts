@@ -36,11 +36,12 @@ export default [
   parallelLines,
 ];
 
-// Kraftwerk
+// Mike Oldfield - 5 Miles Out
+// Kraftwerk - Mensch-Maschine
 // The Sounds
 // Keane - Under the Iron Sea
+
 // The Who - Who's Next
-//
 // Green Day - American Idiot
 // Yeah Yeah Yeahs - It's Blitz!
 // Led Zeppelin - Led Zeppelin

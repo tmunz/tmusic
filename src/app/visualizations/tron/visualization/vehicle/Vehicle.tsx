@@ -10,6 +10,7 @@ import { WireframeTransitionObject, WireframeTransitionHandle } from '../object/
 import { Box3, Mesh, Object3D, Quaternion, Vector3 } from 'three';
 import { useTronState } from '../state/TronContext';
 import { TronAction } from '../state/TronAction';
+import { useVehicleCrashHandler } from './useVehicleCrashHandler';
 
 interface ControlsState {
   accelerate: boolean;
@@ -34,12 +35,20 @@ export const Vehicle = forwardRef<Object3D, VehicleProps>(
     const targetMeshRef = useRef<Mesh>(null);
     const { unregisterObject, checkCollision, registerObject, getAllObjects } = useCollision();
     const movement = useVehicleMovement();
-    const { dispatch, getUserCharacter, getUserPlayer } = useTronState();
-
+    const { dispatch, getUserCharacter, getUserPlayer, tronState } = useTronState();
     const direction = useRef(new Vector3());
     const vehicleId = useRef(`vehicle-${Math.random()}`);
     const modelBoundingBoxSize = useRef(new Vector3(1, 1, 1));
     const modelBoundingBoxCenter = useRef(new Vector3(0, 0, 0));
+    const isRespawning = useRef(false);
+    const isDisintegrated = useRef(false);
+    const lastCharacterPositionRef = useRef<{ x: number; y: number; z: number } | null>(null);
+    const { handleVehicleCrash } = useVehicleCrashHandler({
+      vehicleTransitionRef,
+      isDisintegratedRef: isDisintegrated,
+      isRespawningRef: isRespawning,
+      setTargetSpeed: movement.setTargetSpeed,
+    });
 
     useEffect(() => {
       const vehicleModel = vehicleRef.current?.vehicleModel;
@@ -63,12 +72,73 @@ export const Vehicle = forwardRef<Object3D, VehicleProps>(
       mesh.updateMatrixWorld(true);
     }, [vehicleRef.current?.vehicleModel]);
 
+    // React to respawns from state changes
+    useEffect(() => {
+      if (!getControlsState) return; // Only for user-controlled vehicle
+
+      const userCharacter = getUserCharacter();
+      if (!userCharacter || !userCharacter.position) return;
+
+      const object = vehicleTransitionRef.current?.getObject();
+      if (!object) return;
+
+      const currentPos = userCharacter.position;
+      const lastPos = lastCharacterPositionRef.current;
+
+      if (isRespawning.current && lastPos) {
+        // Check if state position differs from last known position (respawn occurred)
+        const positionChanged = currentPos.x !== lastPos.x || currentPos.y !== lastPos.y || currentPos.z !== lastPos.z;
+
+        if (positionChanged && !userCharacter.isDisintegrated) {
+          // Wait for disintegration animation to complete before moving vehicle
+          setTimeout(() => {
+            // Apply respawn position from state and trigger creation animation
+            object.position.set(currentPos.x, currentPos.y, currentPos.z);
+            object.rotation.set(0, 0, 0); // Reset to neutral orientation
+
+            // Reset tilt on player model
+            if (vehicleRef.current?.playerRef?.current) {
+              vehicleRef.current.playerRef.current.rotation.x = 0;
+              vehicleRef.current.playerRef.current.rotation.z = 0;
+            }
+
+            // Reset wall trail
+            if (lightWallRef.current) {
+              lightWallRef.current.reset();
+            }
+
+            // Reset movement (this resets internal tilt state)
+            movement.reset();
+            movement.setTargetSpeed(0);
+
+            // Trigger creation animation
+            if (vehicleTransitionRef.current) {
+              vehicleTransitionRef.current.startTransition('in');
+            }
+
+            // Clear collision state after creation animation completes
+            setTimeout(() => {
+              isDisintegrated.current = false;
+              isRespawning.current = false;
+            }, 2500); // Wait for full creation animation
+          }, 100); // Small delay to ensure disintegration state is cleared
+
+          // Update reference after detecting respawn
+          lastCharacterPositionRef.current = { ...currentPos };
+        }
+      } else if (!isRespawning.current) {
+        // Only track position when not respawning to avoid race conditions
+        lastCharacterPositionRef.current = { ...currentPos };
+      }
+    }, [tronState.characters, getControlsState, getUserCharacter, movement]);
+
     useImperativeHandle(
       ref,
       () => {
         const object = vehicleTransitionRef.current?.getObject();
         const meshObject = object || vehicleRef.current?.meshRef.current!;
-        (targetMeshRef as React.MutableRefObject<Mesh | null>).current = meshObject && meshObject instanceof Mesh ? meshObject : null;
+        (targetMeshRef as React.MutableRefObject<Mesh | null>).current =
+          meshObject && meshObject instanceof Mesh ? meshObject : null;
         return meshObject;
       },
       []
@@ -141,10 +211,23 @@ export const Vehicle = forwardRef<Object3D, VehicleProps>(
         tiltSmoothness,
       } = vehicle.params;
 
-      const userChar = getUserCharacter();
-      const currentTargetSpeed = getControlsState && userChar ? userChar.vehicle.speed.target : 0;
+      const userCharacter = getUserCharacter();
+      const currentTargetSpeed = getControlsState && userCharacter ? userCharacter.vehicle.speed.target : 0;
       updateTargetSpeed(delta, { maxSpeed, minSpeed }, controls, currentTargetSpeed);
       movement.setTargetSpeed(currentTargetSpeed);
+
+      // Prevent steering during disintegration
+      if (!isDisintegrated.current) {
+        const targetTurnTilt = movement.updateTurning(delta, controls, object, {
+          baseTurnSpeed,
+          maxTurnSpeed,
+          turnSpeedIncreaseRate,
+          maxTurnTilt,
+          tiltSmoothness,
+        });
+
+        movement.applyTilt(targetTurnTilt, delta, tiltSmoothness, object, vehicle?.playerRef?.current);
+      }
 
       const actualSpeed = movement.getActualSpeed();
       if (getControlsState) {
@@ -158,25 +241,17 @@ export const Vehicle = forwardRef<Object3D, VehicleProps>(
         }
       }
 
-      const targetTurnTilt = movement.updateTurning(delta, controls, object, {
-        baseTurnSpeed,
-        maxTurnSpeed,
-        turnSpeedIncreaseRate,
-        maxTurnTilt,
-        tiltSmoothness,
-      });
-
-      movement.applyTilt(targetTurnTilt, delta, tiltSmoothness, object, vehicle?.playerRef?.current);
-
       direction.current.set(0, 0, -1);
       direction.current.applyQuaternion(object.quaternion);
 
-      const checkVehicleCollision = (newPosition: Vector3): boolean => {
-        const collisionQuaternion = new Quaternion().setFromAxisAngle(
-          new Vector3(0, 1, 0),
-          object.rotation.y
-        );
+      const collisionQuaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), object.rotation.y);
 
+      const userPlayer = getUserPlayer();
+
+      const checkVehicleCollision = (newPosition: Vector3): boolean => {
+        if (isDisintegrated.current) return false;
+
+        // Register at new position for movement collision check
         registerDynamicCollisionObject({
           registerObject,
           id: vehicleId.current,
@@ -185,18 +260,33 @@ export const Vehicle = forwardRef<Object3D, VehicleProps>(
           size: modelBoundingBoxSize.current,
           localCenter: modelBoundingBoxCenter.current,
           type: 'vehicle',
+          playerId: userPlayer?.id,
         });
 
         const allObjects = getAllObjects();
         const registeredVehicle = allObjects.find(obj => obj.id === vehicleId.current);
         if (registeredVehicle) {
           const collisions = checkCollision(registeredVehicle);
-          return collisions.length === 0;
+
+          if (collisions.length > 0) {
+            // Find the wall we collided with to get its owner
+            const wallCollision = collisions.find(c => c.type === 'wall');
+            if (!isDisintegrated.current && getControlsState && wallCollision && userPlayer) {
+              // Set flag immediately to prevent duplicate calls
+              isDisintegrated.current = true;
+              isRespawning.current = true;
+              handleVehicleCrash(userPlayer.id, wallCollision.playerId || 'unknown');
+            }
+            return false;
+          }
         }
         return true;
       };
 
-      movement.updateAndApplyMovement(object, delta, direction.current, { speedChangeRate }, checkVehicleCollision);
+      // Skip movement updates during disintegration to allow respawn teleportation
+      if (!isDisintegrated.current) {
+        movement.updateAndApplyMovement(object, delta, direction.current, { speedChangeRate }, checkVehicleCollision);
+      }
 
       if (lightWallRef.current) {
         lightWallRef.current.update();
@@ -211,7 +301,7 @@ export const Vehicle = forwardRef<Object3D, VehicleProps>(
 
     return (
       <>
-        <WireframeTransitionObject ref={vehicleTransitionRef} color={color}>
+        <WireframeTransitionObject ref={vehicleTransitionRef} color={color} autoStart>
           <LightCycle ref={vehicleRef} color={color} />
         </WireframeTransitionObject>
         <LightWall
@@ -220,6 +310,7 @@ export const Vehicle = forwardRef<Object3D, VehicleProps>(
           fadeSegments={1.5}
           sampleProvider={sampleProvider}
           color={color}
+          playerId={getUserPlayer()?.id}
         />
       </>
     );

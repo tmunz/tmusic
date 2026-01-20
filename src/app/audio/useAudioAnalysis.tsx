@@ -84,7 +84,7 @@ export const useAudioAnalysis = (
   useEffect(() => {
     const actualSampleRate = analyserRef.current?.context.sampleRate ?? 44100;
     const interval = (1000 * fftSize) / actualSampleRate;
-    
+
     const intervalId = setInterval(() => {
       const audioData = getFrequencyData();
       if (audioData) {

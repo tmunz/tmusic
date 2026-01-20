@@ -1,4 +1,3 @@
-
 import { useTronState } from '../state/TronContext';
 import './SpeedBar.css';
 
@@ -9,11 +8,11 @@ interface SpeedBarProps {
 
 export const SpeedBar = ({ color, width = 200 }: SpeedBarProps) => {
   const { getUserCharacter } = useTronState();
-  const userChar = getUserCharacter();
+  const userCharacter = getUserCharacter();
 
-  if (!userChar) return null;
+  if (!userCharacter) return null;
 
-  const { actual, target, min, max } = userChar.vehicle.speed;
+  const { actual, target, min, max } = userCharacter.vehicle.speed;
   const actualPercentage = Math.max(0, Math.min(1, (actual - min) / (max - min))) * 100;
   const targetPercentage = Math.max(0, Math.min(1, (target - min) / (max - min))) * 100;
 

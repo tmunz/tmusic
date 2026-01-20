@@ -14,10 +14,12 @@ interface LightWallProps {
   thickness?: number;
   fadeSegments?: number;
   sampleProvider?: SampleProvider;
+  playerId?: string;
 }
 
 export interface LightWallHandle {
   update: () => void;
+  reset: () => void;
 }
 
 export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
@@ -31,6 +33,7 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
       thickness = 0.03,
       fadeSegments = 1,
       sampleProvider,
+      playerId,
     },
     ref
   ) => {
@@ -41,7 +44,7 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
     const colorAttribute = useRef<THREE.BufferAttribute>(null!);
     const { registerObject, unregisterObject } = useCollision();
     const wallId = useRef(`wall-${Math.random()}`);
-
+    const registeredSegments = useRef<Set<string>>(new Set());
     const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider);
 
     const material = useLightWallSoundMaterial({
@@ -310,12 +313,16 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
                   new THREE.Vector3(point2.upper.x + perpendicular.x, point2.upper.y, point2.upper.z + perpendicular.z), // 7: top-right
                 ];
 
+                const segmentId = `${wallId.current}-segment-${i}`;
+                registeredSegments.current.add(segmentId);
+
                 registerObject({
-                  id: `${wallId.current}-segment-${i}`,
+                  id: segmentId,
                   position: center,
                   boundingBox: segmentBounds,
                   orientedCorners: corners,
                   type: 'wall',
+                  playerId: playerId,
                 });
               }
             }
@@ -341,7 +348,25 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
       }
     };
 
-    useImperativeHandle(ref, () => ({ update: updateWall }));
+    useImperativeHandle(ref, () => ({
+      update: updateWall,
+      reset: () => {
+        // Clear trail points
+        trailPoints.current = [];
+        lastTrailPosition.current.set(0, 0, 0);
+
+        // Unregister all wall segments
+        registeredSegments.current.forEach(segmentId => {
+          unregisterObject(segmentId);
+        });
+        registeredSegments.current.clear();
+
+        // Clear geometry
+        if (trailGeometry.current) {
+          trailGeometry.current.setDrawRange(0, 0);
+        }
+      },
+    }));
 
     return (
       <>

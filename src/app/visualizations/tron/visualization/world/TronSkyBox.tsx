@@ -1,6 +1,5 @@
 import { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { useTronState } from '../state/TronContext';
+import { useFrame, useThree } from '@react-three/fiber';
 import { BackSide, Color, Mesh, ShaderMaterial } from 'three';
 
 interface TronSkyBoxProps {
@@ -16,15 +15,12 @@ export const TronSkyBox = ({
   skyColor = '#000044',
   groundColor = '#000000',
 }: TronSkyBoxProps) => {
-  const { getUserCharacter } = useTronState();
+  const { camera } = useThree();
   const sphereRef = useRef<Mesh>(null);
 
   useFrame(() => {
     if (sphereRef.current) {
-      const userChar = getUserCharacter();
-      if (!userChar) return;
-      const userPos = userChar.position;
-      sphereRef.current.position.set(userPos.x, userPos.y, userPos.z);
+      sphereRef.current.position.set(camera.position.x, camera.position.y, camera.position.z);
     }
   });
 

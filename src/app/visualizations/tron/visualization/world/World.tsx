@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { TronGrid } from './TronGrid';
 import { TronCube } from '../object/TronCube';
 import { TronSkyBox } from './TronSkyBox';
 import { useTronState } from '../state/TronContext';
+import { Mode } from '../state/TronState';
 
 interface WorldProps {
   tileSize: number;
@@ -19,7 +20,8 @@ export interface WorldTile {
 }
 
 export const World = ({ tileSize, viewDistance = 0 }: WorldProps) => {
-  const { tronState, getUserCharacter } = useTronState();
+  const { tronState } = useTronState();
+  const { camera } = useThree();
   const getInitialTiles = () => {
     const initialTiles: WorldTile[] = [];
     for (let x = -viewDistance; x <= viewDistance; x++) {
@@ -37,18 +39,16 @@ export const World = ({ tileSize, viewDistance = 0 }: WorldProps) => {
   };
 
   const [tiles, setTiles] = useState<WorldTile[]>(getInitialTiles());
-  const lastPlayerTile = useRef({ x: 0, z: 0 });
+  const lastCameraTile = useRef({ x: 0, z: 0 });
 
   useFrame(() => {
-    const userChar = getUserCharacter();
-    if (!userChar) return;
-    const playerPos = userChar.position;
+    const cameraPos = camera.position;
 
-    const currentTileX = Math.floor(playerPos.x / tileSize);
-    const currentTileZ = Math.floor(playerPos.z / tileSize);
+    const currentTileX = Math.floor(cameraPos.x / tileSize);
+    const currentTileZ = Math.floor(cameraPos.z / tileSize);
 
-    if (currentTileX !== lastPlayerTile.current.x || currentTileZ !== lastPlayerTile.current.z) {
-      lastPlayerTile.current = { x: currentTileX, z: currentTileZ };
+    if (currentTileX !== lastCameraTile.current.x || currentTileZ !== lastCameraTile.current.z) {
+      lastCameraTile.current = { x: currentTileX, z: currentTileZ };
 
       const newTiles: WorldTile[] = [];
       for (let x = currentTileX - viewDistance; x <= currentTileX + viewDistance; x++) {
@@ -71,7 +71,7 @@ export const World = ({ tileSize, viewDistance = 0 }: WorldProps) => {
     <>
       <TronSkyBox />
       {tiles.map(tile => {
-        const isGameActive = tronState.game.active;
+        const isLightcycleBattle = tronState.mode === Mode.LIGHTCYCLE_BATTLE;
         const gamePos = tronState.game.position;
         const battlegroundSize = tronState.game.battlegroundSize;
 
@@ -86,7 +86,7 @@ export const World = ({ tileSize, viewDistance = 0 }: WorldProps) => {
         const bgBottom = gamePos.z + battlegroundSize / 2;
 
         const withinBattleGround =
-          !isGameActive || (tileRight > bgLeft && tileLeft < bgRight && tileBottom > bgTop && tileTop < bgBottom);
+          !isLightcycleBattle || (tileRight > bgLeft && tileLeft < bgRight && tileBottom > bgTop && tileTop < bgBottom);
 
         return (
           <TronGrid
@@ -106,7 +106,7 @@ export const World = ({ tileSize, viewDistance = 0 }: WorldProps) => {
         <meshBasicMaterial color="#000000" toneMapped={false} />
       </mesh>
 
-      {tronState.game.active && (
+      {tronState.mode === Mode.LIGHTCYCLE_BATTLE && (
         <>
           <TronCube
             id="cube-0"

@@ -38,9 +38,8 @@ export const BlueMondayScene = ({
 
     const hz = sampleProvider.hz;
     if (hz > 0) {
-      rotationRef.current -= (2 * Math.PI * hz * deltaTime);
+      rotationRef.current -= 2 * Math.PI * hz * deltaTime;
     }
-
 
     return {
       sampleData: { value: sampleTexture },

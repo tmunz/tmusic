@@ -2,17 +2,12 @@ import { Canvas } from '@react-three/fiber';
 import { Stats } from '@react-three/drei';
 import { SampleProvider, createMaxSampleProvider } from '../../../audio/SampleProvider';
 import { Vehicle } from './vehicle/Vehicle';
-import { FollowCamera } from './camera/FollowCamera';
-import { ObserverCamera } from './camera/ObserverCamera';
-import { BirdsEyeCamera } from './camera/BirdsEyeCamera';
+import { TronCamera } from './camera/TronCamera';
 import { World } from './world/World';
 import { useRef, useState, useEffect, useMemo } from 'react';
-import * as THREE from 'three';
-import { CameraMode } from './camera/CameraMode';
-import { useActivityToggle } from '../../../utils/useActivityToggle';
 import { CollisionProvider } from './collision/CollisionContext';
 import { CollisionDebugVisualizer } from './collision/CollisionDebugVisualizer';
-import { useGameInput } from './TronGameInput';
+import { useUserInput } from './UserInput';
 import { SpeedBar } from './ui/SpeedBar';
 import { useSampleProviderActive } from '../../../audio/useSampleProviderActive';
 import { MinimapRenderer, Minimap } from './ui/Minimap';
@@ -21,21 +16,21 @@ import { TronLightningEnvironment } from './TronLightningEnvironment';
 import { Companion } from './vehicle/Companion';
 import { TronStateProvider, useTronState } from './state/TronContext';
 import { TronAction } from './state/TronAction';
+import { GameStatus } from './ui/GameStatus';
+import { Mode } from './state/TronState';
+import { Object3D } from 'three';
 
 export interface TronProps {
   sampleProvider: SampleProvider;
   canvas: { width: number; height: number };
-  cameraMode?: CameraMode;
 }
 
 export const Tron = ({ sampleProvider, canvas }: TronProps) => {
-  const targetRef = useRef<THREE.Mesh>(null);
   const [debugMode, setDebugMode] = useState(0);
-  const gameMode = useActivityToggle(false, true, 10000, ['keydown']);
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
-      if (event.key === 'm' || event.key === 'M') {
+      if (event.key === 'm') {
         setDebugMode(prev => (prev + 1) % 3);
       }
     };
@@ -55,12 +50,7 @@ export const Tron = ({ sampleProvider, canvas }: TronProps) => {
           height: '100%',
         }}
       >
-        <TronScene
-          sampleProvider={sampleProvider}
-          targetRef={targetRef}
-          debugMode={debugMode}
-          gameMode={gameMode}
-        />
+        <TronScene sampleProvider={sampleProvider} debugMode={debugMode} />
       </div>
     </TronStateProvider>
   );
@@ -68,33 +58,44 @@ export const Tron = ({ sampleProvider, canvas }: TronProps) => {
 
 interface TronSceneProps {
   sampleProvider: SampleProvider;
-  targetRef: React.RefObject<THREE.Mesh>;
   debugMode: number;
-  gameMode: boolean;
 }
 
-const TronScene = ({ sampleProvider, targetRef, debugMode, gameMode }: TronSceneProps) => {
-  const { tronState, dispatch, getUserCharacter, getUserPlayer } = useTronState();
+const TronScene = ({ sampleProvider, debugMode }: TronSceneProps) => {
+  const { tronState, dispatch, getUserCharacter } = useTronState();
   const isActive = useSampleProviderActive(sampleProvider);
-  const hasAutoAccelerated = useRef(false);
-  const userVehicleControls = useGameInput();
   const [minimapCanvas, setMinimapCanvas] = useState<HTMLCanvasElement | null>(null);
+  const userRef = useRef<Object3D>(null);
+  const companionRef = useRef<Object3D>(null);
 
   const fakeSampleProvider = useMemo(() => createMaxSampleProvider(64), []);
   const effectiveSampleProvider = isActive
     ? sampleProvider
-    : tronState.game.active
-      ? fakeSampleProvider
-      : sampleProvider;
+    : tronState.mode === Mode.LIGHTCYCLE_BATTLE
+    ? fakeSampleProvider
+    : sampleProvider;
 
-  // start game on vehicle control input
+  // Switch from NONE to VISUALIZER
+  useEffect(() => {
+    if (tronState.mode === Mode.NONE) {
+      const timer = setTimeout(() => {
+        dispatch({
+          type: TronAction.SET_GAME_MODE,
+          mode: Mode.VISUALIZER,
+        });
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [tronState.mode, dispatch]);
+
+  // Enter LIGHTCYCLE_BATTLE mode on key press
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
-      if (!tronState.game.active && (key === 'w' || key === 'a' || key === 's' || key === 'd')) {
-        const target = targetRef.current;
+      if (tronState.mode !== Mode.LIGHTCYCLE_BATTLE && (key === 'w' || key === 'a' || key === 's' || key === 'd')) {
+        const target = userRef.current;
         if (target) {
-          hasAutoAccelerated.current = true;
           dispatch({
             type: TronAction.START_GAME,
             position: { x: target.position.x, y: target.position.y, z: target.position.z },
@@ -104,55 +105,58 @@ const TronScene = ({ sampleProvider, targetRef, debugMode, gameMode }: TronScene
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [tronState.game.active, dispatch, targetRef]);
+  }, [tronState.mode, dispatch, userRef]);
 
-  // Auto-accelerate to max speed when sampleProvider becomes active
+  // VISUALIZER mode: Control vehicle speed based on sampleProvider activity
   useEffect(() => {
-    const userChar = getUserCharacter();
-    const userPlayer = getUserPlayer();
-    if (
-      isActive &&
-      !hasAutoAccelerated.current &&
-      userChar &&
-      userPlayer &&
-      userChar.vehicle.speed.target < 1 &&
-      userChar.vehicle.speed.max > 0
-    ) {
-      dispatch({
-        type: TronAction.SET_TARGET_SPEED,
-        characterId: userPlayer.id,
-        target: userChar.vehicle.speed.max,
-      });
-      hasAutoAccelerated.current = true;
-    }
-  }, [isActive, dispatch, tronState]);
+    if (tronState.mode !== Mode.VISUALIZER) return;
+
+    const userCharacter = tronState.characters[tronState.userId];
+    if (!userCharacter?.vehicle?.speed || userCharacter.vehicle.speed.max <= 0) return;
+
+    const targetSpeed = isActive ? userCharacter.vehicle.speed.max : 0;
+
+    dispatch({
+      type: TronAction.SET_TARGET_SPEED,
+      characterId: userCharacter.id,
+      target: targetSpeed,
+    });
+  }, [isActive, tronState.mode, dispatch, tronState.userId]);
 
   return (
     <>
       <Canvas camera={{ position: [0, 1, 3], fov: 60 }} gl={{ antialias: true }}>
-        <TronLightningEnvironment />
-        <TronStateManager targetRef={targetRef} />
         {debugMode >= 1 && <Stats />}
+        <TronLightningEnvironment />
+        <TronCamera vehicleRef={userRef} companionRef={companionRef} />
         <CollisionProvider>
+          <TronStateManager targetRef={userRef} />
           {debugMode >= 2 && <CollisionDebugVisualizer />}
           <Vehicle
-            ref={targetRef}
+            ref={userRef}
             sampleProvider={effectiveSampleProvider}
             color={getUserCharacter()?.color ?? '#66eeff'}
-            getControlsState={userVehicleControls}
+            getControlsState={useUserInput()}
+            position={[0, 0, 0]}
+            rotation={[0, 0, 0]}
           />
-          <Companion />
-          {tronState.cameraMode === CameraMode.OBSERVER && <ObserverCamera targetRef={targetRef} />}
-          {tronState.cameraMode === CameraMode.FOLLOW && (<FollowCamera targetRef={targetRef} drift={gameMode ? 0 : 2} />)}
-          {tronState.cameraMode === CameraMode.BIRDS_EYE && <BirdsEyeCamera targetRef={targetRef} />}
+          <Companion ref={companionRef} vehicleRef={userRef} />
           <World tileSize={tronState.world.tileSize} viewDistance={3} />
         </CollisionProvider>
-        {tronState.game.active && <MinimapRenderer targetRef={targetRef} canvasElement={minimapCanvas} />}
+        {tronState.mode === Mode.LIGHTCYCLE_BATTLE && (
+          <MinimapRenderer targetRef={userRef} canvasElement={minimapCanvas} />
+        )}
       </Canvas>
-      {tronState.game.active && (
+      {tronState.mode === Mode.LIGHTCYCLE_BATTLE && (
         <>
           <SpeedBar color={getUserCharacter()?.color ?? '#66eeff'} width={150} />
-          <Minimap color={getUserCharacter()?.color ?? '#66eeff'} targetRef={targetRef} size={150} onCanvasReady={setMinimapCanvas} />
+          <Minimap
+            color={getUserCharacter()?.color ?? '#66eeff'}
+            targetRef={userRef}
+            size={150}
+            onCanvasReady={setMinimapCanvas}
+          />
+          <GameStatus color={getUserCharacter()?.color ?? '#66eeff'} />
         </>
       )}
     </>

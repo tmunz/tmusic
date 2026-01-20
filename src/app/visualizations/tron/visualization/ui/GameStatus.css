@@ -1,0 +1,61 @@
+.game-status {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid;
+  border-radius: 4px;
+  padding: 15px;
+  min-width: 200px;
+  font-family: 'Courier New', monospace;
+  z-index: 100;
+
+  .game-status-header {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+    letter-spacing: 2px;
+  }
+
+  .game-status-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .game-status-player {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    border-left: 3px solid;
+    background: rgba(255, 255, 255, 0.05);
+    position: relative;
+  }
+
+  .game-status-player.dead {
+    opacity: 0.5;
+  }
+
+  .player-name {
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+
+  .player-points {
+    font-size: 16px;
+    font-weight: bold;
+    min-width: 40px;
+    text-align: right;
+  }
+
+  .player-status {
+    position: absolute;
+    bottom: -4px;
+    right: 10px;
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+}

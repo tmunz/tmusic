@@ -1,13 +1,16 @@
 import { createContext, useContext, useRef, ReactNode } from 'react';
 import * as THREE from 'three';
+import { useTronState } from '../state/TronContext';
 
 export interface CollisionObject {
   id: string;
   position: THREE.Vector3;
   boundingBox: THREE.Box3;
+  overallBoundingBox?: THREE.Box3;
   orientedCorners?: THREE.Vector3[];
   type: 'vehicle' | 'wall' | 'worldObject';
   onCollision?: (other: CollisionObject) => void;
+  playerId?: string;
 }
 
 interface CollisionContextType {
@@ -29,12 +32,64 @@ export const useCollision = () => {
 
 export const CollisionProvider = ({ children }: { children: ReactNode }) => {
   const objectsRef = useRef<Map<string, CollisionObject>>(new Map());
+  const spatialGridRef = useRef<Map<string, Set<string>>>(new Map());
+  const gridSize = 10;
+
+  const getGridCells = (bbox: THREE.Box3): string[] => {
+    const cells: string[] = [];
+    const minX = Math.floor(bbox.min.x / gridSize);
+    const maxX = Math.floor(bbox.max.x / gridSize);
+    const minZ = Math.floor(bbox.min.z / gridSize);
+    const maxZ = Math.floor(bbox.max.z / gridSize);
+
+    for (let x = minX; x <= maxX; x++) {
+      for (let z = minZ; z <= maxZ; z++) {
+        cells.push(`${x},${z}`);
+      }
+    }
+    return cells;
+  };
 
   const registerObject = (obj: CollisionObject) => {
+    const existing = objectsRef.current.get(obj.id);
+    if (existing) {
+      const oldCells = getGridCells(existing.boundingBox);
+      oldCells.forEach(cell => {
+        const cellSet = spatialGridRef.current.get(cell);
+        if (cellSet) {
+          cellSet.delete(obj.id);
+          if (cellSet.size === 0) {
+            spatialGridRef.current.delete(cell);
+          }
+        }
+      });
+    }
+
+    const cells = getGridCells(obj.boundingBox);
+    cells.forEach(cell => {
+      if (!spatialGridRef.current.has(cell)) {
+        spatialGridRef.current.set(cell, new Set());
+      }
+      spatialGridRef.current.get(cell)!.add(obj.id);
+    });
+
     objectsRef.current.set(obj.id, obj);
   };
 
   const unregisterObject = (id: string) => {
+    const obj = objectsRef.current.get(id);
+    if (obj) {
+      const cells = getGridCells(obj.boundingBox);
+      cells.forEach(cell => {
+        const cellSet = spatialGridRef.current.get(cell);
+        if (cellSet) {
+          cellSet.delete(id);
+          if (cellSet.size === 0) {
+            spatialGridRef.current.delete(cell);
+          }
+        }
+      });
+    }
     objectsRef.current.delete(id);
   };
 
@@ -79,14 +134,32 @@ export const CollisionProvider = ({ children }: { children: ReactNode }) => {
 
   const checkCollision = (obj: CollisionObject): CollisionObject[] => {
     const collisions: CollisionObject[] = [];
+    const cells = getGridCells(obj.boundingBox);
+    const checkedIds = new Set<string>();
 
-    objectsRef.current.forEach((other, otherId) => {
-      if (otherId !== obj.id && obj.boundingBox.intersectsBox(other.boundingBox)) {
-        const fineResult = checkFineCollision(obj, other);
-        if (fineResult) {
-          collisions.push(other);
+    cells.forEach(cell => {
+      const cellObjects = spatialGridRef.current.get(cell);
+      if (!cellObjects) return;
+
+      cellObjects.forEach(otherId => {
+        if (otherId === obj.id || checkedIds.has(otherId)) return;
+        checkedIds.add(otherId);
+
+        const other = objectsRef.current.get(otherId);
+        if (!other) return;
+
+        const objBroadBox = obj.overallBoundingBox || obj.boundingBox;
+        const otherBroadBox = other.overallBoundingBox || other.boundingBox;
+
+        if (objBroadBox.intersectsBox(otherBroadBox)) {
+          if (obj.boundingBox.intersectsBox(other.boundingBox)) {
+            const fineResult = checkFineCollision(obj, other);
+            if (fineResult) {
+              collisions.push(other);
+            }
+          }
         }
-      }
+      });
     });
 
     return collisions;

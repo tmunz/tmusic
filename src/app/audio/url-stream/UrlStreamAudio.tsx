@@ -58,12 +58,7 @@ export const UrlStreamAudio = ({ isActive, onStreamCreated }: AudioProps) => {
 
   return (
     <div className="url-stream">
-      <Input
-        value={url}
-        onChange={e => setUrl(e.target.value)}
-        placeholder="Enter audio URL..."
-        disabled={isPlaying}
-      />
+      <Input value={url} onChange={e => setUrl(e.target.value)} placeholder="Enter audio URL..." disabled={isPlaying} />
       <IconToggleButton
         activeIcon={PiStop}
         inactiveIcon={PiPlay}

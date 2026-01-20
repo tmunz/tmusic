@@ -10,6 +10,7 @@ interface UseDynamicCollisionObjectParams {
   size: THREE.Vector3;
   localCenter?: THREE.Vector3;
   type: 'vehicle' | 'wall' | 'worldObject';
+  playerId?: string;
 }
 
 export const useDynamicCollisionObject = ({
@@ -19,6 +20,7 @@ export const useDynamicCollisionObject = ({
   size,
   localCenter = new THREE.Vector3(0, 0, 0),
   type,
+  playerId,
 }: UseDynamicCollisionObjectParams) => {
   const { registerObject, unregisterObject } = useCollision();
 
@@ -29,7 +31,7 @@ export const useDynamicCollisionObject = ({
   }, [id, unregisterObject]);
 
   const update = () => {
-    const data = getCollisionObjectData({ id, position, rotation, size, localCenter, type });
+    const data = getCollisionObjectData({ id, position, rotation, size, localCenter, type, playerId });
     registerObject(data);
   };
 
@@ -44,6 +46,7 @@ export function registerDynamicCollisionObject({
   size,
   localCenter = new THREE.Vector3(0, 0, 0),
   type,
+  playerId,
 }: {
   registerObject: (obj: any) => void;
   id: string;
@@ -52,7 +55,8 @@ export function registerDynamicCollisionObject({
   size: THREE.Vector3;
   localCenter?: THREE.Vector3;
   type: 'vehicle' | 'wall' | 'worldObject';
+  playerId?: string;
 }) {
-  const data = getCollisionObjectData({ id, position, rotation, size, localCenter, type });
+  const data = getCollisionObjectData({ id, position, rotation, size, localCenter, type, playerId });
   registerObject(data);
 }

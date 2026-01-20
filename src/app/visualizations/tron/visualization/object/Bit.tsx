@@ -42,7 +42,7 @@ export const Bit = ({ position = [0, 0, 0], scale = 1, activated = false }: BitP
       [phi, 0, -1 / phi],
       [-phi, 0, 1 / phi],
       [-phi, 0, -1 / phi],
-    ].map((v) => v.map((c) => c * scale));
+    ].map(v => v.map(c => c * scale));
 
     const faces = [
       [0, 16, 2, 10, 8],
@@ -62,10 +62,10 @@ export const Bit = ({ position = [0, 0, 0], scale = 1, activated = false }: BitP
     const positions: number[] = [];
     const morphPositions: number[] = [];
 
-    faces.forEach((face) => {
+    faces.forEach(face => {
       // Calculate center of pentagon face
       const center = new Vector3();
-      face.forEach((idx) => {
+      face.forEach(idx => {
         center.add(new Vector3(vertices[idx][0], vertices[idx][1], vertices[idx][2]));
       });
       center.divideScalar(face.length);
