@@ -66,6 +66,7 @@ export const GridSparks = ({
   }, [count, gridSize, halfSize, speed, cellSize]);
 
   useFrame((state, delta) => {
+    // TODO: eventually optimize by using a shader
     if (!pointsRef.current) return;
 
     const positions = pointsRef.current.geometry.attributes.position;

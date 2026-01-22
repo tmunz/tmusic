@@ -1,13 +1,6 @@
 import { useFrame } from '@react-three/fiber';
 import { useRef, RefObject, useEffect } from 'react';
-import {
-  Mesh,
-  Object3D,
-  WebGLRenderer,
-  OrthographicCamera as ThreeOrthographicCamera,
-  Material,
-  MeshStandardMaterial,
-} from 'three';
+import { Object3D, WebGLRenderer, OrthographicCamera as ThreeOrthographicCamera } from 'three';
 import './Minimap.css';
 
 interface MinimapRendererProps {
@@ -35,8 +28,8 @@ export function MinimapRenderer({ targetRef, canvasElement }: MinimapRendererPro
     minimapRenderer.current = renderer;
 
     const camera = new ThreeOrthographicCamera(-mapSize / 2, mapSize / 2, mapSize / 2, -mapSize / 2, 0.1, 200);
-    camera.layers.enable(0); // Default layer
-    camera.layers.disable(1); // Disable effects layer for minimap
+    camera.layers.enable(0);
+    camera.layers.disable(1);
     mapCamera.current = camera;
 
     return () => {
@@ -48,41 +41,11 @@ export function MinimapRenderer({ targetRef, canvasElement }: MinimapRendererPro
 
   useFrame(({ scene }) => {
     if (!mapCamera.current || !targetRef.current || !minimapRenderer.current) return;
-
-    const playerPos = targetRef.current.position;
-
-    mapCamera.current.position.set(playerPos.x, playerPos.y + 80, playerPos.z);
-    mapCamera.current.lookAt(playerPos.x, playerPos.y, playerPos.z);
+    const position = targetRef.current.position;
+    mapCamera.current.position.set(position.x, position.y + 80, position.z);
+    mapCamera.current.lookAt(position.x, position.y, position.z);
     mapCamera.current.updateMatrixWorld();
-
-    const materialCache = new Map<Material, { envMapIntensity?: number; metalness?: number; roughness?: number }>();
-
-    scene.traverse(obj => {
-      if ('material' in obj && obj.material) {
-        const material = obj.material as Material;
-        if ('envMapIntensity' in material || 'metalness' in material) {
-          const standardMaterial = material as MeshStandardMaterial;
-          materialCache.set(material, {
-            envMapIntensity: standardMaterial.envMapIntensity,
-            metalness: standardMaterial.metalness,
-            roughness: standardMaterial.roughness,
-          });
-          standardMaterial.envMapIntensity = 0;
-          standardMaterial.metalness = 0;
-          standardMaterial.roughness = 1;
-        }
-      }
-    });
-
     minimapRenderer.current.render(scene, mapCamera.current);
-
-    // Restore original material properties
-    materialCache.forEach((cached, material) => {
-      const standardMaterial = material as MeshStandardMaterial;
-      if (cached.envMapIntensity !== undefined) standardMaterial.envMapIntensity = cached.envMapIntensity;
-      if (cached.metalness !== undefined) standardMaterial.metalness = cached.metalness;
-      if (cached.roughness !== undefined) standardMaterial.roughness = cached.roughness;
-    });
   });
 
   return null;

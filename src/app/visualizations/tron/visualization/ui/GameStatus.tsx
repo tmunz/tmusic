@@ -1,4 +1,4 @@
-import { useTronState } from '../state/TronContext';
+import { useTronStore } from '../state/TronStore';
 import './GameStatus.css';
 
 interface GameStatusProps {
@@ -6,9 +6,11 @@ interface GameStatusProps {
 }
 
 export const GameStatus = ({ color = '#66eeff' }: GameStatusProps) => {
-  const { tronState } = useTronState();
+  const players = useTronStore(state => state.game.players);
+  const characters = useTronStore(state => state.characters);
+  const userId = useTronStore(state => state.userId);
 
-  const sortedPlayers = Object.values(tronState.game.players).sort((a, b) => b.points - a.points);
+  const sortedPlayers = Object.values(players).sort((a, b) => b.points - a.points);
 
   return (
     <div className="game-status" style={{ borderColor: color }}>
@@ -17,7 +19,7 @@ export const GameStatus = ({ color = '#66eeff' }: GameStatusProps) => {
       </div>
       <div className="game-status-list">
         {sortedPlayers.map(player => {
-          const character = tronState.characters[player.id];
+          const character = characters[player.id];
           return (
             <div
               key={player.id}
@@ -25,7 +27,7 @@ export const GameStatus = ({ color = '#66eeff' }: GameStatusProps) => {
               style={{ borderColor: character?.color }}
             >
               <div className="player-name" style={{ color: character?.color }}>
-                {player.id === tronState.userId ? 'YOU' : player.id.toUpperCase()}
+                {player.id === userId ? 'YOU' : player.id.toUpperCase()}
               </div>
               <div className="player-points" style={{ color }}>
                 {player.points}

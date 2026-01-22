@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { TronGrid } from './TronGrid';
 import { TronCube } from '../object/TronCube';
 import { TronSkyBox } from './TronSkyBox';
-import { useTronState } from '../state/TronContext';
+import { useTronStore } from '../state/TronStore';
 import { Mode } from '../state/TronState';
 
 interface WorldProps {
@@ -20,7 +20,9 @@ export interface WorldTile {
 }
 
 export const World = ({ tileSize, viewDistance = 0 }: WorldProps) => {
-  const { tronState } = useTronState();
+  const mode = useTronStore(state => state.mode);
+  const gamePosition = useTronStore(state => state.game.position);
+  const battlegroundSize = useTronStore(state => state.game.battlegroundSize);
   const { camera } = useThree();
   const getInitialTiles = () => {
     const initialTiles: WorldTile[] = [];
@@ -43,7 +45,6 @@ export const World = ({ tileSize, viewDistance = 0 }: WorldProps) => {
 
   useFrame(() => {
     const cameraPos = camera.position;
-
     const currentTileX = Math.floor(cameraPos.x / tileSize);
     const currentTileZ = Math.floor(cameraPos.z / tileSize);
 
@@ -71,19 +72,19 @@ export const World = ({ tileSize, viewDistance = 0 }: WorldProps) => {
     <>
       <TronSkyBox />
       {tiles.map(tile => {
-        const isLightcycleBattle = tronState.mode === Mode.LIGHTCYCLE_BATTLE;
-        const gamePos = tronState.game.position;
-        const battlegroundSize = tronState.game.battlegroundSize;
+        const isLightcycleBattle = mode === Mode.LIGHTCYCLE_BATTLE;
+        const gamePos = gamePosition;
+        const bgSize = battlegroundSize;
 
         const tileLeft = tile.worldX - tileSize / 2;
         const tileRight = tile.worldX + tileSize / 2;
         const tileTop = tile.worldZ - tileSize / 2;
         const tileBottom = tile.worldZ + tileSize / 2;
 
-        const bgLeft = gamePos.x - battlegroundSize / 2;
-        const bgRight = gamePos.x + battlegroundSize / 2;
-        const bgTop = gamePos.z - battlegroundSize / 2;
-        const bgBottom = gamePos.z + battlegroundSize / 2;
+        const bgLeft = gamePos.x - bgSize / 2;
+        const bgRight = gamePos.x + bgSize / 2;
+        const bgTop = gamePos.z - bgSize / 2;
+        const bgBottom = gamePos.z + bgSize / 2;
 
         const withinBattleGround =
           !isLightcycleBattle || (tileRight > bgLeft && tileLeft < bgRight && tileBottom > bgTop && tileTop < bgBottom);
@@ -97,6 +98,7 @@ export const World = ({ tileSize, viewDistance = 0 }: WorldProps) => {
             fadeDistance={200}
             sectionColor={withinBattleGround ? '#004444' : '#440000'}
             cellColor={withinBattleGround ? '#000000' : '#330000'}
+            sparksCount={0}
           />
         );
       })}
@@ -106,40 +108,24 @@ export const World = ({ tileSize, viewDistance = 0 }: WorldProps) => {
         <meshBasicMaterial color="#000000" toneMapped={false} />
       </mesh>
 
-      {tronState.mode === Mode.LIGHTCYCLE_BATTLE && (
+      {mode === Mode.LIGHTCYCLE_BATTLE && (
         <>
           <TronCube
             id="cube-0"
-            position={[
-              tronState.game.position.x + tronState.game.battlegroundSize / 2,
-              0.5,
-              tronState.game.position.z + tronState.game.battlegroundSize / 2,
-            ]}
+            position={[gamePosition.x + battlegroundSize / 2, 0.5, gamePosition.z + battlegroundSize / 2]}
             rotation={[0, Math.PI / 4, 0]}
           />
           <TronCube
             id="cube-1"
-            position={[
-              tronState.game.position.x - tronState.game.battlegroundSize / 2,
-              0.5,
-              tronState.game.position.z + tronState.game.battlegroundSize / 2,
-            ]}
+            position={[gamePosition.x - battlegroundSize / 2, 0.5, gamePosition.z + battlegroundSize / 2]}
           />
           <TronCube
             id="cube-2"
-            position={[
-              tronState.game.position.x + tronState.game.battlegroundSize / 2,
-              0.5,
-              tronState.game.position.z - tronState.game.battlegroundSize / 2,
-            ]}
+            position={[gamePosition.x + battlegroundSize / 2, 0.5, gamePosition.z - battlegroundSize / 2]}
           />
           <TronCube
             id="cube-3"
-            position={[
-              tronState.game.position.x - tronState.game.battlegroundSize / 2,
-              0.5,
-              tronState.game.position.z - tronState.game.battlegroundSize / 2,
-            ]}
+            position={[gamePosition.x - battlegroundSize / 2, 0.5, gamePosition.z - battlegroundSize / 2]}
           />
         </>
       )}

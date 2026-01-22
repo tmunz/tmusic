@@ -1,6 +1,6 @@
-import * as THREE from 'three';
 import { useMemo } from 'react';
 import { useCollisionObject } from '../collision/useCollisionObject';
+import { Quaternion, Vector3 } from 'three';
 
 interface TronCubeProps {
   position: [number, number, number];
@@ -21,12 +21,16 @@ export const TronCube = ({
   id,
   lineWidth = 0.01,
 }: TronCubeProps) => {
+  const sizeVector = useMemo(() => new Vector3(size, size, size), [size]);
+
   useCollisionObject({
     id,
     position,
     rotation,
-    size: new THREE.Vector3(size, size, size),
-    type: 'worldObject',
+    size: sizeVector,
+    data: {
+      type: 'worldObject',
+    },
   });
 
   const edges = useMemo(() => {
@@ -86,11 +90,11 @@ export const TronCube = ({
     ];
 
     return edgePositions.map(([start, end]) => {
-      const startVec = new THREE.Vector3(...start);
-      const endVec = new THREE.Vector3(...end);
-      const direction = new THREE.Vector3().subVectors(endVec, startVec);
+      const startVec = new Vector3(...start);
+      const endVec = new Vector3(...end);
+      const direction = new Vector3().subVectors(endVec, startVec);
       const length = direction.length();
-      const center = new THREE.Vector3().addVectors(startVec, endVec).multiplyScalar(0.5);
+      const center = new Vector3().addVectors(startVec, endVec).multiplyScalar(0.5);
 
       return { center, direction: direction.normalize(), length };
     });
@@ -103,8 +107,8 @@ export const TronCube = ({
         <meshStandardMaterial color={baseColor} />
       </mesh>
       {edges.map(({ center, direction, length }, i) => {
-        const quaternion = new THREE.Quaternion();
-        quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+        const quaternion = new Quaternion();
+        quaternion.setFromUnitVectors(new Vector3(0, 1, 0), direction);
 
         return (
           <mesh key={i} position={center} quaternion={quaternion}>

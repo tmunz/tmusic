@@ -19,7 +19,7 @@ export const FollowCamera = ({
   stiffness = 1,
   drift = 0,
 }: FollowCameraProps) => {
-  const NORMALIZER = 25;
+  const NORMALIZER = 10;
 
   const { camera } = useThree();
   const initialized = useRef(false);

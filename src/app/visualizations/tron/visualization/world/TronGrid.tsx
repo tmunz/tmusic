@@ -12,7 +12,6 @@ interface TronGridProps {
   sparksSpeed?: number;
   sparksTurnProbability?: number;
   sparkColor?: string;
-  enableSparks?: boolean;
 }
 
 export const TronGrid = ({
@@ -26,7 +25,6 @@ export const TronGrid = ({
   sparksCount = 5,
   sparksSpeed = 0.2,
   sparksTurnProbability = 0.1,
-  enableSparks = true,
 }: TronGridProps) => {
   return (
     <>
@@ -41,7 +39,7 @@ export const TronGrid = ({
         cellThickness={0}
         sectionThickness={2}
       />
-      {enableSparks && (
+      {sparksCount > 0 && (
         <GridSparks
           gridSize={size}
           gridPosition={position}

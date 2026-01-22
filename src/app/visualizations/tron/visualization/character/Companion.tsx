@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { Group, Object3D, Vector3 } from 'three';
 import { Bit } from '../object/Bit';
 import { WireframeTransitionObject } from '../object/WireframeTransitionObject';
-import { useTronState } from '../state/TronContext';
+import { useTronStore } from '../state/TronStore';
 
 interface CompanionProps {
   vehicleRef: RefObject<Object3D>;
@@ -13,7 +13,9 @@ interface CompanionProps {
 
 export const Companion = forwardRef<Object3D, CompanionProps>(
   ({ vehicleRef, maxAcceleration = 25.0, maxDeceleration = 35.0 }, ref) => {
-    const { tronState, getUserCharacter, getUserPlayer } = useTronState();
+    const getUserCharacter = useTronStore(state => state.getUserCharacter);
+    const insideBattleground = useTronStore(state => state.game.players[state.userId]?.insideBattleground ?? true);
+    const gamePosition = useTronStore(state => state.game.position);
     const groupRef = useRef<Group>(null);
 
     useImperativeHandle(ref, () => groupRef.current!);
@@ -31,13 +33,13 @@ export const Companion = forwardRef<Object3D, CompanionProps>(
     const initializedRef = useRef(false);
 
     useFrame((state, delta) => {
-      if (!groupRef.current) return;
+      // TODO improve movement
+      if (!groupRef.current || !vehicleRef.current) return;
 
       timeRef.current += delta;
-      const userPlayer = getUserPlayer();
-      const isOutside = userPlayer ? !userPlayer.insideBattleground : true;
+      const isOutside = !insideBattleground;
       const userCharacter = getUserCharacter();
-      if (!userCharacter || !userCharacter.position) return;
+      if (!userCharacter) return;
 
       const speedChange = userCharacter.vehicle.speed.actual - prevSpeedRef.current;
       prevSpeedRef.current = userCharacter.vehicle.speed.actual;
@@ -49,9 +51,9 @@ export const Companion = forwardRef<Object3D, CompanionProps>(
       speedLagRef.current = Math.max(0, speedLagRef.current - delta * 1.5);
 
       const targetVehiclePos = new Vector3(
-        userCharacter.position.x,
-        userCharacter.position.y,
-        userCharacter.position.z
+        vehicleRef.current.position.x,
+        vehicleRef.current.position.y,
+        vehicleRef.current.position.z
       );
 
       if (prevVehiclePosRef.current.length() === 0) {
@@ -66,12 +68,8 @@ export const Companion = forwardRef<Object3D, CompanionProps>(
       const vehiclePos = smoothedVehiclePosRef.current;
 
       // STAGE 1: Calculate target position based on mode
-      if (isOutside && tronState.game.position) {
-        const battlefieldPosition = new Vector3(
-          tronState.game.position.x,
-          tronState.game.position.y,
-          tronState.game.position.z
-        );
+      if (isOutside && gamePosition) {
+        const battlefieldPosition = new Vector3(gamePosition.x, gamePosition.y, gamePosition.z);
 
         const toTargetWorld = new Vector3(
           battlefieldPosition.x - vehiclePos.x,
@@ -90,8 +88,7 @@ export const Companion = forwardRef<Object3D, CompanionProps>(
         const baseX = vehiclePos.x + vehicleForward.x * frontOffset;
         const baseZ = vehiclePos.z + vehicleForward.z * frontOffset;
 
-        // Direction offset toward battle grid (only moves forward from base)
-        const oscillationAmount = 2.0; // How far it moves toward grid
+        const oscillationAmount = 2.0;
         const targetX = baseX + toTargetWorld.x * oscillationAmount * oscillation;
         const targetZ = baseZ + toTargetWorld.z * oscillationAmount * oscillation;
 
@@ -162,12 +159,10 @@ export const Companion = forwardRef<Object3D, CompanionProps>(
       groupRef.current.position.copy(currentPositionRef.current);
     });
 
-    const userPlayer = getUserPlayer();
-
     return (
       <group ref={groupRef}>
         <WireframeTransitionObject autoStart>
-          <Bit position={[0, 0, 0]} activated={userPlayer ? !userPlayer.insideBattleground : true} />
+          <Bit position={[0, 0, 0]} activated={!insideBattleground} />
         </WireframeTransitionObject>
       </group>
     );

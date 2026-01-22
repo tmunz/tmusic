@@ -6,11 +6,11 @@ export enum Mode {
 
 export interface CharacterState {
   id: string;
-  position: {
-    x: number;
-    y: number;
-    z: number;
-  };
+  // position: {
+  //   x: number;
+  //   y: number;
+  //   z: number;
+  // };
   color: string;
   isDisintegrated: boolean;
   vehicle: {

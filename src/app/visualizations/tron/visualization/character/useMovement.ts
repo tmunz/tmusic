@@ -13,7 +13,7 @@ interface TurningParams {
   tiltSmoothness: number;
 }
 
-export const useVehicleMovement = () => {
+export const useMovement = () => {
   const actualSpeedRef = useRef(0);
   const targetSpeedRef = useRef(0);
   const currentTurnSpeed = useRef(1);

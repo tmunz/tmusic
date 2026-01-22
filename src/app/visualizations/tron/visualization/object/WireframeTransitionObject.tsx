@@ -88,10 +88,17 @@ export const WireframeTransitionObject = forwardRef<WireframeTransitionHandle, W
     }));
 
     useFrame((state, delta) => {
-      if (activeAnimationRef.current === 'create') {
-        createAnimation.animate(delta);
-      } else if (activeAnimationRef.current === 'destruct') {
-        destructAnimation.animate(delta);
+      if (activeAnimationRef.current === null) {
+        return;
+      }
+
+      switch (activeAnimationRef.current) {
+        case 'create':
+          createAnimation.animate(delta);
+          break;
+        case 'destruct':
+          destructAnimation.animate(delta);
+          break;
       }
     });
 

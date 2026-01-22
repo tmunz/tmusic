@@ -1,6 +1,5 @@
 import { createContext, useContext, useRef, ReactNode } from 'react';
 import * as THREE from 'three';
-import { useTronState } from '../state/TronContext';
 
 export interface CollisionObject {
   id: string;
@@ -8,9 +7,7 @@ export interface CollisionObject {
   boundingBox: THREE.Box3;
   overallBoundingBox?: THREE.Box3;
   orientedCorners?: THREE.Vector3[];
-  type: 'vehicle' | 'wall' | 'worldObject';
-  onCollision?: (other: CollisionObject) => void;
-  playerId?: string;
+  [key: string]: any;
 }
 
 interface CollisionContextType {

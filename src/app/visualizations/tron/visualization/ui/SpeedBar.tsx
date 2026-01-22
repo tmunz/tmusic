@@ -1,4 +1,4 @@
-import { useTronState } from '../state/TronContext';
+import { useTronStore } from '../state/TronStore';
 import './SpeedBar.css';
 
 interface SpeedBarProps {
@@ -7,8 +7,7 @@ interface SpeedBarProps {
 }
 
 export const SpeedBar = ({ color, width = 200 }: SpeedBarProps) => {
-  const { getUserCharacter } = useTronState();
-  const userCharacter = getUserCharacter();
+  const userCharacter = useTronStore(state => state.getUserCharacter());
 
   if (!userCharacter) return null;
 

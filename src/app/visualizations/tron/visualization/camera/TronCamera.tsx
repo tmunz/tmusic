@@ -1,6 +1,6 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Object3D } from 'three';
-import { useTronState } from '../state/TronContext';
+import { useTronStore } from '../state/TronStore';
 import { CameraMode } from './CameraMode';
 import { FollowCamera } from './FollowCamera';
 import { ObserverCamera } from './ObserverCamera';
@@ -9,51 +9,57 @@ import { Mode } from '../state/TronState';
 import { useUserInput } from '../UserInput';
 
 interface TronCameraProps {
-  vehicleRef: React.RefObject<Object3D>;
+  userRef: React.RefObject<Object3D>;
   companionRef: React.RefObject<Object3D>;
 }
 
-export const TronCamera = ({ vehicleRef, companionRef }: TronCameraProps) => {
-  const { tronState } = useTronState();
+export const TronCamera = ({ userRef, companionRef }: TronCameraProps) => {
+  const userId = useTronStore(state => state.userId);
+  const isDisintegrated = useTronStore(state => state.characters[state.userId]?.isDisintegrated);
+  const mode = useTronStore(state => state.mode);
   const getControlsState = useUserInput();
-  const cameraTargetRef = useRef<React.RefObject<Object3D>>(vehicleRef);
+  const [cameraTarget, setCameraTarget] = useState<React.RefObject<Object3D>>(userRef);
   const cameraStiffnessRef = useRef(1);
 
   // switch camera targets during user disintegration and respawn
   useEffect(() => {
     const checkAndSwitchCamera = () => {
-      const userCharacter = tronState.characters[tronState.userId];
-
-      if (!userCharacter) {
+      if (isDisintegrated === undefined) {
         return;
       }
 
-      if (userCharacter.isDisintegrated) {
-        if (cameraTargetRef.current === vehicleRef) {
-          cameraTargetRef.current = companionRef;
-          cameraStiffnessRef.current = 0.5;
-        }
-      } else {
-        if (cameraTargetRef.current === companionRef) {
-          if (vehicleRef.current && companionRef.current) {
-            const distance = vehicleRef.current.position.distanceTo(companionRef.current.position);
-            const maxSwitchDistance = 3;
-
-            if (distance < maxSwitchDistance) {
-              cameraTargetRef.current = vehicleRef;
-              cameraStiffnessRef.current = 1;
-            }
-          } else {
-            cameraTargetRef.current = vehicleRef;
-            cameraStiffnessRef.current = 1;
+      if (isDisintegrated) {
+        setCameraTarget(current => {
+          if (current === userRef) {
+            cameraStiffnessRef.current = 0.5;
+            return companionRef;
           }
-        }
+          return current;
+        });
+      } else {
+        setCameraTarget(current => {
+          if (current === companionRef) {
+            if (userRef.current && companionRef.current) {
+              const distance = userRef.current.position.distanceTo(companionRef.current.position);
+              const maxSwitchDistance = 3;
+
+              if (distance < maxSwitchDistance) {
+                cameraStiffnessRef.current = 1;
+                return userRef;
+              }
+            } else {
+              cameraStiffnessRef.current = 1;
+              return userRef;
+            }
+          }
+          return current;
+        });
       }
     };
 
     const interval = setInterval(checkAndSwitchCamera, 100);
     return () => clearInterval(interval);
-  }, [tronState.characters[tronState.userId]?.isDisintegrated, tronState.userId, vehicleRef, companionRef]);
+  }, [isDisintegrated, userId, userRef, companionRef]);
 
   const cameraModes = [CameraMode.FOLLOW, CameraMode.OBSERVER, CameraMode.BIRDS_EYE];
   const cameraCounter = getControlsState().camera;
@@ -61,17 +67,17 @@ export const TronCamera = ({ vehicleRef, companionRef }: TronCameraProps) => {
 
   switch (cameraMode) {
     case CameraMode.OBSERVER:
-      return <ObserverCamera targetRef={vehicleRef} />;
+      return <ObserverCamera targetRef={userRef} />;
     case CameraMode.FOLLOW:
       return (
         <FollowCamera
-          targetRef={cameraTargetRef.current}
+          targetRef={cameraTarget}
           stiffness={cameraStiffnessRef.current}
-          drift={tronState.mode === Mode.LIGHTCYCLE_BATTLE ? 0 : 2}
+          drift={mode === Mode.LIGHTCYCLE_BATTLE ? 0 : 2}
         />
       );
     case CameraMode.BIRDS_EYE:
-      return <BirdsEyeCamera targetRef={vehicleRef} />;
+      return <BirdsEyeCamera targetRef={userRef} />;
     default:
       return null;
   }
