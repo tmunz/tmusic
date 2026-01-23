@@ -14,11 +14,10 @@ interface WireframeTransitionObjectProps {
   autoStart?: boolean;
 }
 
-export type TransitionDirection = 'in' | 'out';
-
 export interface WireframeTransitionHandle {
   getObject: () => Group | null;
-  startTransition: (direction: TransitionDirection) => void;
+  disintegrate: () => void;
+  integrate: () => void;
 }
 
 export const WireframeTransitionObject = forwardRef<WireframeTransitionHandle, WireframeTransitionObjectProps>(
@@ -74,15 +73,16 @@ export const WireframeTransitionObject = forwardRef<WireframeTransitionHandle, W
 
     useImperativeHandle(ref, () => ({
       getObject: () => elementRef.current,
-      startTransition: (direction: TransitionDirection) => {
+      integrate: () => {
         if (childrenGroupRef.current) {
-          if (direction === 'in') {
-            activeAnimationRef.current = 'create';
-            createAnimation.startCreate(childrenGroupRef.current);
-          } else {
-            activeAnimationRef.current = 'destruct';
-            destructAnimation.startDestruct(childrenGroupRef.current);
-          }
+          activeAnimationRef.current = 'create';
+          createAnimation.startCreate(childrenGroupRef.current);
+        }
+      },
+      disintegrate: () => {
+        if (childrenGroupRef.current) {
+          activeAnimationRef.current = 'destruct';
+          destructAnimation.startDestruct(childrenGroupRef.current);
         }
       },
     }));

@@ -1,5 +1,5 @@
-import { useTronStore } from '../state/TronStore';
 import './GameStatus.css';
+import { useTronStore } from '../state/TronStore';
 
 interface GameStatusProps {
   color?: string;
@@ -21,22 +21,13 @@ export const GameStatus = ({ color = '#66eeff' }: GameStatusProps) => {
         {sortedPlayers.map(player => {
           const character = characters[player.id];
           return (
-            <div
-              key={player.id}
-              className={`game-status-player ${!player.alive ? 'dead' : ''}`}
-              style={{ borderColor: character?.color }}
-            >
+            <div key={player.id} style={{ borderColor: character?.color }}>
               <div className="player-name" style={{ color: character?.color }}>
-                {player.id === userId ? 'YOU' : player.id.toUpperCase()}
+                {player.id === userId ? 'USER' : player.id.toUpperCase()}
               </div>
               <div className="player-points" style={{ color }}>
                 {player.points}
               </div>
-              {!player.alive && (
-                <div className="player-status" style={{ color: '#ff0000' }}>
-                  ELIMINATED
-                </div>
-              )}
             </div>
           );
         })}

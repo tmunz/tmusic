@@ -1,10 +1,8 @@
 import { useRef, useEffect, useState } from 'react';
 
 export interface ControlsState {
-  left: boolean;
-  right: boolean;
-  accelerate: boolean;
-  decelerate: boolean;
+  direction: number;
+  acceleration: number;
   camera: number;
 }
 
@@ -43,13 +41,18 @@ export const useUserInput = () => {
     };
   }, []);
 
-  const getControlsState = (): ControlsState => ({
-    left: keysPressed.current.has('a'),
-    right: keysPressed.current.has('d'),
-    accelerate: keysPressed.current.has('w'),
-    decelerate: keysPressed.current.has('s'),
-    camera: cameraCounter,
-  });
+  const getControlsState = (): ControlsState => {
+    const left = keysPressed.current.has('a');
+    const right = keysPressed.current.has('d');
+    const accelerate = keysPressed.current.has('w');
+    const decelerate = keysPressed.current.has('s');
+
+    return {
+      direction: left ? -1 : right ? 1 : 0,
+      acceleration: accelerate ? 1 : decelerate ? -1 : 0,
+      camera: cameraCounter,
+    };
+  };
 
   return getControlsState;
 };

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useCollisionObject } from '../collision/useCollisionObject';
-import { Quaternion, Vector3 } from 'three';
+import { Quaternion, Vector3, Box3 } from 'three';
 
 interface TronCubeProps {
   position: [number, number, number];
@@ -21,13 +21,18 @@ export const TronCube = ({
   id,
   lineWidth = 0.01,
 }: TronCubeProps) => {
-  const sizeVector = useMemo(() => new Vector3(size, size, size), [size]);
+  const boundingBox = useMemo(() => {
+    const sizeVector = new Vector3(size, size, size);
+    return new Box3().setFromCenterAndSize(new Vector3(0, 0, 0), sizeVector);
+  }, [size]);
+
+  const posVector = useMemo(() => new Vector3(...position), [position]);
 
   useCollisionObject({
     id,
-    position,
+    boundingBox,
+    position: posVector,
     rotation,
-    size: sizeVector,
     data: {
       type: 'worldObject',
     },

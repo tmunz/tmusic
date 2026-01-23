@@ -1,7 +1,7 @@
+import './Minimap.css';
 import { useFrame } from '@react-three/fiber';
 import { useRef, RefObject, useEffect } from 'react';
 import { Object3D, WebGLRenderer, OrthographicCamera as ThreeOrthographicCamera } from 'three';
-import './Minimap.css';
 
 interface MinimapRendererProps {
   targetRef: RefObject<Object3D>;

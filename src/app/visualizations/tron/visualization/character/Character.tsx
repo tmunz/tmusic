@@ -1,18 +1,20 @@
-import { useRef, forwardRef, useImperativeHandle } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Object3D, Quaternion, Vector3 } from 'three';
+import { Object3D } from 'three';
+import { useLightWallCollision } from './useLightWallCollision';
 import { SampleProvider } from '../../../../audio/SampleProvider';
-import { WireframeTransitionObject, WireframeTransitionHandle } from '../object/WireframeTransitionObject';
 import { Vehicle, VehicleHandle } from '../object/vehicle/Vehicle';
 import { LightWall, LightWallHandle } from './LightWall';
-import { useGameHandler } from './useGameHandler';
 import { useTronStore } from '../state/TronStore';
-import { ControlsState } from '../UserInput';
-import { useMovement } from './useMovement';
-import { useCrashHandler } from './useCrashHandler';
+import { useMovement } from '../movement/useMovement';
+import { useGameHandler } from '../game/useGameHandler';
+import { Mode } from '../state/TronState';
+import { ControlsState } from '../userInput/UserInput';
+import { useUserInputForMovement } from '../userInput/useUserInputForMovement';
+import { useSpeedControl } from '../movement/useSpeedControl';
 
 interface CharacterProps {
-  id: string;
+  id: string; // don't change during lifecycle
   sampleProvider?: SampleProvider;
   color?: string;
   position?: [number, number, number];
@@ -24,158 +26,99 @@ export const Character = forwardRef<Object3D, CharacterProps>(
   ({ id, sampleProvider, color, position = [0, 0, 0], rotation = [0, 0, 0], getControlsState }, ref) => {
     const vehicleRef = useRef<VehicleHandle>(null);
     const lightWallRef = useRef<LightWallHandle>(null);
-    const wireframeRef = useRef<WireframeTransitionHandle>(null);
-    const isRespawning = useRef(false);
-    const isDisintegrated = useRef(false);
-    const direction = useRef(new Vector3());
-
+    const respawnTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const isRespawningRef = useRef<boolean>(false);
     const movement = useMovement();
-    const setTargetSpeed = useTronStore(state => state.setTargetSpeed);
-    const setVehicleParams = useTronStore(state => state.setVehicleParams);
-    const updateVehicleSpeed = useTronStore(state => state.updateVehicleSpeed);
-    const getUserCharacter = useTronStore(state => state.getUserCharacter);
-    const gameHandler = useGameHandler({ enabled: !!getControlsState });
-
-    const { handleCrash } = useCrashHandler({
-      vehicleTransitionRef: wireframeRef,
-      isDisintegratedRef: isDisintegrated,
-      isRespawningRef: isRespawning,
-      setTargetSpeed: movement.setTargetSpeed,
-      lightWallRef,
-      resetMovement: movement.reset,
+    const speedControl = useSpeedControl();
+    const { checkBattlegroundStatus, getBattlegroundRespawnPosition } = useGameHandler();
+    const { checkCollisionAtPosition } = useLightWallCollision({
+      id,
+      ref: vehicleRef,
+      onCollision: (wallOwnerId: string) => onLightWallCollision(wallOwnerId),
     });
+    const store = useTronStore();
+    const characterState = store.characters[id];
 
-    useImperativeHandle(
-      ref,
-      () => {
-        return wireframeRef.current?.getObject() || ({} as Object3D);
-      },
-      []
-    );
+    useImperativeHandle(ref, () => vehicleRef.current?.getObject() || ({} as Object3D), []);
 
-    const TARGET_SPEED_CHANGE_RATE = 60;
+    useEffect(() => {
+      const vehicle = vehicleRef.current?.getObject();
+      const movementCharacteritics = vehicleRef.current?.getParams();
 
-    const updateTargetSpeed = (
-      delta: number,
-      params: { maxSpeed: number; minSpeed: number },
-      controls: ControlsState,
-      currentTarget: number
-    ) => {
-      const { maxSpeed, minSpeed } = params;
-      const speedDelta = TARGET_SPEED_CHANGE_RATE * delta;
-      let newTarget = currentTarget;
+      if (vehicle && movementCharacteritics) {
+        vehicle.position.set(...position);
+        vehicle.rotation.set(...rotation);
 
-      if (controls.accelerate) {
-        newTarget = Math.min(maxSpeed, currentTarget + speedDelta);
+        if (getControlsState) {
+          store.setVehicleParams(id, movementCharacteritics.maxSpeed, movementCharacteritics.minSpeed);
+        }
       }
+    }, []);
 
-      if (controls.decelerate) {
-        newTarget = Math.max(minSpeed, currentTarget - speedDelta);
+    const applyRespawn = () => {
+      const vehicle = vehicleRef.current?.getObject();
+      if (!vehicle) return;
+      const position = getBattlegroundRespawnPosition();
+      vehicle.position.set(position.x, position.y, position.z);
+      vehicle.rotation.set(0, 0, 0);
+      vehicle.updateMatrix();
+      vehicle.updateMatrixWorld(true);
+      const playerRef = vehicleRef.current?.getPlayerRef();
+      if (playerRef?.current) {
+        playerRef.current.rotation.x = 0;
+        playerRef.current.rotation.z = 0;
       }
+      lightWallRef.current?.reset();
+      movement.reset();
+      speedControl.reset();
+      store.setDisintegration(id, false);
+      isRespawningRef.current = false;
+    };
 
-      if (newTarget !== currentTarget && getControlsState) {
-        setTargetSpeed(id, newTarget);
-      }
+    const onLightWallCollision = (wallPlayerId: string) => {
+      if (isRespawningRef.current) return;
+      isRespawningRef.current = true;
+      store.handleLightWallCollision(id, wallPlayerId);
+      respawnTimerRef.current = setTimeout(() => {
+        applyRespawn();
+        respawnTimerRef.current = null;
+      }, 2100);
     };
 
     useFrame((_state, delta) => {
-      const wireframeObject = wireframeRef.current?.getObject();
-      const vehicleParams = vehicleRef.current?.getParams();
+      const vehicle = vehicleRef.current?.getObject();
+      const movementCharacteristics = vehicleRef.current?.getParams();
 
-      if (!wireframeObject || !vehicleParams) return;
+      if (!vehicle || !movementCharacteristics) return;
 
-      if (!wireframeObject.userData.initialized) {
-        wireframeObject.position.set(...position);
-        wireframeObject.rotation.set(...rotation);
-        wireframeObject.userData.initialized = true;
-        if (getControlsState) {
-          setVehicleParams(id, vehicleParams.maxSpeed, vehicleParams.minSpeed);
-        }
-      }
+      const { movementControlState, targetSpeed } = useUserInputForMovement(
+        delta,
+        speedControl,
+        getControlsState?.(),
+        movementCharacteristics
+      );
+      store.setTargetSpeed(id, targetSpeed);
+      store.updateVehicleSpeed(id, movementControlState?.speed ?? 0);
 
-      const controls: ControlsState = getControlsState?.() ?? {
-        accelerate: false,
-        decelerate: false,
-        left: false,
-        right: false,
-        camera: 0,
-      };
-      const {
-        minSpeed,
-        maxSpeed,
-        speedChangeRate,
-        baseTurnSpeed,
-        maxTurnSpeed,
-        turnSpeedIncreaseRate,
-        maxTurnTilt,
-        tiltSmoothness,
-      } = vehicleParams;
+      movement.updateFrame({
+        delta,
+        controls: movementControlState,
+        object: vehicle,
+        movementCharacteristics,
+        checkCollision: checkCollisionAtPosition,
+        isDisintegrated: characterState?.isDisintegrated ?? false,
+      });
 
-      const userCharacter = getUserCharacter();
-      const currentTargetSpeed = getControlsState && userCharacter ? userCharacter.vehicle.speed.target : 0;
-      updateTargetSpeed(delta, { maxSpeed, minSpeed }, controls, currentTargetSpeed);
-      movement.setTargetSpeed(currentTargetSpeed);
+      lightWallRef.current?.update();
 
-      // Handle steering and tilt on the wrapper
-      if (!isDisintegrated.current) {
-        const targetTurnTilt = movement.updateTurning(delta, controls, wireframeObject, {
-          baseTurnSpeed,
-          maxTurnSpeed,
-          turnSpeedIncreaseRate,
-          maxTurnTilt,
-          tiltSmoothness,
-        });
-
-        const playerRef = vehicleRef.current?.getPlayerRef();
-        movement.applyTilt(targetTurnTilt, delta, tiltSmoothness, wireframeObject, playerRef?.current);
-      }
-
-      const actualSpeed = movement.getActualSpeed();
-      if (getControlsState) {
-        updateVehicleSpeed(id, actualSpeed);
-      }
-
-      direction.current.set(0, 0, -1);
-      direction.current.applyQuaternion(wireframeObject.quaternion);
-
-      if (!isDisintegrated.current) {
-        const checkCollision = (newPosition: Vector3): boolean => {
-          return (
-            vehicleRef.current?.checkCollision(
-              newPosition,
-              new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), wireframeObject.rotation.y)
-            ) ?? true
-          );
-        };
-
-        movement.updateAndApplyMovement(wireframeObject, delta, direction.current, { speedChangeRate }, checkCollision);
-      }
-
-      gameHandler.checkBattlegroundStatus(wireframeObject);
-      if (lightWallRef.current) {
-        lightWallRef.current.update();
+      if (store.mode === Mode.LIGHTCYCLE_BATTLE) {
+        checkBattlegroundStatus(vehicle);
       }
     });
 
-    const handleCollision = (wallOwnerId: string) => {
-      if (!isDisintegrated.current && getControlsState) {
-        isDisintegrated.current = true;
-        isRespawning.current = true;
-        handleCrash(id, wallOwnerId);
-      }
-    };
-
     return (
       <>
-        <WireframeTransitionObject ref={wireframeRef} color={color} autoStart>
-          <Vehicle
-            ref={vehicleRef}
-            color={color}
-            getControlsState={getControlsState}
-            isDisintegrated={isDisintegrated}
-            onCollision={handleCollision}
-          />
-        </WireframeTransitionObject>
+        <Vehicle ref={vehicleRef} id={id} color={color} disintegrated={characterState?.isDisintegrated ?? false} />
         <LightWall
           ref={lightWallRef}
           getSpawnPoints={() => vehicleRef.current?.getLightWallSpawnPoints() ?? null}

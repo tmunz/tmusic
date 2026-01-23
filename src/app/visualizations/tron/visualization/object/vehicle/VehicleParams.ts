@@ -1,12 +1,7 @@
-export interface VehicleParams {
-  minSpeed: number;
-  maxSpeed: number;
-  speedChangeRate: number;
-  baseTurnSpeed: number;
-  maxTurnSpeed: number;
-  turnSpeedIncreaseRate: number;
-  maxTurnTilt: number;
-  tiltSmoothness: number;
+import { SpeedCharacteristics } from '../../movement/SpeedCharactersistic';
+import { TurnCharacteristics } from '../../movement/TurnCharacteristics';
+
+export interface VehicleParams extends SpeedCharacteristics, TurnCharacteristics {
   lightWallOffset: number;
   lightWallHeight: number;
 }

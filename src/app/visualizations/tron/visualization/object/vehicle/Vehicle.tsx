@@ -1,109 +1,88 @@
-import { useRef, forwardRef, useImperativeHandle, useEffect, MutableRefObject } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { LightCycle, LightCycleHandle } from './LightCycle';
-import { useCollision } from '../../collision/CollisionContext';
-import { registerCollisionObject } from '../../collision/useCollisionObject';
-import { Box3, Mesh, Object3D, Quaternion, Vector3, Group } from 'three';
+import { Box3, Vector3, Group, Quaternion, Object3D } from 'three';
 import { VehicleParams } from './VehicleParams';
-import { ControlsState } from '../../UserInput';
+import { WireframeTransitionObject, WireframeTransitionHandle } from '../WireframeTransitionObject';
 
 interface VehicleProps {
+  id: string;
   color?: string;
-  getControlsState?: () => ControlsState;
-  isDisintegrated: MutableRefObject<boolean>;
-  onCollision?: (wallOwnerId: string) => void;
+  disintegrated?: boolean;
 }
 
 export interface VehicleHandle {
-  getObject: () => Object3D;
   getParams: () => VehicleParams;
   getPlayerRef: () => React.RefObject<Group> | undefined;
   getLightWallSpawnPoints: () => { lower: Vector3; upper: Vector3 } | null;
-  checkCollision: (newPosition: Vector3, rotation: Quaternion) => boolean;
+  getBoundingBox: () => Box3 | null;
+  getObject: () => Object3D | null;
 }
 
-export const Vehicle = forwardRef<VehicleHandle, VehicleProps>(
-  ({ color, getControlsState, isDisintegrated, onCollision }, ref) => {
-    const vehicleRef = useRef<LightCycleHandle>(null);
-    const targetMeshRef = useRef<Mesh>(null);
-    const { unregisterObject, checkCollision, registerObject, getAllObjects } = useCollision();
-    const vehicleId = useRef(`vehicle-${Math.random()}`);
-    const modelBoundingBoxSize = useRef(new Vector3(1, 1, 1));
-    const modelBoundingBoxCenter = useRef(new Vector3(0, 0, 0));
+export const Vehicle = forwardRef<VehicleHandle, VehicleProps>(({ id, color, disintegrated }, ref) => {
+  const vehicleRef = useRef<LightCycleHandle>(null);
+  const wireframeRef = useRef<WireframeTransitionHandle>(null);
+  const modelBoundingBox = useRef(new Box3());
 
-    useEffect(() => {
-      const vehicleModel = vehicleRef.current?.vehicleModel;
-      const mesh = vehicleRef.current?.meshRef.current;
-      if (!vehicleModel || !mesh) return;
+  useEffect(() => {
+    const vehicleModel = vehicleRef.current?.vehicleModel;
+    if (!vehicleModel) return;
+    modelBoundingBox.current.setFromObject(vehicleModel);
+  }, [vehicleRef.current?.vehicleModel]);
 
-      const originalPosition = mesh.position.clone();
-      const originalRotation = mesh.rotation.clone();
+  useEffect(() => {
+    if (disintegrated) {
+      wireframeRef.current?.disintegrate();
+    } else {
+      wireframeRef.current?.integrate();
+    }
+  }, [disintegrated]);
 
-      mesh.position.set(0, 0, 0);
-      mesh.rotation.set(0, 0, 0);
-      mesh.updateMatrixWorld(true);
+  useFrame(() => {
+    const vehicle = wireframeRef.current?.getObject();
+    const player = vehicleRef.current?.playerRef.current;
+    if (player && vehicle) {
+      player.rotation.x = vehicle.rotation.x / 4;
+      player.rotation.z = vehicle.rotation.z / 4;
+    }
+  });
 
-      const bbox = new Box3().setFromObject(vehicleModel);
-      bbox.getSize(modelBoundingBoxSize.current);
-      bbox.getCenter(modelBoundingBoxCenter.current);
+  const getLightWallSpawnPoints = (): { lower: Vector3; upper: Vector3 } | null => {
+    const objectRef = vehicleRef.current?.lightCycleRef;
+    const params = vehicleRef.current?.params;
+    if (!objectRef?.current || !params) return null;
 
-      mesh.position.copy(originalPosition);
-      mesh.rotation.copy(originalRotation);
-      mesh.updateMatrixWorld(true);
-    }, [vehicleRef.current?.vehicleModel]);
+    const worldPosition = new Vector3();
+    const worldQuaternion = new Quaternion();
+    objectRef.current.getWorldPosition(worldPosition);
+    objectRef.current.getWorldQuaternion(worldQuaternion);
 
-    useImperativeHandle(
-      ref,
-      () => ({
-        getObject: () => {
-          const meshObject = vehicleRef.current?.meshRef.current!;
-          (targetMeshRef as React.MutableRefObject<Mesh | null>).current =
-            meshObject && meshObject instanceof Mesh ? meshObject : null;
-          return meshObject;
-        },
-        getParams: () => vehicleRef.current?.params!,
-        getPlayerRef: () => vehicleRef.current?.playerRef,
-        getLightWallSpawnPoints: () => vehicleRef.current?.getLightWallSpawnPoints() ?? null,
-        checkCollision: (newPosition: Vector3, rotation: Quaternion) => {
-          if (isDisintegrated.current) return true;
+    const backwardOffset = new Vector3(0, 0, params.lightWallOffset);
+    backwardOffset.applyQuaternion(worldQuaternion);
+    const lower = worldPosition.clone().add(backwardOffset);
 
-          registerCollisionObject({
-            registerObject,
-            id: vehicleId.current,
-            position: newPosition,
-            rotation: rotation,
-            size: modelBoundingBoxSize.current,
-            localCenter: modelBoundingBoxCenter.current,
-            data: {
-              type: 'vehicle',
-              playerId: getControlsState ? 'user' : undefined,
-            },
-          });
+    const upperOffset = new Vector3(0, params.lightWallHeight, 0);
+    upperOffset.applyQuaternion(worldQuaternion);
+    const upper = lower.clone().add(upperOffset);
 
-          const allObjects = getAllObjects();
-          const registeredVehicle = allObjects.find(obj => obj.id === vehicleId.current);
-          if (registeredVehicle) {
-            const collisions = checkCollision(registeredVehicle);
+    return { lower, upper };
+  };
 
-            if (collisions.length > 0) {
-              const wallCollision = collisions.find(c => c.type === 'wall');
-              if (!isDisintegrated.current && getControlsState && wallCollision) {
-                onCollision?.(wallCollision.playerId || 'unknown');
-              }
-              return false;
-            }
-          }
-          return true;
-        },
-      }),
-      [isDisintegrated, getControlsState, onCollision, registerObject, getAllObjects, checkCollision]
-    );
+  useImperativeHandle(
+    ref,
+    () => ({
+      getParams: () => vehicleRef.current?.params!,
+      getPlayerRef: () => vehicleRef.current?.playerRef,
+      getLightWallSpawnPoints,
+      getBoundingBox: () => modelBoundingBox.current,
+      getObject: () => wireframeRef.current?.getObject() ?? null,
+    }),
+    []
+  );
 
-    useEffect(() => {
-      return () => {
-        unregisterObject(vehicleId.current);
-      };
-    }, [unregisterObject]);
-
-    return <LightCycle ref={vehicleRef} color={color} />;
-  }
-);
+  return (
+    <WireframeTransitionObject ref={wireframeRef} color={color} autoStart>
+      <LightCycle ref={vehicleRef} color={color} />
+    </WireframeTransitionObject>
+  );
+});

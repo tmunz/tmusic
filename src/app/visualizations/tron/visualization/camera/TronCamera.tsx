@@ -6,7 +6,7 @@ import { FollowCamera } from './FollowCamera';
 import { ObserverCamera } from './ObserverCamera';
 import { BirdsEyeCamera } from './BirdsEyeCamera';
 import { Mode } from '../state/TronState';
-import { useUserInput } from '../UserInput';
+import { useUserInput } from '../userInput/UserInput';
 
 interface TronCameraProps {
   userRef: React.RefObject<Object3D>;

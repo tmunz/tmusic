@@ -35,6 +35,7 @@ const initialState: TronState = {
 
 interface TronStore extends TronState {
   // Getters
+  getGameMode: () => Mode;
   getUserPlayer: () => PlayerState | undefined;
   getUserCharacter: () => CharacterState | undefined;
   getCharacter: (characterId: string) => CharacterState | undefined;
@@ -42,7 +43,7 @@ interface TronStore extends TronState {
   getPlayerCharacter: (playerId: string) => CharacterState | undefined;
 
   // Actions
-  updateVehicleSpeed: (characterId: string, actual: number) => void;
+  updateVehicleSpeed: (characterId: string, speed: number) => void;
   setVehicleParams: (characterId: string, max: number, min: number) => void;
   setTargetSpeed: (characterId: string, target: number) => void;
   setGameMode: (mode: Mode) => void;
@@ -52,16 +53,17 @@ interface TronStore extends TronState {
   removeCharacter: (characterId: string) => void;
   addPlayer: (player: PlayerState) => void;
   removePlayer: (playerId: string) => void;
-  updatePlayerPoints: (playerId: string, points: number) => void;
-  updatePlayerAlive: (playerId: string, alive: boolean) => void;
-  crash: (crashingPlayerId: string, wallOwnerId: string | undefined) => void;
-  setVehicleDisintegrating: (characterId: string, isDisintegrated: boolean) => void;
+  handleLightWallCollision: (crashingPlayerId: string, wallOwnerId: string | undefined) => void;
+  setDisintegration: (characterId: string, isDisintegrated: boolean) => void;
 }
 
 export const useTronStore = create<TronStore>((set, get) => ({
   ...initialState,
 
   // Getters
+  getGameMode: () => {
+    return get().mode;
+  },
   getUserPlayer: () => {
     const state = get();
     return state.game.players[state.userId];
@@ -83,7 +85,7 @@ export const useTronStore = create<TronStore>((set, get) => ({
   },
 
   // Actions
-  updateVehicleSpeed: (characterId: string, actual: number) => {
+  updateVehicleSpeed: (characterId: string, speed: number) => {
     set(state => {
       const character = state.characters[characterId];
       if (!character) return state;
@@ -98,7 +100,7 @@ export const useTronStore = create<TronStore>((set, get) => ({
               ...character.vehicle,
               speed: {
                 ...character.vehicle.speed,
-                actual,
+                actual: speed,
               },
             },
           },
@@ -250,54 +252,11 @@ export const useTronStore = create<TronStore>((set, get) => ({
     });
   },
 
-  updatePlayerPoints: (playerId: string, points: number) => {
-    set(state => {
-      const player = state.game.players[playerId];
-      if (!player) return state;
-
-      return {
-        ...state,
-        game: {
-          ...state.game,
-          players: {
-            ...state.game.players,
-            [playerId]: {
-              ...player,
-              points,
-            },
-          },
-        },
-      };
-    });
-  },
-
-  updatePlayerAlive: (playerId: string, alive: boolean) => {
-    set(state => {
-      const player = state.game.players[playerId];
-      if (!player) return state;
-
-      return {
-        ...state,
-        game: {
-          ...state.game,
-          players: {
-            ...state.game.players,
-            [playerId]: {
-              ...player,
-              alive,
-            },
-          },
-        },
-      };
-    });
-  },
-
-  crash: (crashingPlayerId: string, wallOwnerId: string | undefined) => {
+  handleLightWallCollision: (crashingPlayerId: string, wallOwnerId?: string) => {
     set(state => {
       const crashingPlayer = state.game.players[crashingPlayerId];
-      if (!crashingPlayer) return state;
-
-      // Update crashing player points
+      const crashingCharacter = state.characters[crashingPlayerId];
+      if (!crashingPlayer || !crashingCharacter) return state;
       let newPlayers = {
         ...state.game.players,
         [crashingPlayerId]: {
@@ -305,8 +264,6 @@ export const useTronStore = create<TronStore>((set, get) => ({
           points: crashingPlayer.points - 1,
         },
       };
-
-      // Update wall owner points if different player
       if (wallOwnerId && wallOwnerId !== crashingPlayerId) {
         const wallOwner = state.game.players[wallOwnerId];
         if (wallOwner) {
@@ -326,11 +283,25 @@ export const useTronStore = create<TronStore>((set, get) => ({
           ...state.game,
           players: newPlayers,
         },
+        characters: {
+          ...state.characters,
+          [crashingPlayerId]: {
+            ...crashingCharacter,
+            isDisintegrated: true,
+            vehicle: {
+              ...crashingCharacter.vehicle,
+              speed: {
+                ...crashingCharacter.vehicle.speed,
+                target: 0,
+              },
+            },
+          },
+        },
       };
     });
   },
 
-  setVehicleDisintegrating: (characterId: string, isDisintegrated: boolean) => {
+  setDisintegration: (characterId: string, isDisintegrated: boolean) => {
     set(state => {
       const character = state.characters[characterId];
       if (!character) return state;

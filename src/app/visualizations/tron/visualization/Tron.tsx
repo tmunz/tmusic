@@ -5,25 +5,31 @@ import { TronCamera } from './camera/TronCamera';
 import { World } from './world/World';
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { CollisionProvider } from './collision/CollisionContext';
-import { CollisionDebugVisualizer } from './collision/CollisionDebugVisualizer';
-import { useUserInput } from './UserInput';
+import { useUserInput } from './userInput/UserInput';
 import { SpeedBar } from './ui/SpeedBar';
 import { useSampleProviderActive } from '../../../audio/useSampleProviderActive';
 import { MinimapRenderer, Minimap } from './ui/Minimap';
 import { TronLightningEnvironment } from './TronLightningEnvironment';
-import { Companion } from './character/Companion';
+import { Companion } from './companion/Companion';
 import { useTronStore } from './state/TronStore';
 import { GameStatus } from './ui/GameStatus';
 import { Mode } from './state/TronState';
 import { Object3D } from 'three';
 import { Character } from './character/Character';
+import { CollisionDebugVisualizer } from './collision/CollisionDebugVisualizer';
+
+enum DebugMode {
+  NONE = 0,
+  STATS = 1,
+  COLLISION = 2,
+}
 
 export interface TronProps {
   sampleProvider: SampleProvider;
 }
 
 export const Tron = ({ sampleProvider }: TronProps) => {
-  const [debugMode, setDebugMode] = useState(0);
+  const [debugMode, setDebugMode] = useState(DebugMode.NONE);
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -53,11 +59,10 @@ export const Tron = ({ sampleProvider }: TronProps) => {
 
 interface TronSceneProps {
   sampleProvider: SampleProvider;
-  debugMode: number;
+  debugMode: DebugMode;
 }
 
 const TronScene = ({ sampleProvider, debugMode }: TronSceneProps) => {
-  // Subscribe only to specific parts of the store to prevent unnecessary re-renders
   const mode = useTronStore(state => state.mode);
   const userId = useTronStore(state => state.userId);
   const tileSize = useTronStore(state => state.world.tileSize);
@@ -69,6 +74,7 @@ const TronScene = ({ sampleProvider, debugMode }: TronSceneProps) => {
 
   const isActive = useSampleProviderActive(sampleProvider);
   const [minimapCanvas, setMinimapCanvas] = useState<HTMLCanvasElement | null>(null);
+  const [isWindowActive, setIsWindowActive] = useState(true);
   const userRef = useRef<Object3D>(null);
   const companionRef = useRef<Object3D>(null);
   const controlsState = useUserInput();
@@ -79,6 +85,25 @@ const TronScene = ({ sampleProvider, debugMode }: TronSceneProps) => {
     : mode === Mode.LIGHTCYCLE_BATTLE
     ? fakeSampleProvider
     : sampleProvider;
+
+  // Track window focus
+  useEffect(() => {
+    const handleFocus = () => setIsWindowActive(true);
+    const handleBlur = () => setIsWindowActive(false);
+    const handleVisibilityChange = () => {
+      setIsWindowActive(!document.hidden);
+    };
+
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('blur', handleBlur);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('blur', handleBlur);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   // Switch from NONE to VISUALIZER
   useEffect(() => {
@@ -120,12 +145,16 @@ const TronScene = ({ sampleProvider, debugMode }: TronSceneProps) => {
 
   return (
     <>
-      <Canvas camera={{ position: [0, 1, 3], fov: 60 }} gl={{ antialias: true }}>
-        {debugMode >= 1 && <Stats />}
+      <Canvas
+        camera={{ position: [0, 1, 3], fov: 60 }}
+        gl={{ antialias: true }}
+        frameloop={isWindowActive ? 'always' : 'never'}
+      >
+        {debugMode >= DebugMode.STATS && <Stats />}
         <TronLightningEnvironment />
         <TronCamera userRef={userRef} companionRef={companionRef} />
         <CollisionProvider>
-          {debugMode >= 2 && <CollisionDebugVisualizer />}
+          {debugMode >= DebugMode.COLLISION && <CollisionDebugVisualizer />}
           <Character
             ref={userRef}
             id={userId}
@@ -135,7 +164,7 @@ const TronScene = ({ sampleProvider, debugMode }: TronSceneProps) => {
             position={[0, 0, 0]}
             rotation={[0, 0, 0]}
           />
-          <Companion ref={companionRef} vehicleRef={userRef} />
+          <Companion ref={companionRef} targetRef={userRef} />
           <World tileSize={tileSize} viewDistance={3} />
         </CollisionProvider>
         {mode === Mode.LIGHTCYCLE_BATTLE && <MinimapRenderer targetRef={userRef} canvasElement={minimapCanvas} />}

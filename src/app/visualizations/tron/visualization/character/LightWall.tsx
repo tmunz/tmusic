@@ -1,12 +1,12 @@
 import { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
-import * as THREE from 'three';
 import { SampleProvider } from '../../../../audio/SampleProvider';
 import { useSampleProviderTexture } from '../../../../audio/useSampleProviderTexture';
 import { useLightWallSoundMaterial } from './LightWallSoundMaterial';
 import { useCollision } from '../collision/CollisionContext';
+import { Box3, BufferAttribute, BufferGeometry, Color, DoubleSide, DynamicDrawUsage, Vector3 } from 'three';
 
 interface LightWallProps {
-  getSpawnPoints: () => { lower: THREE.Vector3; upper: THREE.Vector3 } | null;
+  getSpawnPoints: () => { lower: Vector3; upper: Vector3 } | null;
   color?: string;
   opacity?: number;
   maxPoints?: number;
@@ -37,11 +37,11 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
     },
     ref
   ) => {
-    const trailPoints = useRef<{ lower: THREE.Vector3; upper: THREE.Vector3 }[]>([]);
-    const lastTrailPosition = useRef(new THREE.Vector3());
-    const trailGeometry = useRef<THREE.BufferGeometry>(null!);
-    const positionAttribute = useRef<THREE.BufferAttribute>(null!);
-    const colorAttribute = useRef<THREE.BufferAttribute>(null!);
+    const trailPoints = useRef<{ lower: Vector3; upper: Vector3 }[]>([]);
+    const lastTrailPosition = useRef(new Vector3());
+    const trailGeometry = useRef<BufferGeometry>(null!);
+    const positionAttribute = useRef<BufferAttribute>(null!);
+    const colorAttribute = useRef<BufferAttribute>(null!);
     const { registerObject, unregisterObject } = useCollision();
     const wallId = useRef(`wall-${Math.random()}`);
     const registeredSegments = useRef<Set<string>>(new Set());
@@ -52,7 +52,7 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
       updateSampleTexture,
       color,
       opacity,
-      side: THREE.DoubleSide,
+      side: DoubleSide,
       depthWrite: false,
     });
 
@@ -78,7 +78,7 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
       updateSampleTexture: updateTopFrequencyTexture,
       color,
       opacity,
-      side: THREE.DoubleSide,
+      side: DoubleSide,
       depthWrite: false,
     });
 
@@ -104,7 +104,7 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
       updateSampleTexture: updateBottomFrequencyTexture,
       color,
       opacity,
-      side: THREE.DoubleSide,
+      side: DoubleSide,
       depthWrite: false,
     });
 
@@ -131,15 +131,15 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
           // Separator face
           indices.push(nextBase, nextBase + 2, nextBase + 3, nextBase, nextBase + 3, nextBase + 1);
         }
-        const attribute = new THREE.BufferAttribute(positions, 3);
-        attribute.setUsage(THREE.DynamicDrawUsage);
+        const attribute = new BufferAttribute(positions, 3);
+        attribute.setUsage(DynamicDrawUsage);
         trailGeometry.current.setAttribute('position', attribute);
-        const colorAttr = new THREE.BufferAttribute(colors, 4);
-        colorAttr.setUsage(THREE.DynamicDrawUsage);
+        const colorAttr = new BufferAttribute(colors, 4);
+        colorAttr.setUsage(DynamicDrawUsage);
         trailGeometry.current.setAttribute('color', colorAttr);
         colorAttribute.current = colorAttr;
-        const uvAttr = new THREE.BufferAttribute(uvs, 2);
-        uvAttr.setUsage(THREE.DynamicDrawUsage);
+        const uvAttr = new BufferAttribute(uvs, 2);
+        uvAttr.setUsage(DynamicDrawUsage);
         trailGeometry.current.setAttribute('uv', uvAttr);
         trailGeometry.current.setIndex(indices);
         trailGeometry.current.setDrawRange(0, 0);
@@ -173,8 +173,8 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
       if (trailPoints.current.length > 1) {
         const positions = positionAttribute.current.array as Float32Array;
         const colors = colorAttribute.current.array as Float32Array;
-        const uvs = (trailGeometry.current.getAttribute('uv') as THREE.BufferAttribute).array as Float32Array;
-        const baseColor = new THREE.Color(color);
+        const uvs = (trailGeometry.current.getAttribute('uv') as BufferAttribute).array as Float32Array;
+        const baseColor = new Color(color);
         for (let i = 0; i < trailPoints.current.length; i++) {
           const point = trailPoints.current[i];
           const baseIndex = i * 4 * 3;
@@ -191,19 +191,19 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
               segmentsFromStart < fadeSegments ? (segmentsFromStart / fadeSegments) * opacity : opacity;
             alpha = Math.min(fadeInAlpha, fadeOutAlpha);
           }
-          let perpendicular = new THREE.Vector3();
+          let perpendicular = new Vector3();
           if (i < trailPoints.current.length - 1) {
             const next = trailPoints.current[i + 1];
             perpendicular.subVectors(next.lower, point.lower).normalize();
             perpendicular
-              .cross(new THREE.Vector3(0, 1, 0))
+              .cross(new Vector3(0, 1, 0))
               .normalize()
               .multiplyScalar(thickness / 2);
           } else if (i > 0) {
             const prev = trailPoints.current[i - 1];
             perpendicular.subVectors(point.lower, prev.lower).normalize();
             perpendicular
-              .cross(new THREE.Vector3(0, 1, 0))
+              .cross(new Vector3(0, 1, 0))
               .normalize()
               .multiplyScalar(thickness / 2);
           }
@@ -254,7 +254,7 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
         }
         positionAttribute.current.needsUpdate = true;
         colorAttribute.current.needsUpdate = true;
-        (trailGeometry.current.getAttribute('uv') as THREE.BufferAttribute).needsUpdate = true;
+        (trailGeometry.current.getAttribute('uv') as BufferAttribute).needsUpdate = true;
         const numQuads = trailPoints.current.length - 1;
 
         // Register wall segments as collision objects
@@ -280,37 +280,37 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
                 (dx2 > exclusionDistance || dz2 > exclusionDistance);
 
               if (isOutside) {
-                const segmentBounds = new THREE.Box3();
+                const segmentBounds = new Box3();
                 segmentBounds.expandByPoint(point1.lower);
                 segmentBounds.expandByPoint(point1.upper);
                 segmentBounds.expandByPoint(point2.lower);
                 segmentBounds.expandByPoint(point2.upper);
 
-                const center = new THREE.Vector3();
+                const center = new Vector3();
                 segmentBounds.getCenter(center);
 
                 // Calculate OBB corners for this segment
                 // Each segment is a quad defined by point1.lower, point1.upper, point2.lower, point2.upper
                 // Use perpendicular vector for thickness
-                let perpendicular = new THREE.Vector3();
+                let perpendicular = new Vector3();
                 perpendicular.subVectors(point2.lower, point1.lower).normalize();
                 perpendicular
-                  .cross(new THREE.Vector3(0, 1, 0))
+                  .cross(new Vector3(0, 1, 0))
                   .normalize()
                   .multiplyScalar(thickness / 2);
 
                 // 8 corners: lower/upper at both ends, offset by +/- perpendicular
                 const corners = [
                   // Start (point1)
-                  new THREE.Vector3(point1.lower.x - perpendicular.x, point1.lower.y, point1.lower.z - perpendicular.z), // 0: bottom-left
-                  new THREE.Vector3(point1.lower.x + perpendicular.x, point1.lower.y, point1.lower.z + perpendicular.z), // 1: bottom-right
-                  new THREE.Vector3(point1.upper.x - perpendicular.x, point1.upper.y, point1.upper.z - perpendicular.z), // 2: top-left
-                  new THREE.Vector3(point1.upper.x + perpendicular.x, point1.upper.y, point1.upper.z + perpendicular.z), // 3: top-right
+                  new Vector3(point1.lower.x - perpendicular.x, point1.lower.y, point1.lower.z - perpendicular.z), // 0: bottom-left
+                  new Vector3(point1.lower.x + perpendicular.x, point1.lower.y, point1.lower.z + perpendicular.z), // 1: bottom-right
+                  new Vector3(point1.upper.x - perpendicular.x, point1.upper.y, point1.upper.z - perpendicular.z), // 2: top-left
+                  new Vector3(point1.upper.x + perpendicular.x, point1.upper.y, point1.upper.z + perpendicular.z), // 3: top-right
                   // End (point2)
-                  new THREE.Vector3(point2.lower.x - perpendicular.x, point2.lower.y, point2.lower.z - perpendicular.z), // 4: bottom-left
-                  new THREE.Vector3(point2.lower.x + perpendicular.x, point2.lower.y, point2.lower.z + perpendicular.z), // 5: bottom-right
-                  new THREE.Vector3(point2.upper.x - perpendicular.x, point2.upper.y, point2.upper.z - perpendicular.z), // 6: top-left
-                  new THREE.Vector3(point2.upper.x + perpendicular.x, point2.upper.y, point2.upper.z + perpendicular.z), // 7: top-right
+                  new Vector3(point2.lower.x - perpendicular.x, point2.lower.y, point2.lower.z - perpendicular.z), // 4: bottom-left
+                  new Vector3(point2.lower.x + perpendicular.x, point2.lower.y, point2.lower.z + perpendicular.z), // 5: bottom-right
+                  new Vector3(point2.upper.x - perpendicular.x, point2.upper.y, point2.upper.z - perpendicular.z), // 6: top-left
+                  new Vector3(point2.upper.x + perpendicular.x, point2.upper.y, point2.upper.z + perpendicular.z), // 7: top-right
                 ];
 
                 const segmentId = `${wallId.current}-segment-${i}`;
@@ -351,17 +351,12 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
     useImperativeHandle(ref, () => ({
       update: updateWall,
       reset: () => {
-        // Clear trail points
         trailPoints.current = [];
         lastTrailPosition.current.set(0, 0, 0);
-
-        // Unregister all wall segments
         registeredSegments.current.forEach(segmentId => {
           unregisterObject(segmentId);
         });
         registeredSegments.current.clear();
-
-        // Clear geometry
         if (trailGeometry.current) {
           trailGeometry.current.setDrawRange(0, 0);
         }

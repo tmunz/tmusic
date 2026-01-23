@@ -4,12 +4,12 @@ import * as THREE from 'three';
 import { useCollision } from './CollisionContext';
 
 export const CollisionDebugVisualizer = () => {
-  const { getAllObjects } = useCollision();
+  const { _getAllObjects } = useCollision();
   const aabbLinesRef = useRef<THREE.LineSegments>(null);
   const obbLinesRef = useRef<THREE.LineSegments>(null);
 
   useFrame(() => {
-    const objects = getAllObjects();
+    const objects = _getAllObjects();
 
     if (aabbLinesRef.current) {
       const aabbPositions: number[] = [];

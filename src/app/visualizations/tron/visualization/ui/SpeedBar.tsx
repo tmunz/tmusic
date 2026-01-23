@@ -1,5 +1,5 @@
-import { useTronStore } from '../state/TronStore';
 import './SpeedBar.css';
+import { useTronStore } from '../state/TronStore';
 
 interface SpeedBarProps {
   color: string;

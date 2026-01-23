@@ -5,7 +5,6 @@ export interface CollisionObject {
   id: string;
   position: THREE.Vector3;
   boundingBox: THREE.Box3;
-  overallBoundingBox?: THREE.Box3;
   orientedCorners?: THREE.Vector3[];
   [key: string]: any;
 }
@@ -14,7 +13,8 @@ interface CollisionContextType {
   registerObject: (obj: CollisionObject) => void;
   unregisterObject: (id: string) => void;
   checkCollision: (obj: CollisionObject) => CollisionObject[];
-  getAllObjects: () => CollisionObject[];
+  getObjectById: (id: string) => CollisionObject | undefined;
+  _getAllObjects: () => CollisionObject[]; // for debugging, but do not use in production code
 }
 
 const CollisionContext = createContext<CollisionContextType | null>(null);
@@ -145,15 +145,10 @@ export const CollisionProvider = ({ children }: { children: ReactNode }) => {
         const other = objectsRef.current.get(otherId);
         if (!other) return;
 
-        const objBroadBox = obj.overallBoundingBox || obj.boundingBox;
-        const otherBroadBox = other.overallBoundingBox || other.boundingBox;
-
-        if (objBroadBox.intersectsBox(otherBroadBox)) {
-          if (obj.boundingBox.intersectsBox(other.boundingBox)) {
-            const fineResult = checkFineCollision(obj, other);
-            if (fineResult) {
-              collisions.push(other);
-            }
+        if (obj.boundingBox.intersectsBox(other.boundingBox)) {
+          const fineResult = checkFineCollision(obj, other);
+          if (fineResult) {
+            collisions.push(other);
           }
         }
       });
@@ -162,12 +157,18 @@ export const CollisionProvider = ({ children }: { children: ReactNode }) => {
     return collisions;
   };
 
-  const getAllObjects = (): CollisionObject[] => {
+  const getObjectById = (id: string): CollisionObject | undefined => {
+    return objectsRef.current.get(id);
+  };
+
+  const _getAllObjects = (): CollisionObject[] => {
     return Array.from(objectsRef.current.values());
   };
 
   return (
-    <CollisionContext.Provider value={{ registerObject, unregisterObject, checkCollision, getAllObjects }}>
+    <CollisionContext.Provider
+      value={{ registerObject, unregisterObject, checkCollision, getObjectById, _getAllObjects }}
+    >
       {children}
     </CollisionContext.Provider>
   );

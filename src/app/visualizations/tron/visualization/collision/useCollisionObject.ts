@@ -1,24 +1,22 @@
 import { useEffect, useRef, useCallback } from 'react';
-import * as THREE from 'three';
+import { Box3, Euler, Quaternion, Vector3 } from 'three';
 import { useCollision } from './CollisionContext';
 import { getCollisionObjectData } from './CollisionObjectDataProvider';
 
 interface UseCollisionObjectParams {
   id: string;
-  position: THREE.Vector3 | [number, number, number];
-  rotation: THREE.Euler | THREE.Quaternion | [number, number, number];
-  size: THREE.Vector3;
-  localCenter?: THREE.Vector3;
+  boundingBox: Box3;
+  position: Vector3;
+  rotation: Euler | Quaternion | [number, number, number];
   data: Record<string, any>;
   dynamic?: boolean;
 }
 
 export const useCollisionObject = ({
   id,
+  boundingBox,
   position,
   rotation,
-  size,
-  localCenter = new THREE.Vector3(0, 0, 0),
   data,
   dynamic = false,
 }: UseCollisionObjectParams) => {
@@ -27,7 +25,7 @@ export const useCollisionObject = ({
 
   useEffect(() => {
     if (!dynamic && !registeredRef.current) {
-      const objectData = getCollisionObjectData({ id, position, rotation, size, localCenter, ...data });
+      const objectData = getCollisionObjectData({ id, boundingBox, position, rotation, ...data });
       registerObject(objectData);
       registeredRef.current = true;
     }
@@ -43,32 +41,29 @@ export const useCollisionObject = ({
 
   const update = useCallback(() => {
     if (dynamic) {
-      const objectData = getCollisionObjectData({ id, position, rotation, size, localCenter, ...data });
+      const objectData = getCollisionObjectData({ id, boundingBox, position, rotation, ...data });
       registerObject(objectData);
     }
-  }, [dynamic, id, position, rotation, size, localCenter, data, registerObject]);
+  }, [dynamic, id, boundingBox, position, rotation, data, registerObject]);
 
   return dynamic ? update : undefined;
 };
 
-// Helper function for direct registration without hook
 export function registerCollisionObject({
   registerObject,
   id,
+  boundingBox,
   position,
   rotation,
-  size,
-  localCenter = new THREE.Vector3(0, 0, 0),
   data,
 }: {
   registerObject: (obj: any) => void;
   id: string;
-  position: THREE.Vector3;
-  rotation: THREE.Euler | THREE.Quaternion;
-  size: THREE.Vector3;
-  localCenter?: THREE.Vector3;
+  boundingBox: Box3;
+  position: Vector3;
+  rotation: Euler | Quaternion;
   data: Record<string, any>;
 }) {
-  const objectData = getCollisionObjectData({ id, position, rotation, size, localCenter, ...data });
+  const objectData = getCollisionObjectData({ id, boundingBox, position, rotation, ...data });
   registerObject(objectData);
 }

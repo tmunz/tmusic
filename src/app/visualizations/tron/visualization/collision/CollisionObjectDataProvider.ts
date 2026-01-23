@@ -2,21 +2,24 @@ import * as THREE from 'three';
 
 export function getCollisionObjectData({
   id,
+  boundingBox,
   position,
   rotation,
-  size,
-  localCenter = new THREE.Vector3(0, 0, 0),
   ...data
 }: {
   id: string;
-  position: THREE.Vector3 | [number, number, number];
+  boundingBox: THREE.Box3;
+  position: THREE.Vector3;
   rotation: THREE.Euler | THREE.Quaternion | [number, number, number];
-  size: THREE.Vector3;
-  localCenter?: THREE.Vector3;
   [key: string]: any;
 }) {
+  const size = new THREE.Vector3();
+  const localCenter = new THREE.Vector3();
+  boundingBox.getSize(size);
+  boundingBox.getCenter(localCenter);
+
   const halfSize = size.clone().multiplyScalar(0.5);
-  const worldPosition = position instanceof THREE.Vector3 ? position.clone() : new THREE.Vector3(...position);
+
   let quaternion: THREE.Quaternion;
   if (rotation instanceof THREE.Quaternion) {
     quaternion = rotation.clone();
@@ -36,21 +39,21 @@ export function getCollisionObjectData({
     new THREE.Vector3(halfSize.x, halfSize.y, halfSize.z),
   ];
 
-  const worldCenter = localCenter.clone().applyQuaternion(quaternion).add(worldPosition);
+  const worldCenter = localCenter.clone().applyQuaternion(quaternion).add(position);
 
   const orientedCorners = localCorners.map(corner => {
     const worldCorner = corner.clone();
     worldCorner.add(localCenter);
     worldCorner.applyQuaternion(quaternion);
-    worldCorner.add(worldPosition);
+    worldCorner.add(position);
     return worldCorner;
   });
-  const boundingBox = new THREE.Box3();
-  boundingBox.setFromPoints(orientedCorners);
+  const collisionBox = new THREE.Box3();
+  collisionBox.setFromPoints(orientedCorners);
   return {
     id,
     position: worldCenter,
-    boundingBox,
+    boundingBox: collisionBox,
     orientedCorners,
     ...data,
   };
