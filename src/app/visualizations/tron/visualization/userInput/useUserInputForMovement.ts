@@ -8,7 +8,7 @@ interface SpeedState {
 }
 
 interface SpeedActions {
-  setTargetSpeed: (characterId: string, speed: number) => void;
+  setSpeed: (characterId: string, speed: number) => void;
   updateSpeed: (characterId: string, speed: number) => void;
 }
 
@@ -31,15 +31,15 @@ export const getUserInputForMovement = (
       movementCharacteritics.minSpeed,
       Math.min(movementCharacteritics.maxSpeed, targetSpeed + speedChange)
     );
-    speedActions.setTargetSpeed(characterId, newTargetSpeed);
+    speedActions.setSpeed(characterId, newTargetSpeed);
     targetSpeed = newTargetSpeed;
 
     // Update actual speed towards target
     let newActual = actualSpeed;
     if (actualSpeed < newTargetSpeed) {
-      newActual = Math.min(newTargetSpeed, actualSpeed + movementCharacteritics.speedChangeRate * delta);
+      newActual = Math.min(newTargetSpeed, actualSpeed + movementCharacteritics.acceleration * delta);
     } else if (actualSpeed > newTargetSpeed) {
-      newActual = Math.max(newTargetSpeed, actualSpeed - movementCharacteritics.speedChangeRate * delta);
+      newActual = Math.max(newTargetSpeed, actualSpeed - movementCharacteritics.deceleration * delta);
     }
 
     if (newActual !== actualSpeed) {

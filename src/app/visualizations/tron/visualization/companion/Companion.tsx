@@ -24,7 +24,7 @@ export const Companion = forwardRef<Object3D, CompanionProps>(
     const companionRef = useRef<Group>(null);
     const movement = useMovement(id);
     const speedControl = useSpeedControl(id);
-    const setTargetSpeed = useTronStore(state => state.setTargetSpeed);
+    const setSpeed = useTronStore(state => state.setSpeed);
     const actualSpeed = useTronStore(state => state.characters[id]?.speed.actual ?? 0);
     const companionIdle = useCompanionIdle(companionRef, targetRef, characterId, { verticalOffset });
     const directionToTargetRef = useRef(new Vector3());
@@ -77,8 +77,8 @@ export const Companion = forwardRef<Object3D, CompanionProps>(
         targetPositionRef.current.position.copy(position);
       }
 
-      setTargetSpeed(id, speed);
-      speedControl.updateActualSpeed(delta, IDLE_MOVEMENT_CHARACTERISTICS.speedChangeRate);
+      setSpeed(id, speed);
+      speedControl.updateActualSpeed(delta, IDLE_MOVEMENT_CHARACTERISTICS.acceleration, IDLE_MOVEMENT_CHARACTERISTICS.deceleration);
 
       setActivated(activated);
 

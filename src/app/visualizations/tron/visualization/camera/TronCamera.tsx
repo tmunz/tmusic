@@ -41,7 +41,7 @@ export const TronCamera = ({ userRef, companionRef }: TronCameraProps) => {
           if (current === companionRef) {
             if (userRef.current && companionRef.current) {
               const distance = userRef.current.position.distanceTo(companionRef.current.position);
-              const maxSwitchDistance = 3;
+              const maxSwitchDistance = 5;
 
               if (distance < maxSwitchDistance) {
                 cameraStiffnessRef.current = 1;

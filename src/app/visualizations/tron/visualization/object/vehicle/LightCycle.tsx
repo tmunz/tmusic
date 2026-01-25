@@ -24,7 +24,8 @@ export const LightCycle = forwardRef<LightCycleHandle, LightCycleProps>(({ color
   const params: VehicleParams = {
     minSpeed: 0,
     maxSpeed: 60,
-    speedChangeRate: 20,
+    acceleration: 20,
+    deceleration: 40,
     baseTurnSpeed: 1,
     maxTurnSpeed: 2,
     turnSpeedIncreaseRate: 4,

@@ -49,7 +49,7 @@ const initialState: TronState = {
   mode: Mode.NONE,
   game: {
     position: { x: 0, y: 0, z: 0 },
-    battlegroundSize: 400,
+    battlegroundSize: 200,
     players: { [USER_CHARACTER_ID]: userPlayer },
   },
   world: {
@@ -69,7 +69,7 @@ interface TronStore extends TronState {
   // Actions
   updateSpeed: (characterId: string, speed: number) => void;
   setVehicleParams: (characterId: string, max: number, min: number) => void;
-  setTargetSpeed: (characterId: string, target: number) => void;
+  setSpeed: (characterId: string, target: number, actual?: number) => void;
   updateMovementState: (characterId: string, movement: Partial<CharacterState['movement']>) => void;
   setGameMode: (mode: Mode) => void;
   startGame: (position: { x: number; y: number; z: number }) => void;
@@ -153,7 +153,7 @@ export const useTronStore = create<TronStore>((set, get) => ({
     });
   },
 
-  setTargetSpeed: (characterId: string, target: number) => {
+  setSpeed: (characterId: string, target: number, actual?: number) => {
     set(state => {
       const character = state.characters[characterId];
       if (!character) return state;
@@ -167,6 +167,7 @@ export const useTronStore = create<TronStore>((set, get) => ({
             speed: {
               ...character.speed,
               target,
+              ...(actual !== undefined && { actual }),
             },
           },
         },

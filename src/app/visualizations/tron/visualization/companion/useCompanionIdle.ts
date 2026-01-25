@@ -9,8 +9,9 @@ export interface CompanionIdleConfig {
 
 export const IDLE_MOVEMENT_CHARACTERISTICS: TurnCharacteristics & SpeedCharacteristics = {
   minSpeed: 5,
-  maxSpeed: 200,
-  speedChangeRate: 18,
+  maxSpeed: 120,
+  acceleration: 20,
+  deceleration: 60,
   baseTurnSpeed: 2,
   maxTurnSpeed: 8,
   turnSpeedIncreaseRate: 0,
@@ -56,7 +57,7 @@ export const useCompanionIdle = (
     if (!targetPosition || !companionPosition) return 0;
     const distance = companionPosition.distanceTo(targetPosition);
     let targetSpeed = Math.min(
-      (distance * IDLE_MOVEMENT_CHARACTERISTICS.speedChangeRate) / 12,
+      (distance * IDLE_MOVEMENT_CHARACTERISTICS.acceleration) / 14,
       IDLE_MOVEMENT_CHARACTERISTICS.maxSpeed
     );
     const alignmentMultiplier = Math.max(0.3, 1 - Math.abs(angleDiff) / Math.PI);

@@ -72,7 +72,7 @@ const TronScene = ({ sampleProvider, debugMode }: TronSceneProps) => {
   const battlegroundSize = useTronStore(state => state.game.battlegroundSize);
   const setGameMode = useTronStore(state => state.setGameMode);
   const startGame = useTronStore(state => state.startGame);
-  const setTargetSpeed = useTronStore(state => state.setTargetSpeed);
+  const setSpeed = useTronStore(state => state.setSpeed);
   const userCharacterMaxSpeed = useTronStore(state => state.getUserCharacter()?.speed?.max ?? 0);
   const companionId = useTronStore(state => state.getUserCharacter()?.companionId ?? '');
 
@@ -139,8 +139,8 @@ const TronScene = ({ sampleProvider, debugMode }: TronSceneProps) => {
 
     const targetSpeed = isActive ? userCharacterMaxSpeed : 0;
 
-    setTargetSpeed(userId, targetSpeed);
-  }, [isActive, mode, setTargetSpeed, userId, userCharacterMaxSpeed]);
+    setSpeed(userId, targetSpeed);
+  }, [isActive, mode, setSpeed, userId, userCharacterMaxSpeed]);
 
   return (
     <>

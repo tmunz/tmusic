@@ -36,7 +36,7 @@ export const Character = forwardRef<Object3D, CharacterProps>(
     });
     const store = useTronStore();
     const characterState = store.characters[id];
-    const setTargetSpeed = useTronStore(state => state.setTargetSpeed);
+    const setSpeed = useTronStore(state => state.setSpeed);
     const updateSpeed = useTronStore(state => state.updateSpeed);
 
     useImperativeHandle(ref, () => vehicleRef.current?.getObject() || ({} as Object3D), []);
@@ -70,7 +70,7 @@ export const Character = forwardRef<Object3D, CharacterProps>(
       }
       lightWallRef.current?.reset();
       movement.reset();
-      store.setTargetSpeed(id, 0);
+      store.setSpeed(id, 0, 0);
       store.setDisintegration(id, false);
       isRespawningRef.current = false;
     };
@@ -98,7 +98,7 @@ export const Character = forwardRef<Object3D, CharacterProps>(
           targetSpeed: characterState?.speed.target ?? 0,
           actualSpeed: characterState?.speed.actual ?? 0,
         },
-        { setTargetSpeed, updateSpeed },
+        { setSpeed, updateSpeed },
         getControlsState?.(),
         movementCharacteristics
       );
