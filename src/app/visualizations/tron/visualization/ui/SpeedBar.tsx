@@ -11,7 +11,7 @@ export const SpeedBar = ({ color, width = 200 }: SpeedBarProps) => {
 
   if (!userCharacter) return null;
 
-  const { actual, target, min, max } = userCharacter.vehicle.speed;
+  const { actual, target, min, max } = userCharacter.speed;
   const actualPercentage = Math.max(0, Math.min(1, (actual - min) / (max - min))) * 100;
   const targetPercentage = Math.max(0, Math.min(1, (target - min) / (max - min))) * 100;
 

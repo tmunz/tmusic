@@ -1,14 +1,35 @@
 import { create } from 'zustand';
 import { TronState, Mode, CharacterState, PlayerState } from './TronState';
 
-const USER_CHARACTER_ID = 'user';
+export const USER_CHARACTER_ID = 'user';
+export const USER_COMPANION_CHARACTER_ID = 'user-companion';
 
 const userCharacter: CharacterState = {
   id: USER_CHARACTER_ID,
   color: '#66eeff',
   isDisintegrated: false,
-  vehicle: {
-    speed: { actual: 0, target: 0, max: 0, min: 0 },
+  speed: { actual: 0, target: 0, max: 0, min: 0 },
+  companionId: USER_COMPANION_CHARACTER_ID,
+  movement: {
+    turnSpeed: 1,
+    turnDirection: 0,
+    tilt: { x: 0, z: 0 },
+    direction: { x: 0, y: 0, z: -1 },
+    isInCollision: false,
+  },
+};
+
+const companionCharacter: CharacterState = {
+  id: USER_COMPANION_CHARACTER_ID,
+  color: '#ffffff',
+  isDisintegrated: false,
+  speed: { actual: 0, target: 0, max: 60, min: 0 },
+  movement: {
+    turnSpeed: 5,
+    turnDirection: 0,
+    tilt: { x: 0, z: 0 },
+    direction: { x: 0, y: 0, z: -1 },
+    isInCollision: false,
   },
 };
 
@@ -20,7 +41,10 @@ const userPlayer: PlayerState = {
 };
 
 const initialState: TronState = {
-  characters: { [USER_CHARACTER_ID]: userCharacter },
+  characters: {
+    [USER_CHARACTER_ID]: userCharacter,
+    [USER_COMPANION_CHARACTER_ID]: companionCharacter,
+  },
   userId: USER_CHARACTER_ID,
   mode: Mode.NONE,
   game: {
@@ -43,9 +67,10 @@ interface TronStore extends TronState {
   getPlayerCharacter: (playerId: string) => CharacterState | undefined;
 
   // Actions
-  updateVehicleSpeed: (characterId: string, speed: number) => void;
+  updateSpeed: (characterId: string, speed: number) => void;
   setVehicleParams: (characterId: string, max: number, min: number) => void;
   setTargetSpeed: (characterId: string, target: number) => void;
+  updateMovementState: (characterId: string, movement: Partial<CharacterState['movement']>) => void;
   setGameMode: (mode: Mode) => void;
   startGame: (position: { x: number; y: number; z: number }) => void;
   updatePlayerBattlegroundStatus: (playerId: string, inside: boolean) => void;
@@ -85,7 +110,7 @@ export const useTronStore = create<TronStore>((set, get) => ({
   },
 
   // Actions
-  updateVehicleSpeed: (characterId: string, speed: number) => {
+  updateSpeed: (characterId: string, speed: number) => {
     set(state => {
       const character = state.characters[characterId];
       if (!character) return state;
@@ -96,12 +121,9 @@ export const useTronStore = create<TronStore>((set, get) => ({
           ...state.characters,
           [characterId]: {
             ...character,
-            vehicle: {
-              ...character.vehicle,
-              speed: {
-                ...character.vehicle.speed,
-                actual: speed,
-              },
+            speed: {
+              ...character.speed,
+              actual: speed,
             },
           },
         },
@@ -120,13 +142,10 @@ export const useTronStore = create<TronStore>((set, get) => ({
           ...state.characters,
           [characterId]: {
             ...character,
-            vehicle: {
-              ...character.vehicle,
-              speed: {
-                ...character.vehicle.speed,
-                max,
-                min,
-              },
+            speed: {
+              ...character.speed,
+              max,
+              min,
             },
           },
         },
@@ -145,12 +164,30 @@ export const useTronStore = create<TronStore>((set, get) => ({
           ...state.characters,
           [characterId]: {
             ...character,
-            vehicle: {
-              ...character.vehicle,
-              speed: {
-                ...character.vehicle.speed,
-                target,
-              },
+            speed: {
+              ...character.speed,
+              target,
+            },
+          },
+        },
+      };
+    });
+  },
+
+  updateMovementState: (characterId: string, movement: Partial<CharacterState['movement']>) => {
+    set(state => {
+      const character = state.characters[characterId];
+      if (!character) return state;
+
+      return {
+        ...state,
+        characters: {
+          ...state.characters,
+          [characterId]: {
+            ...character,
+            movement: {
+              ...character.movement,
+              ...movement,
             },
           },
         },
@@ -288,12 +325,9 @@ export const useTronStore = create<TronStore>((set, get) => ({
           [crashingPlayerId]: {
             ...crashingCharacter,
             isDisintegrated: true,
-            vehicle: {
-              ...crashingCharacter.vehicle,
-              speed: {
-                ...crashingCharacter.vehicle.speed,
-                target: 0,
-              },
+            speed: {
+              ...crashingCharacter.speed,
+              target: 0,
             },
           },
         },

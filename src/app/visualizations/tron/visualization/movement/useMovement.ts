@@ -4,14 +4,18 @@ import { SpeedCharacteristics } from './SpeedCharactersistic';
 import { Object3D, Quaternion, Vector3 } from 'three';
 import { MovementControlState } from './MovementControlState';
 
-export const useMovement = () => {
-  const currentTurnSpeed = useRef(1);
-  const currentTurnDirection = useRef(0);
-  const currentTilt = useRef({ x: 0, z: 0 });
-  const isInCollision = useRef(false);
+import { useTronStore } from '../state/TronStore';
+
+export const useMovement = (characterId: string) => {
+  const updateMovementStore = useTronStore(state => state.updateMovementState);
+  const movementState = useTronStore(state => state.characters[characterId]?.movement);
+
+  const currentTurnSpeed = movementState?.turnSpeed ?? 1;
+  const currentTurnDirection = movementState?.turnDirection ?? 0;
+  const currentTilt = movementState?.tilt ?? { x: 0, z: 0 };
+  const isInCollision = movementState?.isInCollision ?? false;
 
   // Reusable Three.js objects
-  const directionRef = useRef(new Vector3(0, 0, -1));
   const previousPositionRef = useRef(new Vector3());
   const newPositionRef = useRef(new Vector3());
   const testPositionRef = useRef(new Vector3());
@@ -25,47 +29,61 @@ export const useMovement = () => {
   const slideDirectionZRef = useRef(new Vector3());
   const slidePositionXRef = useRef(new Vector3());
   const slidePositionZRef = useRef(new Vector3());
+  const tempDirectionRef = useRef(new Vector3());
 
   const updateTurning = (
     delta: number,
     object: Object3D,
     characteristics: TurnCharacteristics,
     controls?: MovementControlState
-  ): number => {
+  ): { targetTurnTilt: number; turnSpeed: number; turnDirection: number } => {
     const { baseTurnSpeed, maxTurnSpeed, turnSpeedIncreaseRate, maxTurnTilt } = characteristics;
     let targetTurnTilt = 0;
+    let turnSpeed = currentTurnSpeed;
+    let turnDirection = currentTurnDirection;
     const desiredDirection = controls?.direction ?? 0;
+    const desiredPitch = controls?.pitch ?? 0;
     const actualSpeed = controls?.speed ?? 0;
 
-    if (actualSpeed > 0 && desiredDirection !== 0) {
-      if (currentTurnDirection.current !== 0 && currentTurnDirection.current !== desiredDirection) {
-        currentTurnSpeed.current = Math.max(
-          baseTurnSpeed,
-          currentTurnSpeed.current - turnSpeedIncreaseRate * delta * 5
-        );
-        if (currentTurnSpeed.current <= baseTurnSpeed) {
-          currentTurnSpeed.current = baseTurnSpeed;
-          currentTurnDirection.current = 0;
-        }
-      } else {
-        currentTurnDirection.current = desiredDirection;
-        currentTurnSpeed.current = Math.min(maxTurnSpeed, currentTurnSpeed.current + turnSpeedIncreaseRate * delta);
-        const rotationDelta = currentTurnSpeed.current * delta * -desiredDirection;
-        object.rotation.y += rotationDelta;
-        targetTurnTilt = maxTurnTilt * (currentTurnSpeed.current / maxTurnSpeed) * -desiredDirection;
-      }
-    } else {
-      currentTurnSpeed.current = baseTurnSpeed;
-      currentTurnDirection.current = 0;
+    if (desiredPitch !== 0) {
+      const pitchSpeed = baseTurnSpeed * 0.5; // Slower pitch than yaw
+      const pitchDelta = pitchSpeed * delta * desiredPitch;
+      object.rotation.x += pitchDelta;
+      object.rotation.x = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, object.rotation.x));
     }
 
-    return targetTurnTilt;
+    if (actualSpeed !== 0 && desiredDirection !== 0) {
+      if (turnDirection !== 0 && turnDirection !== desiredDirection) {
+        turnSpeed = Math.max(baseTurnSpeed, turnSpeed - turnSpeedIncreaseRate * delta * 5);
+        if (turnSpeed <= baseTurnSpeed) {
+          turnSpeed = baseTurnSpeed;
+          turnDirection = 0;
+        }
+      } else {
+        turnDirection = desiredDirection;
+        turnSpeed = Math.min(maxTurnSpeed, turnSpeed + turnSpeedIncreaseRate * delta);
+        const rotationDelta = turnSpeed * delta * desiredDirection;
+        object.rotation.y += rotationDelta;
+        targetTurnTilt = maxTurnTilt * (turnSpeed / maxTurnSpeed) * desiredDirection;
+      }
+    } else {
+      turnSpeed = baseTurnSpeed;
+      turnDirection = 0;
+    }
+
+    return { targetTurnTilt, turnSpeed, turnDirection };
   };
 
-  const applyTilt = (targetTurnTilt: number, delta: number, tiltSmoothness: number, object: Object3D) => {
-    currentTilt.current.z += (targetTurnTilt - currentTilt.current.z) * tiltSmoothness * delta;
-    object.rotation.x = currentTilt.current.x;
-    object.rotation.z = currentTilt.current.z;
+  const applyTilt = (
+    targetTurnTilt: number,
+    delta: number,
+    tiltSmoothness: number,
+    object: Object3D
+  ): { x: number; z: number } => {
+    const z = currentTilt.z + (targetTurnTilt - currentTilt.z) * tiltSmoothness * delta;
+    // Don't override rotation.x here - it's used for pitch
+    object.rotation.z = z;
+    return { x: object.rotation.x, z };
   };
 
   const updateAndApplyMovement = (
@@ -74,7 +92,7 @@ export const useMovement = () => {
     direction: Vector3,
     actualSpeed: number,
     onPositionCalculated?: (newPosition: Vector3, previousPosition: Vector3, slideDirection?: Vector3) => boolean
-  ): void => {
+  ): boolean => {
     previousPositionRef.current.copy(object.position);
     newPositionRef.current.copy(object.position);
     newPositionRef.current.addScaledVector(direction, actualSpeed * delta);
@@ -86,11 +104,11 @@ export const useMovement = () => {
 
     if (positionValid) {
       object.position.copy(newPositionRef.current);
-
-      isInCollision.current = false;
+      return false;
     } else {
-      if (!isInCollision.current) {
-        isInCollision.current = true;
+      let newCollision = isInCollision;
+      if (!isInCollision) {
+        newCollision = true;
         let low = 0;
         let high = 1;
         let bestValid = 0;
@@ -168,14 +186,18 @@ export const useMovement = () => {
           }
         }
       }
+      return newCollision;
     }
   };
 
   const reset = () => {
-    currentTurnSpeed.current = 1;
-    currentTurnDirection.current = 0;
-    currentTilt.current = { x: 0, z: 0 };
-    isInCollision.current = false;
+    updateMovementStore(characterId, {
+      turnSpeed: 1,
+      turnDirection: 0,
+      tilt: { x: 0, z: 0 },
+      direction: { x: 0, y: 0, z: -1 },
+      isInCollision: false,
+    });
   };
 
   const updateFrame = (params: {
@@ -183,25 +205,51 @@ export const useMovement = () => {
     controls?: MovementControlState;
     object: Object3D;
     movementCharacteristics: TurnCharacteristics & SpeedCharacteristics;
-    checkCollision: (newPosition: Vector3, rotation: Quaternion) => boolean;
-    isDisintegrated: boolean;
+    checkCollision?: (newPosition: Vector3, rotation: Quaternion) => boolean;
+    isDisintegrated?: boolean;
   }) => {
     if (params.isDisintegrated) {
-      return {};
+      return;
     }
 
     const actualSpeed = params.controls?.speed ?? 0;
-    const tilt = updateTurning(params.delta, params.object, params.movementCharacteristics, params.controls);
-    applyTilt(tilt, params.delta, params.movementCharacteristics.tiltSmoothness, params.object);
+    const { targetTurnTilt, turnSpeed, turnDirection } = updateTurning(
+      params.delta,
+      params.object,
+      params.movementCharacteristics,
+      params.controls
+    );
+    const tilt = applyTilt(targetTurnTilt, params.delta, params.movementCharacteristics.tiltSmoothness, params.object);
 
-    directionRef.current.set(0, 0, -1);
-    directionRef.current.applyQuaternion(params.object.quaternion);
+    tempDirectionRef.current.set(0, 0, -1);
+    tempDirectionRef.current.applyQuaternion(params.object.quaternion);
+
+    const pitchInfluence = Math.sin(params.object.rotation.x);
+    tempDirectionRef.current.y = pitchInfluence * actualSpeed * params.delta * 10;
 
     const checkCollisionWrapper = (newPosition: Vector3) => {
-      return params.checkCollision(newPosition, params.object.quaternion);
+      return params.checkCollision ? params.checkCollision(newPosition, params.object.quaternion) : true;
     };
 
-    updateAndApplyMovement(params.object, params.delta, directionRef.current, actualSpeed, checkCollisionWrapper);
+    const collision = updateAndApplyMovement(
+      params.object,
+      params.delta,
+      tempDirectionRef.current,
+      actualSpeed,
+      checkCollisionWrapper
+    );
+
+    updateMovementStore(characterId, {
+      turnSpeed,
+      turnDirection,
+      tilt,
+      direction: {
+        x: tempDirectionRef.current.x,
+        y: tempDirectionRef.current.y,
+        z: tempDirectionRef.current.z,
+      },
+      isInCollision: collision,
+    });
   };
 
   return {

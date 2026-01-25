@@ -2,14 +2,12 @@ import { Canvas } from '@react-three/fiber';
 import { Stats } from '@react-three/drei';
 import { SampleProvider, createMaxSampleProvider } from '../../../audio/SampleProvider';
 import { TronCamera } from './camera/TronCamera';
-import { World } from './world/World';
-import { useRef, useState, useEffect, useMemo } from 'react';
+import { useRef, useState, useEffect, useMemo, Suspense } from 'react';
 import { CollisionProvider } from './collision/CollisionContext';
-import { useUserInput } from './userInput/UserInput';
+import { useUserInput } from './userInput/useUserInput';
 import { SpeedBar } from './ui/SpeedBar';
 import { useSampleProviderActive } from '../../../audio/useSampleProviderActive';
 import { MinimapRenderer, Minimap } from './ui/Minimap';
-import { TronLightningEnvironment } from './TronLightningEnvironment';
 import { Companion } from './companion/Companion';
 import { useTronStore } from './state/TronStore';
 import { GameStatus } from './ui/GameStatus';
@@ -17,11 +15,14 @@ import { Mode } from './state/TronState';
 import { Object3D } from 'three';
 import { Character } from './character/Character';
 import { CollisionDebugVisualizer } from './collision/CollisionDebugVisualizer';
+import { TronCube } from './object/TronCube';
+import { TronEnvironment } from './environment/TronEnvironment';
 
 enum DebugMode {
   NONE = 0,
   STATS = 1,
   COLLISION = 2,
+  ALL = 3,
 }
 
 export interface TronProps {
@@ -34,7 +35,7 @@ export const Tron = ({ sampleProvider }: TronProps) => {
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.key === 'm') {
-        setDebugMode(prev => (prev + 1) % 3);
+        setDebugMode(prev => (prev + 1) % (Object.values(DebugMode).length / 2));
       }
     };
 
@@ -67,10 +68,13 @@ const TronScene = ({ sampleProvider, debugMode }: TronSceneProps) => {
   const userId = useTronStore(state => state.userId);
   const tileSize = useTronStore(state => state.world.tileSize);
   const userCharacterColor = useTronStore(state => state.characters[state.userId]?.color ?? '#66eeff');
+  const gamePosition = useTronStore(state => state.game.position);
+  const battlegroundSize = useTronStore(state => state.game.battlegroundSize);
   const setGameMode = useTronStore(state => state.setGameMode);
   const startGame = useTronStore(state => state.startGame);
   const setTargetSpeed = useTronStore(state => state.setTargetSpeed);
-  const getUserCharacter = useTronStore(state => state.getUserCharacter);
+  const userCharacterMaxSpeed = useTronStore(state => state.getUserCharacter()?.speed?.max ?? 0);
+  const companionId = useTronStore(state => state.getUserCharacter()?.companionId ?? '');
 
   const isActive = useSampleProviderActive(sampleProvider);
   const [minimapCanvas, setMinimapCanvas] = useState<HTMLCanvasElement | null>(null);
@@ -80,11 +84,7 @@ const TronScene = ({ sampleProvider, debugMode }: TronSceneProps) => {
   const controlsState = useUserInput();
 
   const fakeSampleProvider = useMemo(() => createMaxSampleProvider(64), []);
-  const effectiveSampleProvider = isActive
-    ? sampleProvider
-    : mode === Mode.LIGHTCYCLE_BATTLE
-    ? fakeSampleProvider
-    : sampleProvider;
+  const effectiveSampleProvider = isActive ? sampleProvider : fakeSampleProvider;
 
   // Track window focus
   useEffect(() => {
@@ -135,13 +135,12 @@ const TronScene = ({ sampleProvider, debugMode }: TronSceneProps) => {
   useEffect(() => {
     if (mode !== Mode.VISUALIZER) return;
 
-    const userCharacter = getUserCharacter();
-    if (!userCharacter?.vehicle?.speed || userCharacter.vehicle.speed.max <= 0) return;
+    if (userCharacterMaxSpeed <= 0) return;
 
-    const targetSpeed = isActive ? userCharacter.vehicle.speed.max : 0;
+    const targetSpeed = isActive ? userCharacterMaxSpeed : 0;
 
     setTargetSpeed(userId, targetSpeed);
-  }, [isActive, mode, setTargetSpeed, userId, getUserCharacter]);
+  }, [isActive, mode, setTargetSpeed, userId, userCharacterMaxSpeed]);
 
   return (
     <>
@@ -151,23 +150,52 @@ const TronScene = ({ sampleProvider, debugMode }: TronSceneProps) => {
         frameloop={isWindowActive ? 'always' : 'never'}
       >
         {debugMode >= DebugMode.STATS && <Stats />}
-        <TronLightningEnvironment />
         <TronCamera userRef={userRef} companionRef={companionRef} />
-        <CollisionProvider>
-          {debugMode >= DebugMode.COLLISION && <CollisionDebugVisualizer />}
-          <Character
-            ref={userRef}
-            id={userId}
-            sampleProvider={effectiveSampleProvider}
-            color={userCharacterColor}
-            getControlsState={controlsState}
-            position={[0, 0, 0]}
-            rotation={[0, 0, 0]}
-          />
-          <Companion ref={companionRef} targetRef={userRef} />
-          <World tileSize={tileSize} viewDistance={3} />
-        </CollisionProvider>
-        {mode === Mode.LIGHTCYCLE_BATTLE && <MinimapRenderer targetRef={userRef} canvasElement={minimapCanvas} />}
+        <TronEnvironment tileSize={tileSize} viewDistance={3} />
+        <Suspense fallback={null}>
+          <CollisionProvider>
+            {debugMode >= DebugMode.COLLISION && <CollisionDebugVisualizer />}
+            <Character
+              ref={userRef}
+              id={userId}
+              sampleProvider={effectiveSampleProvider}
+              color={userCharacterColor}
+              getControlsState={controlsState}
+              position={[0, 0, 0]}
+              rotation={[0, 0, 0]}
+            />
+            <Companion
+              id={companionId}
+              ref={companionRef}
+              targetRef={userRef}
+              characterId={userId}
+              verticalOffset={1.4}
+              debugMode={debugMode >= DebugMode.ALL}
+            />
+            {mode === Mode.LIGHTCYCLE_BATTLE && (
+              <>
+                <TronCube
+                  id="cube-0"
+                  position={[gamePosition.x + battlegroundSize / 2, 0.5, gamePosition.z + battlegroundSize / 2]}
+                  rotation={[0, Math.PI / 4, 0]}
+                />
+                <TronCube
+                  id="cube-1"
+                  position={[gamePosition.x - battlegroundSize / 2, 0.5, gamePosition.z + battlegroundSize / 2]}
+                />
+                <TronCube
+                  id="cube-2"
+                  position={[gamePosition.x + battlegroundSize / 2, 0.5, gamePosition.z - battlegroundSize / 2]}
+                />
+                <TronCube
+                  id="cube-3"
+                  position={[gamePosition.x - battlegroundSize / 2, 0.5, gamePosition.z - battlegroundSize / 2]}
+                />
+              </>
+            )}
+          </CollisionProvider>
+          {mode === Mode.LIGHTCYCLE_BATTLE && <MinimapRenderer targetRef={userRef} canvasElement={minimapCanvas} />}
+        </Suspense>
       </Canvas>
       {mode === Mode.LIGHTCYCLE_BATTLE && (
         <>

@@ -1,4 +1,5 @@
 export interface MovementControlState {
-  direction: number; // [-1, 1] --- -1 = left, 0 = neutral, 1 = right
   speed: number;
+  direction: number; // [-1, 1] --- 1 = left (CCW), 0 = neutral, -1 = right (CW)
+  pitch?: number; // [-1, 1] --- 1 = up, 0 = neutral, -1 = down
 }

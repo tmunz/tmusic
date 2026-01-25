@@ -9,9 +9,8 @@ import { useTronStore } from '../state/TronStore';
 import { useMovement } from '../movement/useMovement';
 import { useGameHandler } from '../game/useGameHandler';
 import { Mode } from '../state/TronState';
-import { ControlsState } from '../userInput/UserInput';
-import { useUserInputForMovement } from '../userInput/useUserInputForMovement';
-import { useSpeedControl } from '../movement/useSpeedControl';
+import { ControlsState } from '../userInput/useUserInput';
+import { getUserInputForMovement } from '../userInput/useUserInputForMovement';
 
 interface CharacterProps {
   id: string; // don't change during lifecycle
@@ -28,8 +27,7 @@ export const Character = forwardRef<Object3D, CharacterProps>(
     const lightWallRef = useRef<LightWallHandle>(null);
     const respawnTimerRef = useRef<NodeJS.Timeout | null>(null);
     const isRespawningRef = useRef<boolean>(false);
-    const movement = useMovement();
-    const speedControl = useSpeedControl();
+    const movement = useMovement(id);
     const { checkBattlegroundStatus, getBattlegroundRespawnPosition } = useGameHandler();
     const { checkCollisionAtPosition } = useLightWallCollision({
       id,
@@ -38,6 +36,8 @@ export const Character = forwardRef<Object3D, CharacterProps>(
     });
     const store = useTronStore();
     const characterState = store.characters[id];
+    const setTargetSpeed = useTronStore(state => state.setTargetSpeed);
+    const updateSpeed = useTronStore(state => state.updateSpeed);
 
     useImperativeHandle(ref, () => vehicleRef.current?.getObject() || ({} as Object3D), []);
 
@@ -70,7 +70,7 @@ export const Character = forwardRef<Object3D, CharacterProps>(
       }
       lightWallRef.current?.reset();
       movement.reset();
-      speedControl.reset();
+      store.setTargetSpeed(id, 0);
       store.setDisintegration(id, false);
       isRespawningRef.current = false;
     };
@@ -91,14 +91,17 @@ export const Character = forwardRef<Object3D, CharacterProps>(
 
       if (!vehicle || !movementCharacteristics) return;
 
-      const { movementControlState, targetSpeed } = useUserInputForMovement(
+      const { movementControlState } = getUserInputForMovement(
+        id,
         delta,
-        speedControl,
+        {
+          targetSpeed: characterState?.speed.target ?? 0,
+          actualSpeed: characterState?.speed.actual ?? 0,
+        },
+        { setTargetSpeed, updateSpeed },
         getControlsState?.(),
         movementCharacteristics
       );
-      store.setTargetSpeed(id, targetSpeed);
-      store.updateVehicleSpeed(id, movementControlState?.speed ?? 0);
 
       movement.updateFrame({
         delta,

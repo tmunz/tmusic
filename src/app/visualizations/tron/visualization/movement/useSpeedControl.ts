@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useTronStore } from '../state/TronStore';
 
 export interface SpeedControlConfig {
   minSpeed: number;
@@ -6,55 +6,28 @@ export interface SpeedControlConfig {
   speedChangeRate: number;
 }
 
-export const useSpeedControl = () => {
-  const targetSpeedRef = useRef(0);
-  const actualSpeedRef = useRef(0);
+export const useSpeedControl = (id: string) => {
+  const updateSpeed = useTronStore(state => state.updateSpeed);
+  const character = useTronStore(state => state.characters[id]);
 
-  const updateTargetSpeed = (delta: number, config: SpeedControlConfig, acceleration: number): number => {
-    const { maxSpeed, minSpeed, speedChangeRate } = config;
-    const speedDelta = speedChangeRate * delta * acceleration;
-    const newTarget = Math.min(maxSpeed, Math.max(minSpeed, targetSpeedRef.current + speedDelta));
-    targetSpeedRef.current = newTarget;
-    return newTarget;
-  };
+  const targetSpeed = character?.speed.target ?? 0;
+  const actualSpeed = character?.speed.actual ?? 0;
 
-  const updateActualSpeed = (delta: number, speedChangeRate: number): number => {
-    if (actualSpeedRef.current < targetSpeedRef.current) {
-      actualSpeedRef.current = Math.min(targetSpeedRef.current, actualSpeedRef.current + speedChangeRate * delta);
-    } else if (actualSpeedRef.current > targetSpeedRef.current) {
-      actualSpeedRef.current = Math.max(targetSpeedRef.current, actualSpeedRef.current - speedChangeRate * delta);
+  const updateActualSpeed = (delta: number, speedChangeRate: number) => {
+    let newActual = actualSpeed;
+
+    if (actualSpeed < targetSpeed) {
+      newActual = Math.min(targetSpeed, actualSpeed + speedChangeRate * delta);
+    } else if (actualSpeed > targetSpeed) {
+      newActual = Math.max(targetSpeed, actualSpeed - speedChangeRate * delta);
     }
-    return actualSpeedRef.current;
-  };
 
-  const setTargetSpeed = (speed: number) => {
-    targetSpeedRef.current = speed;
-  };
-
-  const getTargetSpeed = () => {
-    return targetSpeedRef.current;
-  };
-
-  const getActualSpeed = () => {
-    return actualSpeedRef.current;
-  };
-
-  const setActualSpeed = (speed: number) => {
-    actualSpeedRef.current = speed;
-  };
-
-  const reset = () => {
-    targetSpeedRef.current = 0;
-    actualSpeedRef.current = 0;
+    if (newActual !== actualSpeed) {
+      updateSpeed(id, newActual);
+    }
   };
 
   return {
-    updateTargetSpeed,
     updateActualSpeed,
-    setTargetSpeed,
-    getTargetSpeed,
-    getActualSpeed,
-    setActualSpeed,
-    reset,
   };
 };

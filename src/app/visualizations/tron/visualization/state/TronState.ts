@@ -8,13 +8,19 @@ export interface CharacterState {
   id: string;
   color: string;
   isDisintegrated: boolean;
-  vehicle: {
-    speed: {
-      actual: number;
-      target: number;
-      min: number;
-      max: number;
-    };
+  companionId?: string;
+  speed: {
+    actual: number;
+    target: number;
+    min: number;
+    max: number;
+  };
+  movement: {
+    turnSpeed: number;
+    turnDirection: number;
+    tilt: { x: number; z: number };
+    direction: { x: number; y: number; z: number };
+    isInCollision: boolean;
   };
 }
 

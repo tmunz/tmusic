@@ -48,7 +48,7 @@ export const useUserInput = () => {
     const decelerate = keysPressed.current.has('s');
 
     return {
-      direction: left ? -1 : right ? 1 : 0,
+      direction: left ? 1 : right ? -1 : 0,
       acceleration: accelerate ? 1 : decelerate ? -1 : 0,
       camera: cameraCounter,
     };

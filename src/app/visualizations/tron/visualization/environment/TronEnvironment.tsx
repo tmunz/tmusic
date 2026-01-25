@@ -1,12 +1,12 @@
 import { useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { TronGrid } from './TronGrid';
-import { TronCube } from '../object/TronCube';
 import { TronSkyBox } from './TronSkyBox';
 import { useTronStore } from '../state/TronStore';
 import { Mode } from '../state/TronState';
+import { TronLightningEnvironment } from './TronLightningEnvironment';
 
-interface WorldProps {
+interface TronEnvironmentProps {
   tileSize: number;
   viewDistance?: number;
 }
@@ -19,7 +19,7 @@ export interface WorldTile {
   worldZ: number;
 }
 
-export const World = ({ tileSize, viewDistance = 0 }: WorldProps) => {
+export const TronEnvironment = ({ tileSize, viewDistance = 0 }: TronEnvironmentProps) => {
   const mode = useTronStore(state => state.mode);
   const gamePosition = useTronStore(state => state.game.position);
   const battlegroundSize = useTronStore(state => state.game.battlegroundSize);
@@ -70,6 +70,7 @@ export const World = ({ tileSize, viewDistance = 0 }: WorldProps) => {
 
   return (
     <>
+      <TronLightningEnvironment />
       <TronSkyBox />
       {tiles.map(tile => {
         const isLightcycleBattle = mode === Mode.LIGHTCYCLE_BATTLE;
@@ -107,28 +108,6 @@ export const World = ({ tileSize, viewDistance = 0 }: WorldProps) => {
         <planeGeometry args={[10000, 10000]} />
         <meshBasicMaterial color="#000000" toneMapped={false} />
       </mesh>
-
-      {mode === Mode.LIGHTCYCLE_BATTLE && (
-        <>
-          <TronCube
-            id="cube-0"
-            position={[gamePosition.x + battlegroundSize / 2, 0.5, gamePosition.z + battlegroundSize / 2]}
-            rotation={[0, Math.PI / 4, 0]}
-          />
-          <TronCube
-            id="cube-1"
-            position={[gamePosition.x - battlegroundSize / 2, 0.5, gamePosition.z + battlegroundSize / 2]}
-          />
-          <TronCube
-            id="cube-2"
-            position={[gamePosition.x + battlegroundSize / 2, 0.5, gamePosition.z - battlegroundSize / 2]}
-          />
-          <TronCube
-            id="cube-3"
-            position={[gamePosition.x - battlegroundSize / 2, 0.5, gamePosition.z - battlegroundSize / 2]}
-          />
-        </>
-      )}
     </>
   );
 };
