@@ -1,6 +1,6 @@
 import { MovementControlState } from '../movement/MovementControlState';
 import { VehicleParams } from '../object/vehicle/VehicleParams';
-import { ControlsState } from './useUserInput';
+import { ControlsState } from '../userInput/useUserInput';
 
 interface SpeedState {
   targetSpeed: number;
@@ -12,7 +12,7 @@ interface SpeedActions {
   updateSpeed: (characterId: string, speed: number) => void;
 }
 
-export const getUserInputForMovement = (
+export const applySpeedControls = (
   characterId: string,
   delta: number,
   speedState: SpeedState,
@@ -25,7 +25,6 @@ export const getUserInputForMovement = (
   let { targetSpeed, actualSpeed } = speedState;
 
   if (controls && movementCharacteritics) {
-    // Update target speed based on acceleration input
     const speedChange = TARGET_SPEED_CHANGE_RATE * delta * controls.acceleration;
     const newTargetSpeed = Math.max(
       movementCharacteritics.minSpeed,
@@ -34,7 +33,6 @@ export const getUserInputForMovement = (
     speedActions.setSpeed(characterId, newTargetSpeed);
     targetSpeed = newTargetSpeed;
 
-    // Update actual speed towards target
     let newActual = actualSpeed;
     if (actualSpeed < newTargetSpeed) {
       newActual = Math.min(newTargetSpeed, actualSpeed + movementCharacteritics.acceleration * delta);

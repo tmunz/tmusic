@@ -22,7 +22,6 @@ export const IDLE_MOVEMENT_CHARACTERISTICS: TurnCharacteristics & SpeedCharacter
 export const useCompanionIdle = (
   companionRef: RefObject<Object3D>,
   targetRef: RefObject<Object3D>,
-  id: string,
   config?: CompanionIdleConfig
 ) => {
   const targetBasePositionRef = useRef(new Vector3());
@@ -41,8 +40,8 @@ export const useCompanionIdle = (
     );
   };
 
-  const getTargetBasePosition = (delta: number): Vector3 | undefined => {
-    if (!targetRef.current) return undefined;
+  const getTargetBasePosition = (): Vector3 => {
+    if (!targetRef.current) return targetBasePositionRef.current;
 
     return targetBasePositionRef.current.set(
       targetRef.current.position.x,
@@ -71,10 +70,10 @@ export const useCompanionIdle = (
     return false;
   };
 
-  return (time: number, delta: number, angleDiff: number) => {
+  return (time: number, angleDiff: number) => {
+    const position = new Vector3().addVectors(getTargetBasePosition(), getTargetOffset(time));
     return {
-      basePosition: getTargetBasePosition(delta),
-      offset: getTargetOffset(time),
+      position,
       speed: getTargetSpeed(angleDiff),
       activated: isActivated(),
     };

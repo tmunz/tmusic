@@ -15,20 +15,13 @@ export interface CharacterState {
     min: number;
     max: number;
   };
-  movement: {
-    turnSpeed: number;
-    turnDirection: number;
-    tilt: { x: number; z: number };
-    direction: { x: number; y: number; z: number };
-    isInCollision: boolean;
-  };
 }
 
 export interface PlayerState {
   id: string;
   insideBattleground: boolean;
+  outsideTimeRemaining: number;
   points: number;
-  alive: boolean;
 }
 
 export interface TronState {

@@ -4,16 +4,12 @@ import { SpeedCharacteristics } from './SpeedCharactersistic';
 import { Object3D, Quaternion, Vector3 } from 'three';
 import { MovementControlState } from './MovementControlState';
 
-import { useTronStore } from '../state/TronStore';
-
 export const useMovement = (characterId: string) => {
-  const updateMovementStore = useTronStore(state => state.updateMovementState);
-  const movementState = useTronStore(state => state.characters[characterId]?.movement);
-
-  const currentTurnSpeed = movementState?.turnSpeed ?? 1;
-  const currentTurnDirection = movementState?.turnDirection ?? 0;
-  const currentTilt = movementState?.tilt ?? { x: 0, z: 0 };
-  const isInCollision = movementState?.isInCollision ?? false;
+  // Local movement state (not stored globally)
+  const isInCollisionRef = useRef(false);
+  const turnSpeedRef = useRef(1);
+  const turnDirectionRef = useRef(0);
+  const tiltRef = useRef({ x: 0, z: 0 });
 
   // Reusable Three.js objects
   const previousPositionRef = useRef(new Vector3());
@@ -39,8 +35,8 @@ export const useMovement = (characterId: string) => {
   ): { targetTurnTilt: number; turnSpeed: number; turnDirection: number } => {
     const { baseTurnSpeed, maxTurnSpeed, turnSpeedIncreaseRate, maxTurnTilt } = characteristics;
     let targetTurnTilt = 0;
-    let turnSpeed = currentTurnSpeed;
-    let turnDirection = currentTurnDirection;
+    let turnSpeed = turnSpeedRef.current;
+    let turnDirection = turnDirectionRef.current;
     const desiredDirection = controls?.direction ?? 0;
     const desiredPitch = controls?.pitch ?? 0;
     const actualSpeed = controls?.speed ?? 0;
@@ -80,7 +76,7 @@ export const useMovement = (characterId: string) => {
     tiltSmoothness: number,
     object: Object3D
   ): { x: number; z: number } => {
-    const z = currentTilt.z + (targetTurnTilt - currentTilt.z) * tiltSmoothness * delta;
+    const z = tiltRef.current.z + (targetTurnTilt - tiltRef.current.z) * tiltSmoothness * delta;
     // Don't override rotation.x here - it's used for pitch
     object.rotation.z = z;
     return { x: object.rotation.x, z };
@@ -106,8 +102,8 @@ export const useMovement = (characterId: string) => {
       object.position.copy(newPositionRef.current);
       return false;
     } else {
-      let newCollision = isInCollision;
-      if (!isInCollision) {
+      let newCollision = isInCollisionRef.current;
+      if (!isInCollisionRef.current) {
         newCollision = true;
         let low = 0;
         let high = 1;
@@ -186,18 +182,16 @@ export const useMovement = (characterId: string) => {
           }
         }
       }
+      isInCollisionRef.current = newCollision;
       return newCollision;
     }
   };
 
   const reset = () => {
-    updateMovementStore(characterId, {
-      turnSpeed: 1,
-      turnDirection: 0,
-      tilt: { x: 0, z: 0 },
-      direction: { x: 0, y: 0, z: -1 },
-      isInCollision: false,
-    });
+    isInCollisionRef.current = false;
+    turnSpeedRef.current = 1;
+    turnDirectionRef.current = 0;
+    tiltRef.current = { x: 0, z: 0 };
   };
 
   const updateFrame = (params: {
@@ -239,17 +233,10 @@ export const useMovement = (characterId: string) => {
       checkCollisionWrapper
     );
 
-    updateMovementStore(characterId, {
-      turnSpeed,
-      turnDirection,
-      tilt,
-      direction: {
-        x: tempDirectionRef.current.x,
-        y: tempDirectionRef.current.y,
-        z: tempDirectionRef.current.z,
-      },
-      isInCollision: collision,
-    });
+    isInCollisionRef.current = collision;
+    turnSpeedRef.current = turnSpeed;
+    turnDirectionRef.current = turnDirection;
+    tiltRef.current = tilt;
   };
 
   return {

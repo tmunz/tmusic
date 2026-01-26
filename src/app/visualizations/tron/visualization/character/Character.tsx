@@ -7,39 +7,90 @@ import { Vehicle, VehicleHandle } from '../object/vehicle/Vehicle';
 import { LightWall, LightWallHandle } from './LightWall';
 import { useTronStore } from '../state/TronStore';
 import { useMovement } from '../movement/useMovement';
-import { useGameHandler } from '../game/useGameHandler';
+import { useLightCycleBattleHandler } from '../game/useLightCycleBattleHandler';
 import { Mode } from '../state/TronState';
 import { ControlsState } from '../userInput/useUserInput';
-import { getUserInputForMovement } from '../userInput/useUserInputForMovement';
+import { applySpeedControls } from '../movement/applySpeedControls';
 
-interface CharacterProps {
+export interface CharacterProps {
   id: string; // don't change during lifecycle
   sampleProvider?: SampleProvider;
   color?: string;
   position?: [number, number, number];
   rotation?: [number, number, number];
   getControlsState?: () => ControlsState;
+  vehicleRef?: React.RefObject<VehicleHandle>;
 }
 
 export const Character = forwardRef<Object3D, CharacterProps>(
-  ({ id, sampleProvider, color, position = [0, 0, 0], rotation = [0, 0, 0], getControlsState }, ref) => {
-    const vehicleRef = useRef<VehicleHandle>(null);
+  (
+    {
+      id,
+      sampleProvider,
+      color,
+      position = [0, 0, 0],
+      rotation = [0, 0, 0],
+      getControlsState,
+      vehicleRef: externalVehicleRef,
+    },
+    ref
+  ) => {
+    const internalVehicleRef = useRef<VehicleHandle>(null);
+    const vehicleRef = externalVehicleRef || internalVehicleRef;
     const lightWallRef = useRef<LightWallHandle>(null);
     const respawnTimerRef = useRef<NodeJS.Timeout | null>(null);
     const isRespawningRef = useRef<boolean>(false);
     const movement = useMovement(id);
-    const { checkBattlegroundStatus, getBattlegroundRespawnPosition } = useGameHandler();
+    
+    const handleDisintegration = (wallPlayerId?: string) => {
+      if (isRespawningRef.current) return;
+      isRespawningRef.current = true;
+      const handleLightCycleBattleDisintegration = useTronStore.getState().handleLightCycleBattleDisintegration;
+      handleLightCycleBattleDisintegration(id, wallPlayerId);
+      const applyRespawn = () => {
+        const vehicle = vehicleRef.current?.getObject();
+        if (!vehicle) return;
+        const { position, rotation } = getBattlegroundSpawnPosition();
+        vehicle.position.set(position.x, position.y, position.z);
+        vehicle.rotation.set(rotation.x, rotation.y, rotation.z);
+        vehicle.updateMatrix();
+        vehicle.updateMatrixWorld(true);
+        const playerRef = vehicleRef.current?.getPlayerRef();
+        if (playerRef?.current) {
+          playerRef.current.rotation.x = 0;
+          playerRef.current.rotation.z = 0;
+        }
+        lightWallRef.current?.reset();
+        movement.reset();
+        setTargetSpeedAction(id, 0, 0);
+        resetPlayerOutsideTimer(id);
+        setDisintegration(id, false);
+        isRespawningRef.current = false;
+      };
+      respawnTimerRef.current = setTimeout(() => {
+        applyRespawn();
+        respawnTimerRef.current = null;
+      }, 2100);
+    };
+    
+    const { checkBattlegroundStatus, getBattlegroundSpawnPosition } = useLightCycleBattleHandler({
+      onDisintegration: handleDisintegration,
+    });
     const { checkCollisionAtPosition } = useLightWallCollision({
       id,
       ref: vehicleRef,
-      onCollision: (wallOwnerId: string) => onLightWallCollision(wallOwnerId),
+      onCollision: (wallOwnerId: string) => handleDisintegration(wallOwnerId),
     });
-    const store = useTronStore();
-    const characterState = store.characters[id];
+    const characterState = useTronStore(state => state.characters[id]);
+    const mode = useTronStore(state => state.mode);
     const setSpeed = useTronStore(state => state.setSpeed);
     const updateSpeed = useTronStore(state => state.updateSpeed);
+    const setVehicleParams = useTronStore(state => state.setVehicleParams);
+    const setDisintegration = useTronStore(state => state.setDisintegration);
+    const setTargetSpeedAction = useTronStore(state => state.setSpeed);
+    const resetPlayerOutsideTimer = useTronStore(state => state.resetPlayerOutsideTimer);
 
-    useImperativeHandle(ref, () => vehicleRef.current?.getObject() || ({} as Object3D), []);
+    useImperativeHandle(ref, () => vehicleRef.current?.getObject() || ({} as Object3D), [vehicleRef]);
 
     useEffect(() => {
       const vehicle = vehicleRef.current?.getObject();
@@ -50,40 +101,10 @@ export const Character = forwardRef<Object3D, CharacterProps>(
         vehicle.rotation.set(...rotation);
 
         if (getControlsState) {
-          store.setVehicleParams(id, movementCharacteritics.maxSpeed, movementCharacteritics.minSpeed);
+          setVehicleParams(id, movementCharacteritics.maxSpeed, movementCharacteritics.minSpeed);
         }
       }
     }, []);
-
-    const applyRespawn = () => {
-      const vehicle = vehicleRef.current?.getObject();
-      if (!vehicle) return;
-      const position = getBattlegroundRespawnPosition();
-      vehicle.position.set(position.x, position.y, position.z);
-      vehicle.rotation.set(0, 0, 0);
-      vehicle.updateMatrix();
-      vehicle.updateMatrixWorld(true);
-      const playerRef = vehicleRef.current?.getPlayerRef();
-      if (playerRef?.current) {
-        playerRef.current.rotation.x = 0;
-        playerRef.current.rotation.z = 0;
-      }
-      lightWallRef.current?.reset();
-      movement.reset();
-      store.setSpeed(id, 0, 0);
-      store.setDisintegration(id, false);
-      isRespawningRef.current = false;
-    };
-
-    const onLightWallCollision = (wallPlayerId: string) => {
-      if (isRespawningRef.current) return;
-      isRespawningRef.current = true;
-      store.handleLightWallCollision(id, wallPlayerId);
-      respawnTimerRef.current = setTimeout(() => {
-        applyRespawn();
-        respawnTimerRef.current = null;
-      }, 2100);
-    };
 
     useFrame((_state, delta) => {
       const vehicle = vehicleRef.current?.getObject();
@@ -91,7 +112,7 @@ export const Character = forwardRef<Object3D, CharacterProps>(
 
       if (!vehicle || !movementCharacteristics) return;
 
-      const { movementControlState } = getUserInputForMovement(
+      const { movementControlState } = applySpeedControls(
         id,
         delta,
         {
@@ -114,8 +135,8 @@ export const Character = forwardRef<Object3D, CharacterProps>(
 
       lightWallRef.current?.update();
 
-      if (store.mode === Mode.LIGHTCYCLE_BATTLE) {
-        checkBattlegroundStatus(vehicle);
+      if (mode === Mode.LIGHTCYCLE_BATTLE) {
+        checkBattlegroundStatus(vehicle, id, delta);
       }
     });
 

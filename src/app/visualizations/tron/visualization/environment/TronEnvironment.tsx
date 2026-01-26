@@ -99,7 +99,7 @@ export const TronEnvironment = ({ tileSize, viewDistance = 0 }: TronEnvironmentP
             fadeDistance={200}
             sectionColor={withinBattleGround ? '#004444' : '#440000'}
             cellColor={withinBattleGround ? '#000000' : '#330000'}
-            sparksCount={0}
+            sparksCount={5}
           />
         );
       })}

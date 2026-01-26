@@ -1,12 +1,5 @@
 import { useTronStore } from '../state/TronStore';
 
-export interface SpeedControlConfig {
-  minSpeed: number;
-  maxSpeed: number;
-  acceleration: number;
-  deceleration: number;
-}
-
 export const useSpeedControl = (id: string) => {
   const updateSpeed = useTronStore(state => state.updateSpeed);
   const character = useTronStore(state => state.characters[id]);

@@ -5,7 +5,8 @@ import { Bit } from '../object/Bit';
 import { WireframeTransitionObject } from '../object/WireframeTransitionObject';
 import { useMovement } from '../movement/useMovement';
 import { useSpeedControl } from '../movement/useSpeedControl';
-import { MovementControlState } from '../movement/MovementControlState';
+import { calculateMovementControls } from '../movement/calculateMovementControls';
+import { CompanionStrategy } from './CompanionStrategy';
 import { useCompanionIdle, IDLE_MOVEMENT_CHARACTERISTICS } from './useCompanionIdle';
 import { useTronStore } from '../state/TronStore';
 
@@ -15,18 +16,29 @@ interface CompanionProps {
   targetRef: RefObject<Object3D>;
   verticalOffset?: number;
   debugMode?: boolean;
+  strategy?: CompanionStrategy;
 }
 
 export const Companion = forwardRef<Object3D, CompanionProps>(
-  ({ id, characterId, targetRef, verticalOffset = 0, debugMode = false }, ref) => {
-    const targetBasePositionRef = useRef<Mesh>(null);
+  ({ id, characterId, targetRef, verticalOffset = 0, debugMode = false, strategy }, ref) => {
     const targetPositionRef = useRef<Mesh>(null);
     const companionRef = useRef<Group>(null);
     const movement = useMovement(id);
     const speedControl = useSpeedControl(id);
     const setSpeed = useTronStore(state => state.setSpeed);
     const actualSpeed = useTronStore(state => state.characters[id]?.speed.actual ?? 0);
-    const companionIdle = useCompanionIdle(companionRef, targetRef, characterId, { verticalOffset });
+    const defaultStrategy: CompanionStrategy = {
+      hook: useCompanionIdle,
+      movementCharacteristics: IDLE_MOVEMENT_CHARACTERISTICS,
+      config: { verticalOffset },
+    };
+    const activeStrategy = strategy ?? defaultStrategy;
+    const strategyCalculator = activeStrategy.hook(
+      companionRef,
+      targetRef,
+      activeStrategy.config ?? { verticalOffset }
+    );
+
     const directionToTargetRef = useRef(new Vector3());
     const [activated, setActivated] = useState<boolean>(false);
 
@@ -38,57 +50,34 @@ export const Companion = forwardRef<Object3D, CompanionProps>(
       }
     }, [companionRef.current, verticalOffset]);
 
-    const calculateMovementControls = (
-      companion: Object3D,
-      targetPosition: Vector3,
-      currentSpeed: number
-    ): MovementControlState => {
-      directionToTargetRef.current.subVectors(targetPosition, companion.position);
-      const targetAngle = Math.atan2(-directionToTargetRef.current.x, -directionToTargetRef.current.z);
-
-      let angleDiff = targetAngle - companion.rotation.y;
-      angleDiff = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff));
-      const direction = Math.max(-1, Math.min(1, angleDiff));
-
-      const horizontalDistance = Math.sqrt(directionToTargetRef.current.x ** 2 + directionToTargetRef.current.z ** 2);
-      const targetPitch = Math.atan2(directionToTargetRef.current.y, horizontalDistance);
-      let pitchDiff = targetPitch - companion.rotation.x;
-      pitchDiff = Math.atan2(Math.sin(pitchDiff), Math.cos(pitchDiff));
-      const pitch = Math.max(-1, Math.min(1, pitchDiff * 2));
-
-      return { speed: currentSpeed, direction, pitch };
-    };
-
     useFrame((state, delta) => {
       if (!companionRef.current || !targetRef.current) return;
       directionToTargetRef.current.subVectors(targetRef.current.position, companionRef.current.position);
       const targetAngle = Math.atan2(-directionToTargetRef.current.x, -directionToTargetRef.current.z);
       const angleDiff = targetAngle - companionRef.current.rotation.y;
       const angleDiffNormalized = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff));
-      const { basePosition, offset, speed, activated } = companionIdle(
-        state.clock.elapsedTime,
-        delta,
-        angleDiffNormalized
-      );
-      if (!basePosition) return;
-      const position = new Vector3().addVectors(basePosition, offset);
-      if (debugMode && targetBasePositionRef.current && targetPositionRef.current) {
-        targetBasePositionRef.current.position.copy(basePosition);
+      const { position, speed, activated } = strategyCalculator(state.clock.elapsedTime, angleDiffNormalized);
+      if (!position) return;
+      if (debugMode && targetPositionRef.current) {
         targetPositionRef.current.position.copy(position);
       }
 
       setSpeed(id, speed);
-      speedControl.updateActualSpeed(delta, IDLE_MOVEMENT_CHARACTERISTICS.acceleration, IDLE_MOVEMENT_CHARACTERISTICS.deceleration);
+      speedControl.updateActualSpeed(
+        delta,
+        activeStrategy.movementCharacteristics.acceleration,
+        activeStrategy.movementCharacteristics.deceleration
+      );
+
+      const movementControls = calculateMovementControls(companionRef.current, position, actualSpeed, true);
 
       setActivated(activated);
-
-      const movementControls = calculateMovementControls(companionRef.current, position, actualSpeed);
 
       movement.updateFrame({
         delta,
         controls: movementControls,
         object: companionRef.current,
-        movementCharacteristics: IDLE_MOVEMENT_CHARACTERISTICS,
+        movementCharacteristics: activeStrategy.movementCharacteristics,
       });
     });
 
@@ -96,10 +85,6 @@ export const Companion = forwardRef<Object3D, CompanionProps>(
       <>
         {debugMode && (
           <>
-            <mesh ref={targetBasePositionRef}>
-              <boxGeometry args={[0.5, 0.5, 0.5]} />
-              <meshBasicMaterial color="red" />
-            </mesh>
             <mesh ref={targetPositionRef}>
               <boxGeometry args={[0.5, 0.5, 0.5]} />
               <meshBasicMaterial color="yellow" />

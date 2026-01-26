@@ -2,19 +2,22 @@ import { Object3D } from 'three';
 import { useTronStore } from '../state/TronStore';
 import { Mode } from '../state/TronState';
 
-interface UseGameHandlerParams {}
+export interface useLightCycleBattleHandlerParams {
+  onDisintegration?: () => void;
+}
 
-export const useGameHandler = ({}: UseGameHandlerParams = {}) => {
+export const useLightCycleBattleHandler = ({ onDisintegration }: useLightCycleBattleHandlerParams = {}) => {
   const updatePlayerBattlegroundStatus = useTronStore(state => state.updatePlayerBattlegroundStatus);
-  const getUserPlayer = useTronStore(state => state.getUserPlayer);
+  const updatePlayerOutsideTimer = useTronStore(state => state.updatePlayerOutsideTimer);
+  const getPlayer = useTronStore(state => state.getPlayer);
   const getTronState = useTronStore.getState;
   const mode = useTronStore(state => state.mode);
   const gamePosition = useTronStore(state => state.game.position);
   const battlegroundSize = useTronStore(state => state.game.battlegroundSize);
 
-  const checkBattlegroundStatus = (object: Object3D) => {
-    const userPlayer = getUserPlayer();
-    if (!userPlayer || mode !== Mode.LIGHTCYCLE_BATTLE) return;
+  const checkBattlegroundStatus = (object: Object3D, playerId: string, delta: number) => {
+    const player = getPlayer(playerId);
+    if (!player || mode !== Mode.LIGHTCYCLE_BATTLE) return;
 
     const battlefieldPos = gamePosition;
     const bgSize = battlegroundSize;
@@ -25,12 +28,20 @@ export const useGameHandler = ({}: UseGameHandlerParams = {}) => {
       object.position.z >= battlefieldPos.z - bgSize / 2 &&
       object.position.z <= battlefieldPos.z + bgSize / 2;
 
-    if (isInside !== userPlayer.insideBattleground) {
-      updatePlayerBattlegroundStatus(userPlayer.id, isInside);
+    if (isInside !== player.insideBattleground) {
+      updatePlayerBattlegroundStatus(playerId, isInside);
+    }
+    if (!isInside) {
+      const timeRemaining = player.outsideTimeRemaining;
+      updatePlayerOutsideTimer(playerId, delta);
+      
+      if (timeRemaining <= delta) {
+        onDisintegration?.();
+      }
     }
   };
 
-  const getBattlegroundRespawnPosition = () => {
+  const getBattlegroundSpawnPosition = () => {
     const state = getTronState();
     const battlegroundSize = state.game.battlegroundSize;
     const tileSize = state.world.tileSize;
@@ -42,12 +53,18 @@ export const useGameHandler = ({}: UseGameHandlerParams = {}) => {
 
     const randomX = gamePos.x + randomTileX * tileSize + tileSize / 2;
     const randomZ = gamePos.z + randomTileZ * tileSize + tileSize / 2;
+    const dx = gamePos.x - randomX;
+    const dz = gamePos.z - randomZ;
+    const angleToCenter = Math.atan2(dx, dz) + Math.PI;
 
-    return { x: randomX, y: gamePos.y, z: randomZ };
+    return { 
+      position: { x: randomX, y: gamePos.y, z: randomZ },
+      rotation: { x: 0, y: angleToCenter, z: 0 },
+    };
   };
 
   return {
     checkBattlegroundStatus,
-    getBattlegroundRespawnPosition,
+    getBattlegroundSpawnPosition,
   };
 };

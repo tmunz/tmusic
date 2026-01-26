@@ -10,13 +10,6 @@ const userCharacter: CharacterState = {
   isDisintegrated: false,
   speed: { actual: 0, target: 0, max: 0, min: 0 },
   companionId: USER_COMPANION_CHARACTER_ID,
-  movement: {
-    turnSpeed: 1,
-    turnDirection: 0,
-    tilt: { x: 0, z: 0 },
-    direction: { x: 0, y: 0, z: -1 },
-    isInCollision: false,
-  },
 };
 
 const companionCharacter: CharacterState = {
@@ -24,20 +17,13 @@ const companionCharacter: CharacterState = {
   color: '#ffffff',
   isDisintegrated: false,
   speed: { actual: 0, target: 0, max: 60, min: 0 },
-  movement: {
-    turnSpeed: 5,
-    turnDirection: 0,
-    tilt: { x: 0, z: 0 },
-    direction: { x: 0, y: 0, z: -1 },
-    isInCollision: false,
-  },
 };
 
 const userPlayer: PlayerState = {
   id: USER_CHARACTER_ID,
   insideBattleground: true,
+  outsideTimeRemaining: 5,
   points: 0,
-  alive: true,
 };
 
 const initialState: TronState = {
@@ -70,15 +56,16 @@ interface TronStore extends TronState {
   updateSpeed: (characterId: string, speed: number) => void;
   setVehicleParams: (characterId: string, max: number, min: number) => void;
   setSpeed: (characterId: string, target: number, actual?: number) => void;
-  updateMovementState: (characterId: string, movement: Partial<CharacterState['movement']>) => void;
   setGameMode: (mode: Mode) => void;
   startGame: (position: { x: number; y: number; z: number }) => void;
   updatePlayerBattlegroundStatus: (playerId: string, inside: boolean) => void;
+  updatePlayerOutsideTimer: (playerId: string, delta: number) => void;
+  resetPlayerOutsideTimer: (playerId: string) => void;
   addCharacter: (character: CharacterState) => void;
   removeCharacter: (characterId: string) => void;
   addPlayer: (player: PlayerState) => void;
   removePlayer: (playerId: string) => void;
-  handleLightWallCollision: (crashingPlayerId: string, wallOwnerId: string | undefined) => void;
+  handleLightCycleBattleDisintegration: (crashingPlayerId: string, wallOwnerId: string | undefined) => void;
   setDisintegration: (characterId: string, isDisintegrated: boolean) => void;
 }
 
@@ -175,32 +162,12 @@ export const useTronStore = create<TronStore>((set, get) => ({
     });
   },
 
-  updateMovementState: (characterId: string, movement: Partial<CharacterState['movement']>) => {
-    set(state => {
-      const character = state.characters[characterId];
-      if (!character) return state;
-
-      return {
-        ...state,
-        characters: {
-          ...state.characters,
-          [characterId]: {
-            ...character,
-            movement: {
-              ...character.movement,
-              ...movement,
-            },
-          },
-        },
-      };
-    });
-  },
-
   setGameMode: (mode: Mode) => {
     set({ mode });
   },
 
   startGame: (position: { x: number; y: number; z: number }) => {
+    const PLAYER_COUNT = 2;
     set(state => {
       const tileSize = state.world.tileSize;
       const tileX = Math.round(position.x / tileSize);
@@ -208,15 +175,46 @@ export const useTronStore = create<TronStore>((set, get) => ({
       const snappedX = tileX * tileSize;
       const snappedZ = tileZ * tileSize;
 
+      // Create 4 program players
+      const programColors = ['#ff8800','#ffff00', '#88ff00'];
+      const programCharacters: Record<string, CharacterState> = {};
+      const programPlayers: Record<string, PlayerState> = {};
+
+      for (let i = 0; i < PLAYER_COUNT; i++) {
+        const programId = `program-${i}`;
+
+        programCharacters[programId] = {
+          id: programId,
+          color: programColors[i],
+          isDisintegrated: false,
+          speed: { actual: 0, target: 0, max: 60, min: 0 },
+        };
+
+        programPlayers[programId] = {
+          id: programId,
+          insideBattleground: true,
+          outsideTimeRemaining: 5,
+          points: 0,
+        };
+      }
+
       return {
         ...state,
         mode: Mode.LIGHTCYCLE_BATTLE,
+        characters: {
+          ...state.characters,
+          ...programCharacters,
+        },
         game: {
           ...state.game,
           position: {
             x: snappedX,
             y: position.y,
             z: snappedZ,
+          },
+          players: {
+            ...state.game.players,
+            ...programPlayers,
           },
         },
       };
@@ -237,6 +235,50 @@ export const useTronStore = create<TronStore>((set, get) => ({
             [playerId]: {
               ...player,
               insideBattleground: inside,
+            },
+          },
+        },
+      };
+    });
+  },
+
+  updatePlayerOutsideTimer: (playerId: string, delta: number) => {
+    set(state => {
+      const player = state.game.players[playerId];
+      if (!player || player.insideBattleground) return state;
+
+      const newTimeRemaining = Math.max(0, player.outsideTimeRemaining - delta);
+
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          players: {
+            ...state.game.players,
+            [playerId]: {
+              ...player,
+              outsideTimeRemaining: newTimeRemaining,
+            },
+          },
+        },
+      };
+    });
+  },
+
+  resetPlayerOutsideTimer: (playerId: string) => {
+    set(state => {
+      const player = state.game.players[playerId];
+      if (!player) return state;
+
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          players: {
+            ...state.game.players,
+            [playerId]: {
+              ...player,
+              outsideTimeRemaining: 5,
             },
           },
         },
@@ -290,7 +332,7 @@ export const useTronStore = create<TronStore>((set, get) => ({
     });
   },
 
-  handleLightWallCollision: (crashingPlayerId: string, wallOwnerId?: string) => {
+  handleLightCycleBattleDisintegration: (crashingPlayerId: string, wallOwnerId?: string) => {
     set(state => {
       const crashingPlayer = state.game.players[crashingPlayerId];
       const crashingCharacter = state.characters[crashingPlayerId];
@@ -305,11 +347,12 @@ export const useTronStore = create<TronStore>((set, get) => ({
       if (wallOwnerId && wallOwnerId !== crashingPlayerId) {
         const wallOwner = state.game.players[wallOwnerId];
         if (wallOwner) {
+          const newPoints = wallOwner.points + 1;
           newPlayers = {
             ...newPlayers,
             [wallOwnerId]: {
               ...wallOwner,
-              points: wallOwner.points + 1,
+              points: newPoints,
             },
           };
         }
