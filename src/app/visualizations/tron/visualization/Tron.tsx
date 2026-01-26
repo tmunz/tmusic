@@ -81,6 +81,12 @@ const TronScene = ({ sampleProvider, debugMode }: TronSceneProps) => {
   const fakeSampleProvider = useMemo(() => createMaxSampleProvider(64), []);
   const effectiveSampleProvider = isActive ? sampleProvider : fakeSampleProvider;
 
+  useEffect(() => {
+    return () => {
+      useTronStore.getState().init();
+    };
+  }, []);
+
   // Track window focus
   useEffect(() => {
     const handleFocus = () => setIsWindowActive(true);

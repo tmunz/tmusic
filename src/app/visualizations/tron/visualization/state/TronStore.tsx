@@ -43,6 +43,8 @@ const initialState: TronState = {
   },
 };
 
+export { initialState };
+
 interface TronStore extends TronState {
   // Getters
   getGameMode: () => Mode;
@@ -67,6 +69,7 @@ interface TronStore extends TronState {
   removePlayer: (playerId: string) => void;
   handleLightCycleBattleDisintegration: (crashingPlayerId: string, wallOwnerId: string | undefined) => void;
   setDisintegration: (characterId: string, isDisintegrated: boolean) => void;
+  init: () => void;
 }
 
 export const useTronStore = create<TronStore>((set, get) => ({
@@ -395,5 +398,9 @@ export const useTronStore = create<TronStore>((set, get) => ({
         },
       };
     });
+  },
+
+  init: () => {
+    set(initialState);
   },
 }));
