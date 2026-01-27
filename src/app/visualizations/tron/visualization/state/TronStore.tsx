@@ -179,7 +179,7 @@ export const useTronStore = create<TronStore>((set, get) => ({
       const snappedZ = tileZ * tileSize;
 
       // Create 4 program players
-      const programColors = ['#ff8800','#ffff00', '#88ff00'];
+      const programColors = ['#ff8800', '#ffff00', '#88ff00'];
       const programCharacters: Record<string, CharacterState> = {};
       const programPlayers: Record<string, PlayerState> = {};
 

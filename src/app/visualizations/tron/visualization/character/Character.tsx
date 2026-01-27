@@ -41,7 +41,7 @@ export const Character = forwardRef<Object3D, CharacterProps>(
     const respawnTimerRef = useRef<NodeJS.Timeout | null>(null);
     const isRespawningRef = useRef<boolean>(false);
     const movement = useMovement(id);
-    
+
     const handleDisintegration = (wallPlayerId?: string) => {
       if (isRespawningRef.current) return;
       isRespawningRef.current = true;
@@ -72,7 +72,7 @@ export const Character = forwardRef<Object3D, CharacterProps>(
         respawnTimerRef.current = null;
       }, 2100);
     };
-    
+
     const { checkBattlegroundStatus, getBattlegroundSpawnPosition } = useLightCycleBattleHandler({
       onDisintegration: handleDisintegration,
     });

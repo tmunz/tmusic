@@ -12,7 +12,7 @@ export const TronInstructions = (props: {}) => {
           <kbd>A</kbd> Turn Left
         </li>
         <li>
-          <kbd>S</kbd> Break
+          <kbd>S</kbd> Deccelerate
         </li>
         <li>
           <kbd>D</kbd> Turn Right

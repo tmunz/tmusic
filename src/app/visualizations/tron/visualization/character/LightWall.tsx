@@ -45,63 +45,12 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
     const { registerObject, unregisterObject } = useCollision();
     const wallId = useRef(`wall-${Math.random()}`);
     const registeredSegments = useRef<Set<string>>(new Set());
+    const geometryNeedsUpdate = useRef(false);
     const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider);
 
     const material = useLightWallSoundMaterial({
       sampleTexture,
       updateSampleTexture,
-      color,
-      opacity,
-      side: DoubleSide,
-      depthWrite: false,
-    });
-
-    const [topFrequencyTexture, updateTopFrequencyTexture] = useSampleProviderTexture(
-      sampleProvider,
-      sp => {
-        if (!sp) return new Uint8Array();
-        const sampleSize = sp.sampleSize;
-        const topFreqData = new Uint8Array(sampleSize);
-        const sourceData = sp.flat();
-        const frequencyBands = sp.frequencyBands;
-        for (let sample = 0; sample < sampleSize; sample++) {
-          topFreqData[sample] = sourceData[sample * frequencyBands + (frequencyBands - 1)];
-        }
-        return topFreqData;
-      },
-      () => 1,
-      sp => sp?.sampleSize ?? 0
-    );
-
-    const topMaterial = useLightWallSoundMaterial({
-      sampleTexture: topFrequencyTexture,
-      updateSampleTexture: updateTopFrequencyTexture,
-      color,
-      opacity,
-      side: DoubleSide,
-      depthWrite: false,
-    });
-
-    const [bottomFrequencyTexture, updateBottomFrequencyTexture] = useSampleProviderTexture(
-      sampleProvider,
-      sp => {
-        if (!sp) return new Uint8Array();
-        const sampleSize = sp.sampleSize;
-        const bottomFreqData = new Uint8Array(sampleSize);
-        const sourceData = sp.flat();
-        const frequencyBands = sp.frequencyBands;
-        for (let sample = 0; sample < sampleSize; sample++) {
-          bottomFreqData[sample] = sourceData[sample * frequencyBands];
-        }
-        return bottomFreqData;
-      },
-      () => 1,
-      sp => sp?.sampleSize ?? 0
-    );
-
-    const bottomMaterial = useLightWallSoundMaterial({
-      sampleTexture: bottomFrequencyTexture,
-      updateSampleTexture: updateBottomFrequencyTexture,
       color,
       opacity,
       side: DoubleSide,
@@ -114,6 +63,7 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
         const positions = new Float32Array(maxVertices * 3);
         const colors = new Float32Array(maxVertices * 4);
         const uvs = new Float32Array(maxVertices * 2);
+        const sideMarks = new Float32Array(maxVertices); // -1 for left, 1 for right
         const indices: number[] = [];
         // Add start cap (first two vertices: lower0, upper0, upper1, lower1)
         indices.push(0, 1, 3, 0, 3, 2);
@@ -128,8 +78,7 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
           indices.push(base + 1, nextBase + 3, base + 3, base + 1, nextBase + 1, nextBase + 3);
           // Bottom face
           indices.push(base, base + 1, nextBase + 1, base, nextBase + 1, nextBase);
-          // Separator face
-          indices.push(nextBase, nextBase + 2, nextBase + 3, nextBase, nextBase + 3, nextBase + 1);
+          // Separator face removed - no faces between sections
         }
         const attribute = new BufferAttribute(positions, 3);
         attribute.setUsage(DynamicDrawUsage);
@@ -141,6 +90,9 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
         const uvAttr = new BufferAttribute(uvs, 2);
         uvAttr.setUsage(DynamicDrawUsage);
         trailGeometry.current.setAttribute('uv', uvAttr);
+        const sideMarkAttr = new BufferAttribute(sideMarks, 1);
+        sideMarkAttr.setUsage(DynamicDrawUsage);
+        trailGeometry.current.setAttribute('sideMark', sideMarkAttr);
         trailGeometry.current.setIndex(indices);
         trailGeometry.current.setDrawRange(0, 0);
         positionAttribute.current = attribute;
@@ -159,21 +111,34 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
       const spawnPoints = getSpawnPoints();
       if (!spawnPoints || !positionAttribute.current) return;
       const { lower, upper } = spawnPoints;
+
+      let pointsChanged = false;
+
       if (trailPoints.current.length === 0) {
         trailPoints.current.push({ lower: lower.clone(), upper: upper.clone() });
         lastTrailPosition.current.copy(lower);
+        pointsChanged = true;
       }
+
       if (lastTrailPosition.current.distanceTo(lower) > updateDistance) {
         trailPoints.current.push({ lower: lower.clone(), upper: upper.clone() });
         lastTrailPosition.current.copy(lower);
         if (trailPoints.current.length > maxPoints) {
           trailPoints.current.shift();
         }
+        pointsChanged = true;
       }
+
+      // Only update geometry if points changed
+      if (!pointsChanged && !geometryNeedsUpdate.current) return;
+
+      geometryNeedsUpdate.current = false;
+
       if (trailPoints.current.length > 1) {
         const positions = positionAttribute.current.array as Float32Array;
         const colors = colorAttribute.current.array as Float32Array;
         const uvs = (trailGeometry.current.getAttribute('uv') as BufferAttribute).array as Float32Array;
+        const sideMarks = (trailGeometry.current.getAttribute('sideMark') as BufferAttribute).array as Float32Array;
         const baseColor = new Color(color);
         for (let i = 0; i < trailPoints.current.length; i++) {
           const point = trailPoints.current[i];
@@ -218,6 +183,7 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
           colors[colorIndex + 3] = alpha;
           uvs[uvIndex] = u;
           uvs[uvIndex + 1] = 0.0;
+          sideMarks[i * 4] = -1.0; // Left side
 
           // Vertex 1: Bottom-right (lower + perpendicular)
           positions[baseIndex + 3] = point.lower.x + perpendicular.x;
@@ -229,6 +195,7 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
           colors[colorIndex + 7] = alpha;
           uvs[uvIndex + 2] = u;
           uvs[uvIndex + 3] = 0.0;
+          sideMarks[i * 4 + 1] = 1.0; // Right side
 
           // Vertex 2: Top-left (upper - perpendicular)
           positions[baseIndex + 6] = point.upper.x - perpendicular.x;
@@ -239,7 +206,8 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
           colors[colorIndex + 10] = baseColor.b;
           colors[colorIndex + 11] = alpha;
           uvs[uvIndex + 4] = u;
-          uvs[uvIndex + 5] = 1.0; // Full frequency range for vertical faces
+          uvs[uvIndex + 5] = 0.5;
+          sideMarks[i * 4 + 2] = -1.0; // Left side
 
           // Vertex 3: Top-right (upper + perpendicular)
           positions[baseIndex + 9] = point.upper.x + perpendicular.x;
@@ -250,15 +218,17 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
           colors[colorIndex + 14] = baseColor.b;
           colors[colorIndex + 15] = alpha;
           uvs[uvIndex + 6] = u;
-          uvs[uvIndex + 7] = 1.0;
+          uvs[uvIndex + 7] = 0.5;
+          sideMarks[i * 4 + 3] = 1.0; // Right side
         }
         positionAttribute.current.needsUpdate = true;
         colorAttribute.current.needsUpdate = true;
         (trailGeometry.current.getAttribute('uv') as BufferAttribute).needsUpdate = true;
+        (trailGeometry.current.getAttribute('sideMark') as BufferAttribute).needsUpdate = true;
         const numQuads = trailPoints.current.length - 1;
 
-        // Register wall segments as collision objects
-        unregisterObject(wallId.current);
+        const currentSegments = new Set<string>();
+
         if (trailPoints.current.length > 1) {
           const spawnPoints = getSpawnPoints();
           if (spawnPoints) {
@@ -314,7 +284,7 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
                 ];
 
                 const segmentId = `${wallId.current}-segment-${i}`;
-                registeredSegments.current.add(segmentId);
+                currentSegments.add(segmentId);
 
                 registerObject({
                   id: segmentId,
@@ -329,18 +299,18 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
           }
         }
 
-        trailGeometry.current.clearGroups();
-        trailGeometry.current.addGroup(0, 6, 3);
-        for (let i = 0; i < numQuads; i++) {
-          const segmentStart = 6 + i * 30; // 6 for start cap, then 5 faces * 6 indices each
-          trailGeometry.current.addGroup(segmentStart, 6, 0); // Left face
-          trailGeometry.current.addGroup(segmentStart + 6, 6, 1); // Top face
-          trailGeometry.current.addGroup(segmentStart + 12, 6, 0); // Right face
-          trailGeometry.current.addGroup(segmentStart + 18, 6, 2); // Bottom face
-          trailGeometry.current.addGroup(segmentStart + 24, 6, 3); // Separator face (back)
-        }
+        registeredSegments.current.forEach(segmentId => {
+          if (!currentSegments.has(segmentId)) {
+            unregisterObject(segmentId);
+          }
+        });
 
-        trailGeometry.current.setDrawRange(0, 6 + numQuads * 30);
+        registeredSegments.current = currentSegments;
+
+        trailGeometry.current.clearGroups();
+        trailGeometry.current.addGroup(0, 6 + numQuads * 24, 0);
+
+        trailGeometry.current.setDrawRange(0, 6 + numQuads * 24);
         trailGeometry.current.computeVertexNormals();
         trailGeometry.current.computeBoundingSphere();
       } else {
@@ -353,6 +323,7 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
       reset: () => {
         trailPoints.current = [];
         lastTrailPosition.current.set(0, 0, 0);
+        geometryNeedsUpdate.current = true;
         registeredSegments.current.forEach(segmentId => {
           unregisterObject(segmentId);
         });
@@ -367,9 +338,7 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
       <>
         <mesh renderOrder={10}>
           <bufferGeometry ref={trailGeometry} />
-          <primitive object={material} attach="material-0" />
-          <primitive object={topMaterial} attach="material-1" />
-          <primitive object={bottomMaterial} attach="material-2" />
+          <primitive object={material} attach="material" />
         </mesh>
       </>
     );

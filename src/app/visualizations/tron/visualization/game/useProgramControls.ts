@@ -2,25 +2,29 @@ import { RefObject, useRef, useCallback } from 'react';
 import { Vector3 } from 'three';
 import { VehicleHandle } from '../object/vehicle/Vehicle';
 import { ControlsState } from '../userInput/useUserInput';
-import { useProgramPilot } from './useProgramPilot';
+import { useProgramPilot, ProgramPilotDebugInfo } from './useProgramPilot';
 import { useTronStore } from '../state/TronStore';
 import { calculateMovementControls } from '../movement/calculateMovementControls';
 
 interface ProgramControlsParams {
   characterId: string;
   characterRef: RefObject<VehicleHandle>;
+  difficulty?: number;
 }
 
 export interface ProgramControlsDebugInfo {
   targetPositionRef: RefObject<Vector3>;
+  debugInfo: RefObject<ProgramPilotDebugInfo | null>;
 }
 
 export const useProgramControls = ({
   characterId,
   characterRef,
+  difficulty = 1,
 }: ProgramControlsParams): [() => ControlsState, ProgramControlsDebugInfo] => {
   const targetPositionRef = useRef(new Vector3());
-  const programPilot = useProgramPilot({ characterId, characterRef });
+  const debugInfoRef = useRef<ProgramPilotDebugInfo | null>(null);
+  const programPilot = useProgramPilot({ characterId, characterRef, difficulty });
   const setSpeed = useTronStore(state => state.setSpeed);
   const actualSpeed = useTronStore(state => state.characters[characterId]?.speed.actual ?? 0);
 
@@ -35,7 +39,8 @@ export const useProgramControls = ({
     const currentAngle = vehicle.rotation.y;
     let angleDiff = targetAngle - currentAngle;
     angleDiff = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff));
-    const { position, speed } = programPilot();
+    const { position, speed, debugInfo } = programPilot();
+    debugInfoRef.current = debugInfo;
     setSpeed(characterId, speed);
 
     if (!position) {
@@ -54,5 +59,5 @@ export const useProgramControls = ({
     };
   }, [characterId, programPilot, characterRef, setSpeed, actualSpeed]);
 
-  return [getProgramControls, { targetPositionRef }];
+  return [getProgramControls, { targetPositionRef, debugInfo: debugInfoRef }];
 };

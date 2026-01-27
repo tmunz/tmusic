@@ -11,12 +11,13 @@ interface UseLightWallCollisionParams {
 }
 
 export const useLightWallCollision = ({ id, ref, onCollision }: UseLightWallCollisionParams) => {
-  const { registerObject, checkCollision, getObjectById } = useCollisionSystem();
+  const { registerObject, unregisterObject, checkCollision, getObjectById } = useCollisionSystem();
 
   const checkCollisionAtPosition = useCallback(
     (position: Vector3, rotation: Quaternion): boolean => {
       const boundingBox = ref.current?.getBoundingBox();
       if (!boundingBox) return true;
+      unregisterObject(id);
 
       registerCollisionObject({
         registerObject,
@@ -41,7 +42,7 @@ export const useLightWallCollision = ({ id, ref, onCollision }: UseLightWallColl
       }
       return true;
     },
-    [id, ref, onCollision, registerObject, checkCollision, getObjectById]
+    [id, ref, onCollision, registerObject, unregisterObject, checkCollision, getObjectById]
   );
 
   return { checkCollisionAtPosition };

@@ -1,4 +1,4 @@
-import { createContext, useContext, useRef, ReactNode } from 'react';
+import { createContext, useContext, useRef, ReactNode, useEffect } from 'react';
 import * as THREE from 'three';
 
 export interface CollisionObject {
@@ -14,7 +14,16 @@ interface CollisionContextType {
   unregisterObject: (id: string) => void;
   checkCollision: (obj: CollisionObject) => CollisionObject[];
   getObjectById: (id: string) => CollisionObject | undefined;
-  _getAllObjects: () => CollisionObject[]; // for debugging, but do not use in production code
+  getCellSize: () => number;
+  isCellOccupied: (x: number, z: number) => boolean;
+  // for debugging, but do not use in production code
+  _getAllObjects: () => CollisionObject[];
+  _getAllCells: () => { cell: string; position: THREE.Vector3; occupied: boolean }[];
+}
+
+interface CollisionProviderProps {
+  children: ReactNode;
+  cellSize?: number;
 }
 
 const CollisionContext = createContext<CollisionContextType | null>(null);
@@ -27,47 +36,54 @@ export const useCollision = () => {
   return context;
 };
 
-export const CollisionProvider = ({ children }: { children: ReactNode }) => {
+export const CollisionProvider = ({ children, cellSize = 1 }: CollisionProviderProps) => {
   const objectsRef = useRef<Map<string, CollisionObject>>(new Map());
-  const spatialGridRef = useRef<Map<string, Set<string>>>(new Map());
-  const gridSize = 10;
+  const cellsRef = useRef<Map<string, Set<CollisionObject>>>(new Map());
 
-  const getGridCells = (bbox: THREE.Box3): string[] => {
-    const cells: string[] = [];
-    const minX = Math.floor(bbox.min.x / gridSize);
-    const maxX = Math.floor(bbox.max.x / gridSize);
-    const minZ = Math.floor(bbox.min.z / gridSize);
-    const maxZ = Math.floor(bbox.max.z / gridSize);
+  useEffect(() => {
+    return () => {
+      objectsRef.current.clear();
+      cellsRef.current.clear();
+    };
+  }, []);
 
-    for (let x = minX; x <= maxX; x++) {
-      for (let z = minZ; z <= maxZ; z++) {
-        cells.push(`${x},${z}`);
+  const getCells = (bbox: THREE.Box3): string[] => {
+    const result: string[] = [];
+    const minCellX = Math.floor(bbox.min.x / cellSize);
+    const maxCellX = Math.floor(bbox.max.x / cellSize);
+    const minCellZ = Math.floor(bbox.min.z / cellSize);
+    const maxCellZ = Math.floor(bbox.max.z / cellSize);
+
+    for (let cellX = minCellX; cellX <= maxCellX; cellX++) {
+      for (let cellZ = minCellZ; cellZ <= maxCellZ; cellZ++) {
+        result.push(`${cellX},${cellZ}`);
       }
     }
-    return cells;
+
+    return result;
   };
 
   const registerObject = (obj: CollisionObject) => {
     const existing = objectsRef.current.get(obj.id);
     if (existing) {
-      const oldCells = getGridCells(existing.boundingBox);
+      const oldCells = getCells(existing.boundingBox);
       oldCells.forEach(cell => {
-        const cellSet = spatialGridRef.current.get(cell);
+        const cellSet = cellsRef.current.get(cell);
         if (cellSet) {
-          cellSet.delete(obj.id);
+          cellSet.delete(existing);
           if (cellSet.size === 0) {
-            spatialGridRef.current.delete(cell);
+            cellsRef.current.delete(cell);
           }
         }
       });
     }
 
-    const cells = getGridCells(obj.boundingBox);
+    const cells = getCells(obj.boundingBox);
     cells.forEach(cell => {
-      if (!spatialGridRef.current.has(cell)) {
-        spatialGridRef.current.set(cell, new Set());
+      if (!cellsRef.current.has(cell)) {
+        cellsRef.current.set(cell, new Set());
       }
-      spatialGridRef.current.get(cell)!.add(obj.id);
+      cellsRef.current.get(cell)!.add(obj);
     });
 
     objectsRef.current.set(obj.id, obj);
@@ -76,13 +92,13 @@ export const CollisionProvider = ({ children }: { children: ReactNode }) => {
   const unregisterObject = (id: string) => {
     const obj = objectsRef.current.get(id);
     if (obj) {
-      const cells = getGridCells(obj.boundingBox);
+      const cells = getCells(obj.boundingBox);
       cells.forEach(cell => {
-        const cellSet = spatialGridRef.current.get(cell);
+        const cellSet = cellsRef.current.get(cell);
         if (cellSet) {
-          cellSet.delete(id);
+          cellSet.delete(obj);
           if (cellSet.size === 0) {
-            spatialGridRef.current.delete(cell);
+            cellsRef.current.delete(cell);
           }
         }
       });
@@ -131,19 +147,16 @@ export const CollisionProvider = ({ children }: { children: ReactNode }) => {
 
   const checkCollision = (obj: CollisionObject): CollisionObject[] => {
     const collisions: CollisionObject[] = [];
-    const cells = getGridCells(obj.boundingBox);
-    const checkedIds = new Set<string>();
+    const cells = getCells(obj.boundingBox);
+    const checked = new Set<CollisionObject>();
 
     cells.forEach(cell => {
-      const cellObjects = spatialGridRef.current.get(cell);
-      if (!cellObjects) return;
+      const cellSet = cellsRef.current.get(cell);
+      if (!cellSet) return;
 
-      cellObjects.forEach(otherId => {
-        if (otherId === obj.id || checkedIds.has(otherId)) return;
-        checkedIds.add(otherId);
-
-        const other = objectsRef.current.get(otherId);
-        if (!other) return;
+      cellSet.forEach(other => {
+        if (other === obj || checked.has(other)) return;
+        checked.add(other);
 
         if (obj.boundingBox.intersectsBox(other.boundingBox)) {
           const fineResult = checkFineCollision(obj, other);
@@ -165,9 +178,44 @@ export const CollisionProvider = ({ children }: { children: ReactNode }) => {
     return Array.from(objectsRef.current.values());
   };
 
+  const _getAllCells = (): { cell: string; position: THREE.Vector3; occupied: boolean }[] => {
+    const cells: { cell: string; position: THREE.Vector3; occupied: boolean }[] = [];
+
+    cellsRef.current.forEach((objectIds, cellKey) => {
+      const [cellX, cellZ] = cellKey.split(',').map(Number);
+      const centerX = cellX * cellSize + cellSize / 2;
+      const centerZ = cellZ * cellSize + cellSize / 2;
+
+      cells.push({
+        cell: cellKey,
+        position: new THREE.Vector3(centerX, 0, centerZ),
+        occupied: objectIds.size > 0,
+      });
+    });
+
+    return cells;
+  };
+
+  const getCellSize = () => cellSize;
+
+  const isCellOccupied = (x: number, z: number): boolean => {
+    const cellKey = `${Math.floor(x / cellSize)},${Math.floor(z / cellSize)}`;
+    const cellSet = cellsRef.current.get(cellKey);
+    return !!cellSet && cellSet.size > 0;
+  };
+
   return (
     <CollisionContext.Provider
-      value={{ registerObject, unregisterObject, checkCollision, getObjectById, _getAllObjects }}
+      value={{
+        registerObject,
+        unregisterObject,
+        checkCollision,
+        getObjectById,
+        getCellSize,
+        isCellOccupied,
+        _getAllObjects,
+        _getAllCells,
+      }}
     >
       {children}
     </CollisionContext.Provider>

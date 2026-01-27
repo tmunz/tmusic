@@ -34,7 +34,7 @@ export const useLightCycleBattleHandler = ({ onDisintegration }: useLightCycleBa
     if (!isInside) {
       const timeRemaining = player.outsideTimeRemaining;
       updatePlayerOutsideTimer(playerId, delta);
-      
+
       if (timeRemaining <= delta) {
         onDisintegration?.();
       }
@@ -57,7 +57,7 @@ export const useLightCycleBattleHandler = ({ onDisintegration }: useLightCycleBa
     const dz = gamePos.z - randomZ;
     const angleToCenter = Math.atan2(dx, dz) + Math.PI;
 
-    return { 
+    return {
       position: { x: randomX, y: gamePos.y, z: randomZ },
       rotation: { x: 0, y: angleToCenter, z: 0 },
     };

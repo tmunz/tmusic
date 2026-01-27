@@ -27,9 +27,7 @@ export const GameStatus = ({ color = '#66eeff' }: GameStatusProps) => {
               </div>
               <div className="player-points" style={{ color }}>
                 {player.points}
-                <span style={{ marginLeft: '8px', opacity: 0.7 }}>
-                  ({player.outsideTimeRemaining.toFixed(1)}s)
-                </span>
+                <span style={{ marginLeft: '8px', opacity: 0.7 }}>({player.outsideTimeRemaining.toFixed(1)}s)</span>
               </div>
             </div>
           );

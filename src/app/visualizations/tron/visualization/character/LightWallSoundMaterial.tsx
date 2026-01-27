@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -19,10 +19,17 @@ export const useLightWallSoundMaterial = ({
   side = THREE.DoubleSide,
   depthWrite = false,
 }: LightWallSoundMaterialProps) => {
+  const frameCountRef = useRef(0);
+  const updateInterval = 2; // Update every 2 frames (30fps instead of 60fps)
+
   useFrame(() => {
-    updateSampleTexture();
-    if (shaderMaterial.uniforms.sampleData) {
-      shaderMaterial.uniforms.sampleData.value = sampleTexture;
+    frameCountRef.current++;
+    if (frameCountRef.current % updateInterval === 0) {
+      updateSampleTexture();
+
+      if (shaderMaterial.uniforms.sampleData) {
+        shaderMaterial.uniforms.sampleData.value = sampleTexture;
+      }
     }
   });
 
@@ -44,11 +51,17 @@ export const useLightWallSoundMaterial = ({
       },
       vertexShader: `
         attribute vec4 color;
+        attribute float sideMark;
         varying vec2 vUv;
         varying vec4 vColor;
+        varying float vFaceType;
+        varying float vSideMark;
+        
         void main() {
           vUv = uv;
           vColor = color;
+          vSideMark = sideMark;
+          vFaceType = uv.y;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
@@ -56,9 +69,10 @@ export const useLightWallSoundMaterial = ({
         uniform sampler2D sampleData;
         uniform vec3 baseColor;
         uniform float opacity;
-        uniform float fixedAlpha;
         varying vec2 vUv;
         varying vec4 vColor;
+        varying float vFaceType;
+        varying float vSideMark;
         
         void main() {
           float audioValue = texture2D(sampleData, vec2(vUv.y, vUv.x)).r;

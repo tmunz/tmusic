@@ -154,7 +154,7 @@ const TronScene = ({ sampleProvider, debugMode }: TronSceneProps) => {
         <TronCamera userRef={userRef} companionRef={companionRef} />
         <TronEnvironment tileSize={tileSize} viewDistance={3} />
         <Suspense fallback={null}>
-          <CollisionProvider>
+          <CollisionProvider cellSize={2.5}>
             {debugMode >= DebugMode.COLLISION && <CollisionDebugVisualizer />}
             <Character
               ref={userRef}
