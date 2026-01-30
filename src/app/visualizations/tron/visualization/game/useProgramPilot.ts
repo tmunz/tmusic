@@ -35,7 +35,12 @@ export const useProgramPilot = ({ characterId, characterRef, difficulty = 1 }: P
     return isOutsideBoundary(x, z) || isCellOccupied(x, z);
   };
 
-  const findBestDirection = (currentPos: Vector3, forward: Vector3, cellSize: number, maxSteps: number): { direction: Vector3; straightClearDistance: number; turnAngle: number } => {
+  const findBestDirection = (
+    currentPos: Vector3,
+    forward: Vector3,
+    cellSize: number,
+    maxSteps: number
+  ): { direction: Vector3; straightClearDistance: number; turnAngle: number } => {
     const straightCheckedCells: Vector3[] = [];
     let straightBlocked = false;
     let straightClearDistance = maxSteps;
@@ -86,7 +91,14 @@ export const useProgramPilot = ({ characterId, characterRef, difficulty = 1 }: P
     }
 
     checkedCellsRef.current = [];
-    return { direction: forward.clone().applyAxisAngle(new Vector3(0, 1, 0), Math.PI / 2).normalize(), straightClearDistance, turnAngle: Math.PI / 2 };
+    return {
+      direction: forward
+        .clone()
+        .applyAxisAngle(new Vector3(0, 1, 0), Math.PI / 2)
+        .normalize(),
+      straightClearDistance,
+      turnAngle: Math.PI / 2,
+    };
   };
 
   return () => {
@@ -102,9 +114,13 @@ export const useProgramPilot = ({ characterId, characterRef, difficulty = 1 }: P
     forward.normalize();
 
     const maxSteps = 24 * difficulty;
-    const { direction: bestDirection, straightClearDistance, turnAngle } = findBestDirection(vehicle.position, forward, cellSize, maxSteps);
-    
-    const distanceMultiplier = Math.min(1., Math.pow(straightClearDistance / maxSteps, 2));
+    const {
+      direction: bestDirection,
+      straightClearDistance,
+      turnAngle,
+    } = findBestDirection(vehicle.position, forward, cellSize, maxSteps);
+
+    const distanceMultiplier = Math.min(1, Math.pow(straightClearDistance / maxSteps, 2));
     const angleMultiplier = 1 - turnAngle / Math.PI;
     const speedMultiplier = distanceMultiplier * angleMultiplier;
     const targetSpeed = maxSpeed * Math.max(0.1, speedMultiplier);

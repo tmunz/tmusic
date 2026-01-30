@@ -7,12 +7,11 @@ export interface VivaLaVidaProps {
 }
 
 export const VivaLaVida = ({ sampleProvider, canvas }: VivaLaVidaProps) => {
-  const sizeRatio = 0.9;
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
       <DelacroixLibertyLeadingThePeopleSplashes
-        width={canvas.width * sizeRatio}
-        height={canvas.height * sizeRatio}
+        width={canvas.width}
+        height={canvas.height}
         sampleProvider={sampleProvider}
       />
     </div>

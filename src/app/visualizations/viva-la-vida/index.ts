@@ -1,6 +1,8 @@
+import { PiPen } from 'react-icons/pi';
 import { createSampleSettings } from '../../audio/SampleSettings';
 import { Visualization } from '../Visualization';
 import { VivaLaVida } from './visualization/VivaLaVida';
+import { FourierDrawing } from './dft/FourierDrawing';
 
 const vivaLaVida: Visualization = {
   id: 'viva-la-vida',
@@ -15,6 +17,7 @@ const vivaLaVida: Visualization = {
   settings: {
     samples: createSampleSettings(32, 32),
   },
+  menuItems: [{ icon: PiPen, component: FourierDrawing }],
   spotifyUri: 'spotify:album:0cnd1tlGnbfScH1KWwgxan',
 };
 

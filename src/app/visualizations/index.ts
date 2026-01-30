@@ -15,6 +15,7 @@ import tron from './tron';
 import parallelLines from './parallel-lines';
 import radioActivity from './radio-activity';
 import blueMonday from './blue-monday';
+import tameImpalaCurrents from './tame-impala-currents';
 
 export default [
   unknownPleasures,
@@ -34,6 +35,7 @@ export default [
   minorEarthMajorSky,
   theRiddle,
   parallelLines,
+  tameImpalaCurrents,
 ];
 
 // Mike Oldfield - 5 Miles Out
