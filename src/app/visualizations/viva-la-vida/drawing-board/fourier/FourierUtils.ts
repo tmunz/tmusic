@@ -35,7 +35,7 @@ export function calculateDFT(points: Point[], numHarmonics: number, reverse: boo
     let yImag = 0;
 
     for (let n = 0; n < M; n++) {
-      const angle = (reverse ? -2 : 2) * Math.PI * k * n / M;
+      const angle = ((reverse ? -2 : 2) * Math.PI * k * n) / M;
       const cosAngle = Math.cos(angle);
       const sinAngle = Math.sin(angle);
 
@@ -116,37 +116,4 @@ function resamplePath(points: Point[], targetCount: number): Point[] {
   }
 
   return resampled;
-}
-
-export function generateGLSLCode(coefficients: FourierResult): string {
-  const { x, y, dcX, dcY } = coefficients;
-
-  const formatDC = (value: number): string => {
-    return value.toFixed(2);
-  };
-
-  const formatTerm = (coeff: FourierCoefficient): string => {
-    const amp = coeff.amplitude.toFixed(3);
-    const phase = coeff.phase.toFixed(2);
-    const sign = coeff.phase >= 0 ? '+' : '';
-    return `cos(t * ${coeff.frequency}. ${sign} ${phase}) * ${amp}`;
-  };
-
-  const xTerms = x
-    .filter(c => c.amplitude > 0.005)
-    .map(formatTerm);
-
-  const xCode = `${formatDC(dcX)} + ${xTerms.join(' + \n    ')}`;
-
-  const yTerms = y
-    .filter(c => c.amplitude > 0.005)
-    .map(formatTerm);
-
-  const yCode = `${formatDC(dcY)} + ${yTerms.join(' + \n    ')}`;
-
-  return `
-  vec2(
-    ${xCode},
-    ${yCode}
-  )`;
 }

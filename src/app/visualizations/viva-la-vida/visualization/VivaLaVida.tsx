@@ -1,18 +1,27 @@
 import { SampleProvider } from '../../../audio/SampleProvider';
-import { DelacroixLibertyLeadingThePeopleSplashes } from './DelacroixLibertyLeadingThePeopleSplashes';
+import { DelacroixLibertyLeadingThePeoplePainting } from './DelacroixLibertyLeadingThePeoplePainting';
 
 export interface VivaLaVidaProps {
   sampleProvider: SampleProvider;
   canvas: { width: number; height: number };
+  drawingPath?: string;
+  speed?: number;
 }
 
-export const VivaLaVida = ({ sampleProvider, canvas }: VivaLaVidaProps) => {
+export const VivaLaVida = ({
+  sampleProvider,
+  canvas,
+  drawingPath,
+  speed = 1,
+}: VivaLaVidaProps & { speed?: number }) => {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-      <DelacroixLibertyLeadingThePeopleSplashes
+      <DelacroixLibertyLeadingThePeoplePainting
         width={canvas.width}
         height={canvas.height}
         sampleProvider={sampleProvider}
+        drawingPath={drawingPath}
+        speed={speed}
       />
     </div>
   );

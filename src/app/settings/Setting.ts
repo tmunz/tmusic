@@ -1,5 +1,6 @@
 export enum SettingType {
   NUMBER = 'number',
+  EXTERNAL = 'external',
 }
 
 export interface Setting<T> {

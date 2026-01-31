@@ -1,0 +1,18 @@
+.external-setting {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 0;
+  max-width: 100%;
+  width: 220px;
+  box-sizing: border-box;
+
+  label {
+    font-size: 0.8em;
+    padding: 4px 0;
+  }
+  div {
+    font-size: 0.9em;
+    color: #ccc;
+  }
+}

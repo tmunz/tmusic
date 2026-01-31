@@ -1,8 +1,11 @@
 import { PiPen } from 'react-icons/pi';
 import { createSampleSettings } from '../../audio/SampleSettings';
+import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { VivaLaVida } from './visualization/VivaLaVida';
-import { FourierDrawing } from './dft/FourierDrawing';
+import { VivaLaVidaDrawing } from './drawing-board/VivaLaVidaDrawing';
+// import path from './visualization/VivaLaVidaPath';
+import path from './visualization/TestPath';
 
 const vivaLaVida: Visualization = {
   id: 'viva-la-vida',
@@ -16,8 +19,29 @@ const vivaLaVida: Visualization = {
   color: '#342b1c',
   settings: {
     samples: createSampleSettings(32, 32),
+    visualization: {
+      speed: {
+        id: 'speed',
+        name: 'Speed',
+        description: 'Speed of drawing animation',
+        type: SettingType.NUMBER,
+        value: 1.0,
+        params: {
+          min: 0.1,
+          max: 5.0,
+          step: 0.1,
+        },
+      },
+      drawingPath: {
+        id: 'drawingPath',
+        name: 'Drawing Path',
+        description: 'Managed by Drawing Board',
+        type: SettingType.EXTERNAL,
+        value: path,
+      },
+    },
   },
-  menuItems: [{ icon: PiPen, component: FourierDrawing }],
+  menuItems: [{ icon: PiPen, component: VivaLaVidaDrawing }],
   spotifyUri: 'spotify:album:0cnd1tlGnbfScH1KWwgxan',
 };
 
