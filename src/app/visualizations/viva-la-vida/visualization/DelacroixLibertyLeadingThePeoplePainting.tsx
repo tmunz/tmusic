@@ -4,8 +4,9 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useFBO } from '@react-three/drei';
 import { getBufferAFragmentShader } from './shaders/BufferA.gsgl';
 import { imageFragmentShader } from './shaders/Image.gsgl';
+import { useNoise3D } from './noise/useNoise3D';
+import { useBlueNoise } from './noise/useBlueNoise';
 import {
-  DataTexture,
   LinearFilter,
   Mesh,
   PlaneGeometry,
@@ -58,25 +59,12 @@ const BrushPainting = ({
   speed?: number;
 }) => {
   const { gl, size, pointer, camera } = useThree();
+  const noise3D = useNoise3D(42);
+  const blueNoise = useBlueNoise();
 
   const backgroundTexture = useMemo(() => {
     const loader = new TextureLoader();
     const texture = loader.load(require('./delacroix-liberty-leading-the-people.jpg'));
-    return texture;
-  }, []);
-
-  const noiseTexture = useMemo(() => {
-    const size = 256;
-    const data = new Uint8Array(size * size * 4);
-    for (let i = 0; i < size * size; i++) {
-      const stride = i * 4;
-      data[stride] = Math.random() * 255;
-      data[stride + 1] = Math.random() * 255;
-      data[stride + 2] = Math.random() * 255;
-      data[stride + 3] = 255;
-    }
-    const texture = new DataTexture(data, size, size, RGBAFormat);
-    texture.needsUpdate = true;
     return texture;
   }, []);
 
@@ -101,9 +89,9 @@ const BrushPainting = ({
 
     return new ShaderMaterial({
       uniforms: {
-        channel0: { value: noiseTexture },
+        channel0: { value: noise3D },
         channel1: { value: null }, // Will be set to previous frame
-        channel2: { value: noiseTexture },
+        channel2: { value: blueNoise },
         resolution: { value: new Vector2(size.width, size.height) },
         time: { value: 0 },
         timeDelta: { value: 0 },
@@ -111,36 +99,38 @@ const BrushPainting = ({
         speed: { value: speed },
       },
       vertexShader: `
-        varying vec2 vUv;
+        out vec2 vUv;
         void main() {
           vUv = uv;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
       fragmentShader: fragmentShader,
+      glslVersion: '300 es',
     });
-  }, [width, height, noiseTexture, drawingPath, speed]);
+  }, [width, height, noise3D, blueNoise, drawingPath, speed]);
 
   const imageMaterial = useMemo(() => {
     return new ShaderMaterial({
       uniforms: {
         channel0: { value: null }, // Will be set to Buffer A
-        channel1: { value: noiseTexture },
+        channel1: { value: blueNoise },
         image: { value: backgroundTexture },
         resolution: { value: new Vector2(size.width, size.height) },
         textureResolution: { value: new Vector2(1, 1) }, // Will be updated when texture loads
         mouse: { value: new Vector4(0, 0, 0, 0) },
       },
       vertexShader: `
-        varying vec2 vUv;
+        out vec2 vUv;
         void main() {
           vUv = uv;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
       fragmentShader: imageFragmentShader,
+      glslVersion: '300 es',
     });
-  }, [size.width, size.height, noiseTexture, backgroundTexture]);
+  }, [size.width, size.height, noise3D, backgroundTexture]);
 
   useEffect(() => {
     const handleMouseDown = () => {

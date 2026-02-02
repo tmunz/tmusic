@@ -29,7 +29,7 @@ export default [
   chvrchesEveryEyeOpen,
   crises,
   pushTheSkyAway,
-  // vivaLaVida,
+  vivaLaVida,
   santigold,
   velvetUnderground,
   minorEarthMajorSky,

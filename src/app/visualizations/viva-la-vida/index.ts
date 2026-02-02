@@ -4,8 +4,7 @@ import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { VivaLaVida } from './visualization/VivaLaVida';
 import { VivaLaVidaDrawing } from './drawing-board/VivaLaVidaDrawing';
-// import path from './visualization/VivaLaVidaPath';
-import path from './visualization/TestPath';
+import path from './visualization/VivaLaVidaPath';
 
 const vivaLaVida: Visualization = {
   id: 'viva-la-vida',
