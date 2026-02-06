@@ -74,23 +74,25 @@ export const PsychedelicSwirl = ({ sampleProvider, width, height, intensity = 1 
           float m = 0.95;
           float depth = h - uv.y;
           float perspectiveY = 1. / depth;
-          vec2 perspectiveUv = vec2(h * ((1.-m) + uv.x + m *uv.y) * perspectiveY, uv.y);
+          vec2 perspectiveUv = vec2(h * ((1.-m) + uv.x + m *uv.y) * perspectiveY, uv.y - uv.x * 0.2);
 
           
           // ball distortion
           float ballRadius = .22;
-          vec2 ballPosition = vec2(0.25, -0.3);
-          vec2 perspectiveBallPosition = vec2(-0., -0.3);
-          float distToBall = distance(perspectiveUv, perspectiveBallPosition);
+          vec2 ballPosition = vec2(0.2, -0.25);
+          vec2 perspectiveBallPosition = -vec2(0., 0.3);
+          vec2 diff = perspectiveUv - perspectiveBallPosition;
+          diff.y /= 0.7;
+          float distToBall = length(diff) / 1.4;
           float ballInfluence = 1.0 - smoothstep(0.1, ballRadius * 1.5, distToBall);
           vec2 directionToBall = perspectiveBallPosition - perspectiveUv;
-          vec2 distUv = perspectiveUv + directionToBall * ballInfluence;
+          vec2 distUv = perspectiveUv + directionToBall * ballInfluence * vec2(1., 0.);
           
 
           // sample data distortion
-          float xUsage = 2.82;
-          float yUsage = 0.83;
-          float sampleV = -(1. / yUsage - 1.) - distUv.y * 1. / yUsage;
+          float xUsage = 3.2;
+          float yUsage = 0.95;
+          float sampleV = -0.3 + ((1. / yUsage - 1.) - distUv.y * 1. / yUsage);
           sampleV -= 1. / sampleDataSize.y; // offset to avoid edge artifacts
           vec2 sampleUv = vec2((distUv.x + xUsage / 2.) / xUsage, sampleV);
           float sampleValue = interpolateSample(sampleData, sampleUv, sampleDataSize);

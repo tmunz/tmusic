@@ -1,12 +1,13 @@
 {
-  "name": "musicbox-gui",
+  "name": "tmusic",
   "version": "0.0.1",
-  "repository": "https://github.com/tmunz/musicbox-gui",
-  "homepage": "https://tmunz.github.io/musicbox-gui",
+  "repository": "https://github.com/tmunz/tmusic",
+  "homepage": "https://tmunz.github.io/tmusic",
   "description": "Musicbox",
   "scripts": {
     "start": "webpack serve --config webpack/webpack.config.js --env env=development",
     "build": "del-cli -f ./dist/* && webpack --config webpack/webpack.config.js --env env=production",
+    "build:extension": "del-cli -f ./dist/* && webpack --config webpack/webpack.config.js --env env=production --env extension=true",
     "test": "jest",
     "lint": "eslint --fix ./src/**/*{.js,.ts*}",
     "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx,json,css,md}'",
@@ -23,6 +24,7 @@
     "react-dom": "^18.3.0",
     "react-icons": "^5.4.0",
     "react-router-dom": "^6.25.1",
+    "webextension-polyfill": "^0.10.0",
     "zustand": "^5.0.10"
   },
   "devDependencies": {
@@ -35,6 +37,7 @@
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
+    "@types/chrome": "^0.0.248",
     "@types/dom-to-image": "^2.6.7",
     "@types/jest": "^29.5.0",
     "@types/opentype.js": "^1.3.4",
@@ -43,6 +46,7 @@
     "@types/react-color": "^3.0.6",
     "@types/react-dom": "^18.0.6",
     "@types/three": "^0.172.0",
+    "@types/webextension-polyfill": "^0.10.7",
     "@typescript-eslint/eslint-plugin": "^5.32.0",
     "@typescript-eslint/parser": "^5.32.0",
     "@webpack-cli/serve": "^2.0.1",

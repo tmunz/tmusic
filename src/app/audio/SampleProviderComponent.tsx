@@ -25,12 +25,5 @@ export const SampleProviderComponent = ({
     onSampleProviderChange(sampleProvider);
   }, [sampleProvider]);
 
-  return (
-    <Audio
-      onChange={sp => {
-        setStreamProvider(sp);
-        onSampleProviderChange(sampleProvider);
-      }}
-    />
-  );
+  return <Audio onChange={sp => setStreamProvider(sp)} />;
 };

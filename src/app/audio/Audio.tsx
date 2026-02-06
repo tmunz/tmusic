@@ -5,6 +5,7 @@ import { MicrophoneAudio } from './microphone/MicrophoneAudio';
 import { FileAudio } from './file/FileAudio';
 import { SpotifyAudio } from './spotify/SpotifyAudio';
 import { UrlStreamAudio } from './url-stream/UrlStreamAudio';
+import { BrowserTabAudio } from './browser-tab/BrowserTabAudio';
 
 interface AudioProviderProps {
   onChange: (stream: Promise<MediaStream | null>) => void;
@@ -66,6 +67,11 @@ export const Audio = ({ onChange }: AudioProviderProps) => {
           </button>
         </div>
       )}
+
+      <BrowserTabAudio
+        isActive={currentStream?.type === MediaStreamType.BROWSER_TAB}
+        onStreamCreated={handleStreamCreated(MediaStreamType.BROWSER_TAB)}
+      />
 
       <MicrophoneAudio
         isActive={currentStream?.type === MediaStreamType.MICROPHONE}

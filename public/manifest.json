@@ -1,0 +1,42 @@
+{
+    "name": "tmusic",
+    "version": "0.0.1",
+    "description": "Music visualization for browser tab audio",
+    "manifest_version": 3,
+    "background": {
+        "service_worker": "extension.js"
+    },
+    "permissions": [
+        "tabs",
+        "activeTab",
+        "tabCapture",
+        "storage"
+    ],
+    "action": {
+        "default_icon": {
+            "16": "favicon-16x16.png",
+            "32": "favicon-32x32.png",
+            "192": "icon-192x192.png",
+            "256": "icon-256x256.png",
+            "512": "icon-512x512.png"
+        },
+        "default_title": "tmusic"
+    },
+    "icons": {
+        "16": "favicon-16x16.png",
+        "32": "favicon-32x32.png",
+        "192": "icon-192x192.png",
+        "256": "icon-256x256.png",
+        "512": "icon-512x512.png"
+    },
+    "content_security_policy": {
+        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+    },
+    "commands": {
+        "_execute_action": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+M"
+            }
+        }
+    }
+}

@@ -9,10 +9,18 @@ uniform sampler3D channel0; // 3D Noise
 uniform sampler2D channel1; // Buffer A (previous frame)
 uniform sampler2D channel2; // Blue noise
 uniform vec2 resolution;
+uniform vec4 mouse;
 uniform float time;
 uniform float timeDelta;
+uniform float progressDelta;
 uniform float speed;
-uniform vec4 mouse;
+uniform float creaminess;
+uniform float dryness;
+uniform float scale;
+uniform float strokeWidth;
+uniform float pouringSize;
+uniform float pouringAmount;
+uniform float falloff;
 
 #define TEX(uv) texture(channel0, vec3(uv, 0.0)).r
 
@@ -20,55 +28,107 @@ mat2 rot(float a) { return mat2(cos(a), -sin(a), sin(a), cos(a)); }
 
 ${drawingPath || 'vec2 drawPath(float t) { return vec2(0.0); }'}
 
-const float scale = 0.5;
-const float strokeEffect = 0.04;
-const float strokeWidth = 0.04;
-const float strokeThicknessMin = 0.5;
-const float strokeThicknessMax = 0.9;
-const float dryness = 0.1;
-const float creaminess = 0.5;
-const float fade = 0.0005;
-
-vec3 fbm(vec3 p) {
+// fractal brownian motion (layers of multi scale noise)
+float fbm(vec3 p) {
   vec3 result = vec3(0);
   float amplitude = 0.5;
   for (float index = 0.; index < 3.; ++index) {
-    result += texture(channel0, p / amplitude).xyz * amplitude;
-    amplitude *= strokeEffect;
+    result += (texture(channel0, p/amplitude).xyz) * amplitude;
+    amplitude /= falloff;
   }
-  return result;
+  return result.x;
 }
 
-void main() {
-  float aspectRatio = resolution.x / resolution.y;
-  vec2 fragCoord = vUv * resolution;
-  vec2 uv = (vUv - 0.5) * vec2(aspectRatio, 1.);
 
+void drawPath(out vec4 fragColor, in vec2 fragCoord) {
+  vec2 uv = (fragCoord.xy - resolution.xy / 2.)/resolution.y;
   vec3 dither = texture(channel2, fragCoord.xy / 1024.).rgb;
-  float t = time * speed + dither.x * pow(10., dryness) / 100.;
-  vec2 current = drawPath(t) * scale;
-  vec2 next = drawPath(t - .01) * scale;
-  vec2 velocity = normalize(next - current);
-  vec2 pos = uv - current;
-  float paint = fbm(vec3(pos, 0.) * scale).r;
-  float brush = smoothstep(strokeWidth * pow(10., creaminess) * 0.4, 0.0, length(pos));
+  
+  // sample curve position
+  float t = time * speed + dither.x * dryness / 100.;
+  vec2 current = drawPath(t) * scale / 2.;
+  vec2 prev = drawPath(t - .01) * scale / 2.;
+  vec2 velocity = normalize(prev-current);
+  vec2 pos = uv - current * scale * 0.8;
+  
+  float paint = fbm(vec3(pos, 0.) / creaminess) * 1.8;
+  
+  // brush range
+  float brush = smoothstep(.2,.0,length(pos)/strokeWidth);
   paint *= brush;
   
-  // bristles
-  paint += smoothstep(strokeWidth, .0, length(pos));
+  // add circle shape to buffer
+  paint += smoothstep(.02 * strokeWidth, .0, length(pos));
   
   // motion mask
-  float push = smoothstep(strokeThicknessMin, strokeThicknessMax, paint);
+  float push = smoothstep(.3, .5, paint);
+  push *= smoothstep(.4, 1., brush);
   
   // direction and strength
-  vec2 offset = 10. * push * velocity / resolution.xy;
-  
-  // sample frame buffer with motion
-  vec2 bufferUv = fragCoord.xy / resolution.xy + offset;
-  vec4 bufferFrame = texture(channel1, bufferUv);
+  vec2 offset = 10.*push*velocity/resolution.xy;
   
 
-  paint = max(paint, bufferFrame.r - fade);
+  // mouse interaction
+
+  // data from previous frame
+  // xy = previous mouse position
+  // z = time since mouse press (0 to 1)
+  // w = mouse pressed (0 or 1)
+  vec4 data = texture(channel1, vec2(0,0));
+
+  bool wasNotPressing = data.w == 0.;
+  if (wasNotPressing && mouse.z == 1.) {
+    data.z = 0.;
+  } else {
+    data.z += timeDelta;
+  }
+  float mouseValue = 0.;
+
+  // mousePos is as uv in -0.5 to 0.5 range with aspect ratio correction
+  // mouseUv is it moved to the mouse position
+  vec2 mousePos = (mouse.xy - resolution.xy / 2.) / resolution.y;
+  vec2 mouseUv = uv - mousePos;
+
+  // add wiggling
+  mouseUv += vec2(-0.5 + fract(.3 + data.z * 4.2), -0.5 + fract(data.z * 1.7)) * .005;
+  if (mouse.z == 1.0) {
+    mouseValue = smoothstep(fbm(vec3(.01, 0., 0.)), 0.0, length(mouseUv) / 0.01 / pouringAmount);
+
+    // use fbm mask for better shape control
+    float mask = fbm(vec3(mouseUv, 0.) * .5);
+    mask = smoothstep(.3, .6, mask);
+    
+    float mousePush = smoothstep(.2, .0, length(mouseUv) / pouringSize);
+    mousePush *= mask;
+    
+    // directional motion based on mouse movement
+    vec2 dir = normalize(data.xy - mousePos + .001);
+    float fadeIn = smoothstep(0.0, 1.0, clamp(data.z, 0.0, 1.0));
+    // float offsetFade = sin(fadeIn * 3.1415);
+    offset += 10. * mousePush * normalize(mousePos - uv) / resolution.xy; // * offsetFade;
+    
+    // add directional push based on movement
+    mousePush *= 500. * length(data.xy - mousePos) * fadeIn;
+    offset += mousePush * dir / resolution.xy;
+  }
+  
+  // sample frame buffer with motion
+  uv = fragCoord.xy / resolution.xy;
+  vec4 frame = texture(channel1, uv + offset);
+  
+  // temporal fading buffer
+  paint = max(paint, frame.x - .0005 + mouseValue);
+  
+  // print result
   fragColor = vec4(clamp(paint, 0., 1.));
+  
+  // save mouse position for next frame
+  if (fragCoord.x < 1. && fragCoord.y < 1.) {
+    fragColor = vec4(mousePos, data.z, mouse.z);
+  }
 }
-`;
+
+
+void main() {
+  drawPath(fragColor, gl_FragCoord.xy);
+}`;

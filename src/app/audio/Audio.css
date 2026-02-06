@@ -2,6 +2,12 @@
   display: flex;
   flex-direction: column;
   align-items: end;
+  pointer-events: none;
+
+  & > * {
+    pointer-events: auto;
+    cursor: pointer;
+  }
 
   .icon-toggle-active > *:first-child {
     color: red;
