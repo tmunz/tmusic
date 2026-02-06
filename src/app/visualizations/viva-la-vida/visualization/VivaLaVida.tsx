@@ -6,23 +6,19 @@ export interface VivaLaVidaProps {
   canvas: { width: number; height: number };
   drawingPath?: string;
   speed?: number;
+  creaminess?: number;
+  dryness?: number;
+  scale?: number;
+  strokeWidth?: number;
+  pouringSize?: number;
+  pouringAmount?: number;
+  falloff?: number;
 }
 
-export const VivaLaVida = ({
-  sampleProvider,
-  canvas,
-  drawingPath,
-  speed = 1,
-}: VivaLaVidaProps & { speed?: number }) => {
+export const VivaLaVida = (props: VivaLaVidaProps) => {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-      <DelacroixLibertyLeadingThePeoplePainting
-        width={canvas.width}
-        height={canvas.height}
-        sampleProvider={sampleProvider}
-        drawingPath={drawingPath}
-        speed={speed}
-      />
+      <DelacroixLibertyLeadingThePeoplePainting {...props} width={props.canvas.width} height={props.canvas.height} />
     </div>
   );
 };

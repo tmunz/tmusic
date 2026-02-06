@@ -5,8 +5,14 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const pkg = require('../package.json');
 
-module.exports = (env) => ({
-  entry: {
+module.exports = (env) => {
+  const isExtension = env.extension === 'true';
+  
+  return {
+  entry: isExtension ? {
+    extension: path.resolve(__dirname, '..', './src/extension.ts'),
+    app: path.resolve(__dirname, '..', './src/index.tsx'),
+  } : {
     app: path.resolve(__dirname, '..', './src/index.tsx'),
   },
   module: {
@@ -51,21 +57,27 @@ module.exports = (env) => ({
     new CleanWebpackPlugin(),
     new CopyWebpackPlugin({
       patterns: [
-        { from: path.resolve(__dirname, '..', './public/') }
+        { 
+          from: path.resolve(__dirname, '..', './public/'),
+        }
       ]
     }),
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, '..', './template/index.html'),
+      filename: 'index.html',
+      chunks: ['app']
     }),
     new webpack.DefinePlugin({
       "process.env": {
         "APP_VERSION": JSON.stringify(pkg.version),
         "MODE": JSON.stringify(env),
         "PUBLIC_PATH": JSON.stringify(env === "production" ? '/tmusic' : '/'),
+        "IS_EXTENSION": JSON.stringify(isExtension),
       }
     }),
   ],
   resolve: {
     extensions: ['.js', '.ts', '.tsx']
   },
-});
+  };
+};

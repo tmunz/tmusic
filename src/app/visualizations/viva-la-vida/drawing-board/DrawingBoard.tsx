@@ -3,6 +3,7 @@ import { DrawingCanvas, Point, Stroke, DrawingCanvasHandle } from './DrawingCanv
 import { DrawingBoardControlBar } from './DrawingBoardControlBar';
 import { CodeGenerationMode } from './CodeGenerationMode';
 import { FourierOptionBar } from './fourier/FourierOptionBar';
+import { VectorOptionBar } from './vector/VectorOptionBar';
 import { GLSLOutput } from './glsl/GLSLOutput';
 import { calculateDFT } from './fourier/FourierUtils';
 import { convertFourierToGlsl } from './fourier/FourierToGlsl';
@@ -44,6 +45,9 @@ export const DrawingBoard = ({
   const [totalDuration, setTotalDuration] = useState(0);
   const [currentStrokeIndex, setCurrentStrokeIndex] = useState(0);
 
+  // Vector-specific state
+  const [angleThreshold, setAngleThreshold] = useState(15);
+
   const drawingCanvasRef = useRef<DrawingCanvasHandle>(null);
   const trailPointsRef = useRef<{ x: number; y: number; alpha: number }[]>([]);
 
@@ -64,6 +68,7 @@ export const DrawingBoard = ({
     strokes: strokes,
     enabled: showAnimation && mode === 'vector',
     speed,
+    angleThreshold,
     onTimeUpdate: setCurrentTime,
     onStrokeIndexUpdate: setCurrentStrokeIndex,
     onTotalDurationUpdate: setTotalDuration,
@@ -112,11 +117,11 @@ export const DrawingBoard = ({
         setGlslCode(glslCode);
         setFourierData(strokeTransformations as any[]);
       } else {
-        const glslCode = convertVectorToGlsl(strokesToUse, canvasWidth, canvasHeight);
+        const glslCode = convertVectorToGlsl(strokesToUse, canvasWidth, canvasHeight, angleThreshold);
         setGlslCode(glslCode);
       }
     },
-    [mode, harmonics, reverseDirection, canvasWidth, canvasHeight]
+    [mode, harmonics, reverseDirection, angleThreshold, canvasWidth, canvasHeight]
   );
 
   // Auto-regenerate code when mode changes
@@ -124,7 +129,7 @@ export const DrawingBoard = ({
     if (strokes.length > 0) {
       generateCodeWithStrokes(strokes);
     }
-  }, [mode, harmonics, reverseDirection, strokes, generateCodeWithStrokes]);
+  }, [mode, harmonics, reverseDirection, angleThreshold, strokes, generateCodeWithStrokes]);
 
   const handleStrokeStart = (point: Point) => {
     setCurrentStroke([point]);
@@ -243,6 +248,10 @@ export const DrawingBoard = ({
           reverseDirection={reverseDirection}
           onReverseDirectionToggle={setReverseDirection}
         />
+      )}
+
+      {mode === 'vector' && (
+        <VectorOptionBar angleThreshold={angleThreshold} onAngleThresholdChange={setAngleThreshold} />
       )}
 
       <div className="canvas-wrapper">
