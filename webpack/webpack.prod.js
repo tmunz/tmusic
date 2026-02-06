@@ -14,7 +14,7 @@ module.exports = (env) => {
         }
         return 'bundle.[name].[contenthash].js';
       },
-      publicPath: isExtension ? '/' : '/tmusic/',
+      publicPath: '/tmusic/',
     },
   };
 };
