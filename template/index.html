@@ -29,9 +29,10 @@
     }
   </style>
 
-  <meta name="APP_VERSION" content="<%= process.env.APP_VERSION %>">
-  <meta name="PUBLIC_PATH" content="<%= process.env.PUBLIC_PATH %>">
-  <meta name="IS_EXTENSION" content="<%= process.env.IS_EXTENSION %>">
+  <meta name="app-version" content="<%= process.env.APP_VERSION %>">#
+  <meta name="mode" content="<%= process.env.MODE %>">
+  <meta name="public-path" content="<%= process.env.PUBLIC_PATH %>">
+  <meta name="is-extension" content="<%= process.env.IS_EXTENSION %>">
 
   <% if (!process.env.IS_EXTENSION) { %>
   <script type="text/javascript">

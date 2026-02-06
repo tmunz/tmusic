@@ -70,8 +70,8 @@ module.exports = (env) => {
     new webpack.DefinePlugin({
       "process.env": {
         "APP_VERSION": JSON.stringify(pkg.version),
-        "MODE": JSON.stringify(env),
-        "PUBLIC_PATH": JSON.stringify(env === "production" ? '/tmusic' : '/'),
+        "MODE": JSON.stringify(env.env),
+        "PUBLIC_PATH": JSON.stringify(env.env === "production" ? '/tmusic' : '/'),
         "IS_EXTENSION": JSON.stringify(isExtension),
       }
     }),
