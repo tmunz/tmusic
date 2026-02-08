@@ -5,14 +5,14 @@ import { useSampleProviderTexture } from '../../../audio/useSampleProviderTextur
 import { gaussianBlur } from '../../../utils/ShaderUtils';
 import { LinearFilter } from 'three';
 
-export interface TeeProps {
+export interface TrainRideProps {
   width: number;
   height: number;
   sampleProvider: SampleProvider;
   intensity?: number;
 }
 
-export const Tee = ({ width, height, sampleProvider, intensity = 1 }: TeeProps) => {
+export const TrainRide = ({ width, height, sampleProvider, intensity = 1 }: TrainRideProps) => {
   const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider);
 
   const { current: imageUrls } = useRef({

@@ -4,7 +4,7 @@ import { SampleProvider } from '../../../audio/SampleProvider';
 import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
 import { RootState } from '@react-three/fiber';
 import { convertLeafData, convertWeightedMaxData, getBassValue } from './RoseDataConverter';
-import { gaussianBlur } from '../../../utils/ShaderUtils';
+import { interpolation } from '../../../utils/ShaderUtils';
 
 export interface RoseProps {
   width: number;
@@ -96,7 +96,7 @@ export const Rose = ({ width, height, sampleProvider, depth = 2, leafsPerBranch 
       const vec4 color2 = vec4(.9, .8, .75, 1.);
       const float spaceY = .1;
 
-      ${gaussianBlur}
+      ${interpolation}
 
       float _line(vec2 uv, vec2 a, vec2 b, float strokeWidth) {
         vec2 pa = uv - a;
@@ -187,7 +187,7 @@ export const Rose = ({ width, height, sampleProvider, depth = 2, leafsPerBranch 
               vec2 leafSideUv = vec2(((d + side) % 2 == 0 ? leafValueX : 1. - leafValueX) * 2., leafUv.y);
               float maskX = smoothstep(0., 1. / vSize.x, leafSideUv.x) * smoothstep(1., 1. - 1. / vSize.x, leafSideUv.x);
               float maskY = smoothstep(0., 1. / vSize.y, leafSideUv.y) * smoothstep(1., 1. - 1. / vSize.y, leafSideUv.y);
-              float value = gaussianBlur(leafData, leafValueUv.yx, .1, 9, leafDataSize).r; 
+              float value = interpolation(leafData, leafValueUv.yx, leafDataSize).r; 
               float v = smoothstep(.5, .6, value);
               c = mix(c, mix(color1, color2, v), maskX * maskY);
             }

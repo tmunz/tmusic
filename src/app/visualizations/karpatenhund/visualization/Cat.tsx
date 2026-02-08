@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
 import { SampleProvider } from '../../../audio/SampleProvider';
 import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
-import { gaussianBlur } from '../../../utils/ShaderUtils';
+import { interpolation } from '../../../utils/ShaderUtils';
 
 export interface CatProps {
   width: number;
@@ -44,8 +44,8 @@ export const Cat = ({ width, height, sampleProvider }: CatProps) => {
         uniform float sampleDataAvg;
         uniform int samplesActive;
         in vec2 vUv;
-
-        ${gaussianBlur}
+  
+        ${interpolation}
 
         float _shapeFactor (float x) {
           return 0.9 * (cos(12. * x) / 3.0 + .5) * (1. - x / 2.) + 0.1;
@@ -68,7 +68,9 @@ export const Cat = ({ width, height, sampleProvider }: CatProps) => {
               float dateWidth = dataX1 - dataX0;
               float dataHeight = dataY1 - dataY0;
               vec2 correctedUv = (uv - vec2(dataX0, dataY0)) / vec2(dateWidth, dataHeight);
-              vec4 sampleColor = gaussianBlur(sampleData, correctedUv, 1. / sampleDataSize.x, 25, sampleDataSize);
+              
+              vec4 sampleColor = interpolation(sampleData, correctedUv, sampleDataSize);
+
               float factor = dataHeight;
               uv.y -= sampleColor.r * factor * _shapeFactor(uv.x) * correctedUv.y;
               // sampleColor.rgb = vec3(sampleColor.r);

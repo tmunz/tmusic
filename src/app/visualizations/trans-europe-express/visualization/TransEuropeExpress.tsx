@@ -1,5 +1,5 @@
 import { SampleProvider } from '../../../audio/SampleProvider';
-import { Tee } from './Tee';
+import { TrainRide } from './TrainRide';
 
 export interface TransEuropeExpressProps {
   sampleProvider: SampleProvider;
@@ -10,7 +10,7 @@ export const TransEuropeExpress = ({ sampleProvider, canvas }: TransEuropeExpres
   const sizeRatio = 0.9;
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-      <Tee width={canvas.width * sizeRatio} height={canvas.height * sizeRatio} sampleProvider={sampleProvider} />
+      <TrainRide width={canvas.width * sizeRatio} height={canvas.height * sizeRatio} sampleProvider={sampleProvider} />
     </div>
   );
 };

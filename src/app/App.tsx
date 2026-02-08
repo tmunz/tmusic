@@ -1,5 +1,5 @@
 import './App.css';
-import { startTransition, useEffect, useRef, useState } from 'react';
+import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { SampleProviderComponent } from './audio/SampleProviderComponent';
 import { useDimension } from './utils/useDimension';
@@ -47,21 +47,25 @@ export function App() {
     });
   };
 
-  const items = visualizations.map(v => {
-    const active = appState.visualization?.id === v.id;
-    return {
-      id: v.id,
-      component: (
-        <VisualizationComponent
-          key={v.id}
-          visualization={active ? appState.visualization : v}
-          sampleProvider={sampleProvider}
-          canvas={{ width, height }}
-          isActive={active}
-        />
-      ),
-    };
-  });
+  const items = useMemo(
+    () =>
+      visualizations.map(v => {
+        const active = appState.visualization?.id === v.id;
+        return {
+          id: v.id,
+          component: (
+            <VisualizationComponent
+              key={v.id}
+              visualization={active ? appState.visualization : v}
+              sampleProvider={sampleProvider}
+              canvas={{ width, height }}
+              isActive={active}
+            />
+          ),
+        };
+      }),
+    [appState.visualization, sampleProvider, width, height]
+  );
 
   return (
     <div className="tmusic" ref={elementRef} style={{ width: '100%', height: '100%', overflow: 'hidden' }}>

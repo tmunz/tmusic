@@ -16,6 +16,7 @@ import parallelLines from './parallel-lines';
 import radioActivity from './radio-activity';
 import blueMonday from './blue-monday';
 import tameImpalaCurrents from './tame-impala-currents';
+import fiveMilesOut from './five-miles-out';
 
 export default [
   unknownPleasures,
@@ -32,22 +33,30 @@ export default [
   vivaLaVida,
   santigold,
   velvetUnderground,
+  fiveMilesOut,
   minorEarthMajorSky,
   theRiddle,
   parallelLines,
   tameImpalaCurrents,
 ];
 
-// Mike Oldfield - 5 Miles Out
+// Arctic Monkeys - AM
 // Kraftwerk - Mensch-Maschine
 // The Sounds
 // Keane - Under the Iron Sea
-
+// The Strokes - Is This It
+// Kite - VI
+// Radiohead - Kid A
+// Elo - Time
+// Beastiboys - Licensed to Ill
+// Nirvana - Nevermind
 // The Who - Who's Next
 // Green Day - American Idiot
+// Bruce Springsteen - Born in the USA
 // Yeah Yeah Yeahs - It's Blitz!
 // Led Zeppelin - Led Zeppelin
 // Placebo - Battle for the Sun
 // The Beatles - Abbey Road
 // T. Rex - Electric Warrior
 // David Bowie - Aladdin Sane
+// Rick Astley - I'm Never Gonna Give You Up :-P

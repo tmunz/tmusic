@@ -72,8 +72,8 @@ export const Carousel = ({ items, onSelect, selectedId, defaultFocus = false }: 
 
     const carousel = carouselRef.current;
     if (carousel) {
-      carousel.addEventListener('touchstart', handleTouchStart);
-      carousel.addEventListener('touchmove', handleTouchMove);
+      carousel.addEventListener('touchstart', handleTouchStart, { passive: true });
+      carousel.addEventListener('touchmove', handleTouchMove, { passive: true });
       carousel.addEventListener('touchend', handleTouchEnd);
     }
 

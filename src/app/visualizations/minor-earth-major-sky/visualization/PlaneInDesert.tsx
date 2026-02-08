@@ -3,7 +3,7 @@ import { SampleProvider } from '../../../audio/SampleProvider';
 import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
 import { LinearFilter } from 'three';
-import { gaussianBlur } from '../../../utils/ShaderUtils';
+import { interpolation } from '../../../utils/ShaderUtils';
 
 export interface PlaneInDesertProps {
   width: number;
@@ -45,12 +45,12 @@ export const PlaneInDesert = ({ sampleProvider, width, height, intensity = 1 }: 
       uniform vec2 sampleDataSize;
       uniform float intensity;
 
-      ${gaussianBlur}
+      ${interpolation}
 
       void main() {
         vec2 uv = vUv;
 
-        float sampleValue = gaussianBlur(sampleData, vec2(uv.y, 1. - uv.x), 1. / min(sampleDataSize.x, sampleDataSize.y), 23, sampleDataSize).r;
+        float sampleValue = interpolation(sampleData, vec2(uv.y, 1. - uv.x), sampleDataSize).r;
         vec4 color = texture2D(image, uv);
         vec4 valueColor = vec4(.857, .794, .565, intensity) * sampleValue;
         color.rgb = mix(color.rgb, valueColor.rgb, clamp(valueColor.a, 0., 1.));

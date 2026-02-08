@@ -3,6 +3,7 @@ import { SampleProvider } from '../../../audio/SampleProvider';
 import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
 import { LinearFilter } from 'three';
 import { useRef } from 'react';
+import { interpolation } from '../../../utils/ShaderUtils';
 
 export interface BlueMondaySceneProps {
   width: number;
@@ -88,6 +89,8 @@ export const BlueMondayScene = ({
         float innerRadius = 0.122;
         float outerRadius = 0.49;
 
+        ${interpolation}
+
         vec2 rotate(vec2 v, float a) {
           float s = sin(a);
           float c = cos(a);
@@ -119,19 +122,7 @@ export const BlueMondayScene = ({
           if (dist >= innerRadius && dist <= outerRadius) {
             float frequencyIndex = normalizedAngle;
             float radialPos = (dist - innerRadius) / (outerRadius - innerRadius);
-            
-            float sampleY = frequencyIndex * sampleDataSize.y;
-            float sampleY0 = floor(sampleY);
-            float sampleY1 = sampleY0 + 1.0;
-            float sampleFrac = fract(sampleY);
-            
-            float u = radialPos;
-            float v0 = 1.0 - (sampleY0 + 0.5) / sampleDataSize.y;
-            float v1 = 1.0 - (sampleY1 + 0.5) / sampleDataSize.y;
-            
-            float sampleValue0 = texture2D(sampleData, vec2(u, v0)).r;
-            float sampleValue1 = texture2D(sampleData, vec2(u, v1)).r;
-            float sampleValue = mix(sampleValue0, sampleValue1, sampleFrac);
+            float sampleValue = interpolation(sampleData, vec2(radialPos, 1.0 - frequencyIndex), sampleDataSize, vec2(0., 1.)).r;
             
             color = mix(vec4(0.,0.,0.,1.), dataColor, sampleValue);
           }

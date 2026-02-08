@@ -116,6 +116,19 @@ export const ShaderImageThreePlane = ({
   }, [vertexShader, fragmentShader, textures, getUniforms]);
 
   useEffect(() => {
+    return () => {
+      if (materialRef.current) {
+        materialRef.current.dispose();
+      }
+      Object.values(textures).forEach(texture => {
+        if (texture.data) {
+          texture.data.dispose();
+        }
+      });
+    };
+  }, []);
+
+  useEffect(() => {
     const mainTexture = textures[DEFAULT_IMAGE];
     if (ref.current) {
       if (mainTexture?.loaded) {
@@ -149,7 +162,15 @@ export const ShaderImageThreePlane = ({
 
 export const ShaderImageThree = (props: ShaderImageThreeProps) => {
   return (
-    <Canvas orthographic style={props.style}>
+    <Canvas 
+      orthographic 
+      style={props.style}
+      gl={{ 
+        antialias: false,
+        stencil: false,
+        depth: false
+      }}
+    >
       <OrthographicCamera makeDefault near={0} far={2} position={[0, 0, 1]} />
       <ShaderImageThreePlane {...props} />
     </Canvas>
