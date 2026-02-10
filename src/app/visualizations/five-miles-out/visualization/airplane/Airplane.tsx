@@ -1,26 +1,33 @@
-import { useRef, forwardRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
 import { Group, Vector3 } from 'three';
+import { useReferenceObject } from '../../../../utils/ReferenceObjectContext';
+import { Lockheed10 } from './Lockheed10';
 
 export interface AirplaneProps {
+  isReferenceObject?: boolean;
+  speed?: number;
+  landingGear?: boolean;
 }
 
-export const Airplane = forwardRef<Group, AirplaneProps>((props, ref) => {
+export const Airplane = ({ isReferenceObject, speed = 20, landingGear = false }: AirplaneProps) => {
   const groupRef = useRef<Group>(null);
-  const model = (useGLTF(require('./assets/lockheed10.glb')) as any).scene;
+  const { referenceObjectRef } = useReferenceObject();
   const { pointer, camera } = useThree();
   const targetRotation = useRef({ x: 0, y: 0, z: 0 });
-  if (ref && typeof ref !== 'function') {
-    ref.current = groupRef.current;
-  }
+
+  useEffect(() => {
+    if (isReferenceObject && referenceObjectRef && groupRef.current) {
+      (referenceObjectRef as any).current = groupRef.current;
+    }
+  }, [referenceObjectRef, isReferenceObject]);
 
   useFrame((state, delta) => {
-    if (!groupRef.current) return
-    const forwardSpeed = 20;
-    targetRotation.current.z = -pointer.x * 0.6;  // Banking (roll)
-    targetRotation.current.x = -pointer.y * 0.3;  // Pitch
-    targetRotation.current.y = -pointer.x * 0.2;  // Yaw (turning)
+    console.log(groupRef.current?.position);
+    if (!groupRef.current) return;
+    targetRotation.current.z = -pointer.x * 0.6; // Banking (roll)
+    targetRotation.current.x = -pointer.y * 0.3; // Pitch
+    targetRotation.current.y = -pointer.x * 0.2; // Yaw (turning)
 
     groupRef.current.rotation.z += (targetRotation.current.z - groupRef.current.rotation.z) * delta * 4;
     groupRef.current.rotation.x += (targetRotation.current.x - groupRef.current.rotation.x) * delta * 4;
@@ -28,7 +35,7 @@ export const Airplane = forwardRef<Group, AirplaneProps>((props, ref) => {
 
     const forward = new Vector3(0, 0, -1);
     forward.applyQuaternion(groupRef.current.quaternion);
-    groupRef.current.position.addScaledVector(forward, forwardSpeed * delta);
+    groupRef.current.position.addScaledVector(forward, speed * delta);
 
     camera.position.x = groupRef.current.position.x + 4;
     camera.position.y = groupRef.current.position.y + 2;
@@ -38,7 +45,7 @@ export const Airplane = forwardRef<Group, AirplaneProps>((props, ref) => {
 
   return (
     <group ref={groupRef} position={[0, 0, 0]}>
-      <primitive object={model} scale={0.3} rotation={[0, Math.PI, 0]} />
+      <Lockheed10 speed={speed} landingGear={landingGear} />
     </group>
   );
-});
+};

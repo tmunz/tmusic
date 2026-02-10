@@ -1,29 +1,17 @@
-import './TronInstructions.css';
+import { Instructions } from '../../ui/instructions/Instructions';
 
 export const TronInstructions = (props: {}) => {
   return (
-    <div className="tron-instructions">
-      <h3>Keyboard Controls</h3>
-      <ul>
-        <li>
-          <kbd>W</kbd> Accelerate
-        </li>
-        <li>
-          <kbd>A</kbd> Turn Left
-        </li>
-        <li>
-          <kbd>S</kbd> Deccelerate
-        </li>
-        <li>
-          <kbd>D</kbd> Turn Right
-        </li>
-        <li>
-          <kbd>C</kbd> Switch Camera
-        </li>
-        <li>
-          <kbd>M</kbd> Toggle Debug Mode
-        </li>
-      </ul>
-    </div>
+    <Instructions
+      color="#66eeff"
+      items={[
+        { key: 'W', description: 'Accelerate' },
+        { key: 'A', description: 'Turn Left' },
+        { key: 'S', description: 'Deccelerate' },
+        { key: 'D', description: 'Turn Right' },
+        { key: 'C', description: 'Switch Camera' },
+        { key: 'M', description: 'Toggle Debug Mode' },
+      ]}
+    />
   );
 };

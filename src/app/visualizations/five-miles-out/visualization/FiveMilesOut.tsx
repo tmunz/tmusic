@@ -9,11 +9,7 @@ export interface FiveMilesOutProps {
 export const FiveMilesOut = ({ sampleProvider, canvas }: FiveMilesOutProps) => {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-      <FiveMilesOutScene
-        width={canvas.width}
-        height={canvas.height}
-        sampleProvider={sampleProvider}
-      />
+      <FiveMilesOutScene width={canvas.width} height={canvas.height} sampleProvider={sampleProvider} />
     </div>
   );
 };

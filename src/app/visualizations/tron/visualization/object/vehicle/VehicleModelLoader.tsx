@@ -1,19 +1,14 @@
 import { useGLTF } from '@react-three/drei';
 import { GLTF } from 'three-stdlib';
-import * as THREE from 'three';
 import { useMemo } from 'react';
-
-interface Model extends GLTF {
-  nodes: Record<string, THREE.Mesh>;
-  materials: Record<string, THREE.Material>;
-}
+import { Group, Mesh, MeshStandardMaterial, Object3D } from 'three';
 
 const vehiclesPath = require('./assets/tron_vehicles_3.glb');
 const playerPath = require('./assets/sam_flynn.glb');
 
 const useTronVehicleByIndex = (index: number, color?: string, offset: number = 0) => {
   const baseModel = useMemo(() => {
-    const gltf = useGLTF(vehiclesPath) as Model;
+    const gltf = useGLTF(vehiclesPath) as GLTF;
     const sketchfabModel = gltf.scene.children[0];
     if (sketchfabModel && sketchfabModel.children.length > 0) {
       const fbxContainer = sketchfabModel.children[0];
@@ -32,7 +27,7 @@ const useTronVehicleByIndex = (index: number, color?: string, offset: number = 0
 
     const vehicle = baseModel.clone(true);
     vehicle.traverse(child => {
-      if (child instanceof THREE.Mesh && child.material) {
+      if (child instanceof Mesh && child.material) {
         child.material = child.material.clone();
       }
     });
@@ -45,7 +40,7 @@ const useTronVehicleByIndex = (index: number, color?: string, offset: number = 0
       applyColorToModel(vehicle, color);
     }
 
-    const container = new THREE.Group();
+    const container = new Group();
     container.add(vehicle);
     return container;
   }, [baseModel, color, offset]);
@@ -53,14 +48,14 @@ const useTronVehicleByIndex = (index: number, color?: string, offset: number = 0
 
 export const usePlayer = (color?: string) => {
   const baseModel = useMemo(() => {
-    const gltf = useGLTF(playerPath) as Model;
+    const gltf = useGLTF(playerPath) as GLTF;
     return gltf.scene;
   }, []);
 
   return useMemo(() => {
     const player = baseModel.clone(true);
     player.traverse(child => {
-      if (child instanceof THREE.Mesh && child.material) {
+      if (child instanceof Mesh && child.material) {
         child.material = child.material.clone();
       }
     });
@@ -72,16 +67,16 @@ export const usePlayer = (color?: string) => {
       applyColorToModel(player, color);
     }
 
-    const container = new THREE.Group();
+    const container = new Group();
     container.add(player);
     return container;
   }, [baseModel, color]);
 };
 
-const applyColorToModel = (model: THREE.Object3D, color: string) => {
+const applyColorToModel = (model: Object3D, color: string) => {
   model.traverse(child => {
-    if (child instanceof THREE.Mesh && child.material) {
-      const material = child.material as THREE.MeshStandardMaterial;
+    if (child instanceof Mesh && child.material) {
+      const material = child.material as MeshStandardMaterial;
       const isEmissive =
         material.emissive && material.emissive.r > 0.9 && material.emissive.g > 0.9 && material.emissive.b > 0.9;
       if (isEmissive) {

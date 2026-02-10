@@ -162,13 +162,13 @@ export const ShaderImageThreePlane = ({
 
 export const ShaderImageThree = (props: ShaderImageThreeProps) => {
   return (
-    <Canvas 
-      orthographic 
+    <Canvas
+      orthographic
       style={props.style}
-      gl={{ 
+      gl={{
         antialias: false,
         stencil: false,
-        depth: false
+        depth: false,
       }}
     >
       <OrthographicCamera makeDefault near={0} far={2} position={[0, 0, 1]} />
