@@ -3,7 +3,7 @@ import { useFrame, useLoader } from '@react-three/fiber';
 import { ShaderMaterial, TextureLoader, RepeatWrapping, LinearFilter, Vector3, DoubleSide } from 'three';
 import { useReferenceObject } from '../../../../utils/ReferenceObjectContext';
 import { SampleProvider } from '../../../../audio/SampleProvider';
-import { useSampleProviderTexture } from '../../../../audio/useSampleProviderTexture';
+import { createLodGeometry } from './LodGeometry';
 
 export interface CloudCarpetProps {
   position?: [number, number, number];
@@ -21,7 +21,6 @@ export const CloudCarpet = ({
   const meshRef = useRef<any>(null);
   const materialRef = useRef<ShaderMaterial | null>(null);
   const { referenceObjectRef } = useReferenceObject();
-  const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider);
   const texture = useLoader(TextureLoader, cloudTexture);
   texture.wrapS = RepeatWrapping;
   texture.wrapT = RepeatWrapping;
@@ -38,10 +37,6 @@ export const CloudCarpet = ({
         fadeStart: { value: 30.0 },
         fadeEnd: { value: 150.0 },
         displacementScale: { value: 40.0 },
-        sampleData: { value: sampleTexture },
-        sampleDataSize: { value: { x: sampleTexture.image.width, y: sampleTexture.image.height } },
-        sampleDataAvg: { value: 0.0 },
-        samplesActive: { value: 0 },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -53,10 +48,6 @@ export const CloudCarpet = ({
         uniform vec3 referenceObjectPos;
         uniform sampler2D cloudTexture;
         uniform float displacementScale;
-        uniform sampler2D sampleData;
-        uniform vec2 sampleDataSize;
-        uniform float sampleDataAvg;
-        uniform int samplesActive;
         
         void main() {
           vUv = uv;
@@ -68,16 +59,7 @@ export const CloudCarpet = ({
           vec4 heightColor = texture2D(cloudTexture, vCloudUv);
           float height = (heightColor.r + heightColor.g + heightColor.b) / 3.0;
           
-          // Add audio reactivity to displacement
-          float audioInfluence = 0.0;
-          if (samplesActive > 0) {
-            // Sample audio data based on position
-            float sampleY = fract(-uv.y * 4.0);
-            vec4 audioSample = texture2D(sampleData, vec2(0.5, sampleY));
-            audioInfluence = audioSample.r * sampleDataAvg * 20.0;
-          }
-          
-          float displacement = (height * displacementScale - displacementScale * 0.5) + audioInfluence;
+          float displacement = (height * displacementScale - displacementScale * 0.5);
           vec3 displaced = position + normal * displacement;
           
           vec4 worldPosition = modelMatrix * vec4(displaced, 1.0);
@@ -106,18 +88,9 @@ export const CloudCarpet = ({
         
         void main() {
           // Use pre-calculated cloud UV from vertex shader
-          // vec3 clouds1 = texture2D(cloudTexture, vCloudUv * 2. - time * 0.01).rgb;
-          // vec3 clouds2 = texture2D(cloudTexture, vCloudUv * 10. + time * 0.02).rgb;
-          // vec3 clouds = mix(clouds1, clouds2, 0.4);
-          
-          vec3 clouds = vec3(0.0);
-          // Add audio reactivity to cloud brightness and color
-          if (samplesActive > 0) {
-            float sampleY = fract(vUv.y * 4.0);
-            vec4 audioSample = texture2D(sampleData, vec2(0.5, sampleY));
-            float audioBrightness = audioSample.r * sampleDataAvg * 0.3;
-            clouds += vec3(audioBrightness);
-          }
+          vec3 clouds1 = texture2D(cloudTexture, vCloudUv * 2. - time * 0.01).rgb;
+          vec3 clouds2 = texture2D(cloudTexture, vCloudUv * 10. + time * 0.02).rgb;
+          vec3 clouds = mix(clouds1, clouds2, 0.4);
           
           float distanceFade = smoothstep(fadeStart, fadeEnd, vDistanceToCamera);
           clouds += (distantColor - vec3(0.5)) * distanceFade * 0.5;
@@ -132,7 +105,7 @@ export const CloudCarpet = ({
       transparent: true,
       depthWrite: true,
     });
-  }, [texture, sampleTexture]);
+  }, [texture]);
 
   useFrame(state => {
     if (!meshRef.current || !referenceObjectRef.current) return;
@@ -142,15 +115,6 @@ export const CloudCarpet = ({
     meshRef.current.position.set(worldPos.x + position[0], position[1], worldPos.z + position[2]);
 
     if (!materialRef.current) return;
-    
-    // Update sample texture and audio data
-    if (sampleProvider) {
-      updateSampleTexture();
-      materialRef.current.uniforms.sampleData.value = sampleTexture;
-      materialRef.current.uniforms.sampleDataAvg.value = sampleProvider.getAvg()[0] / 255;
-      materialRef.current.uniforms.samplesActive.value = sampleProvider.active ? 1 : 0;
-    }
-    
     materialRef.current.uniforms.time.value = state.clock.elapsedTime;
     materialRef.current.uniforms.cameraPos.value = [
       state.camera.position.x,
@@ -160,14 +124,13 @@ export const CloudCarpet = ({
     materialRef.current.uniforms.referenceObjectPos.value = [worldPos.x, worldPos.y, worldPos.z];
   });
 
-  // const lodGeometry = useMemo(() => {
-  //   return createLodGeometry(size, 1028, 0.97);
-  // }, [size]);
+  const lodGeometry = useMemo(() => {
+    return createLodGeometry(size, 1028, 0.97);
+  }, [size]);
 
   return (
     <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={position} renderOrder={-1}>
-      <planeGeometry args={[size, size, 400, 400]} />
-      {/* <primitive object={lodGeometry} attach="geometry" /> */}
+      <primitive object={lodGeometry} attach="geometry" />
       <primitive object={cloudMaterial} ref={materialRef} attach="material" wireframe={false} />
     </mesh>
   );

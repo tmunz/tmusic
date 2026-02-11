@@ -5,12 +5,18 @@ import { useReferenceObject } from '../../../../utils/ReferenceObjectContext';
 import { Lockheed10 } from './Lockheed10';
 
 export interface AirplaneProps {
+  position?: [number, number, number];
   isReferenceObject?: boolean;
   speed?: number;
   landingGear?: boolean;
 }
 
-export const Airplane = ({ isReferenceObject, speed = 20, landingGear = false }: AirplaneProps) => {
+export const Airplane = ({
+  position = [0, 0, 0],
+  isReferenceObject,
+  speed = 20,
+  landingGear = false,
+}: AirplaneProps) => {
   const groupRef = useRef<Group>(null);
   const { referenceObjectRef } = useReferenceObject();
   const { pointer, camera } = useThree();
@@ -23,7 +29,6 @@ export const Airplane = ({ isReferenceObject, speed = 20, landingGear = false }:
   }, [referenceObjectRef, isReferenceObject]);
 
   useFrame((state, delta) => {
-    console.log(groupRef.current?.position);
     if (!groupRef.current) return;
     targetRotation.current.z = -pointer.x * 0.6; // Banking (roll)
     targetRotation.current.x = -pointer.y * 0.3; // Pitch
@@ -37,14 +42,14 @@ export const Airplane = ({ isReferenceObject, speed = 20, landingGear = false }:
     forward.applyQuaternion(groupRef.current.quaternion);
     groupRef.current.position.addScaledVector(forward, speed * delta);
 
-    camera.position.x = groupRef.current.position.x + 4;
-    camera.position.y = groupRef.current.position.y + 2;
-    camera.position.z = groupRef.current.position.z + 20;
+    camera.position.x = groupRef.current.position.x + 5;
+    camera.position.y = groupRef.current.position.y + 2; // 2
+    camera.position.z = groupRef.current.position.z + 15;
     camera.lookAt(groupRef.current.position.x, groupRef.current.position.y, groupRef.current.position.z);
   });
 
   return (
-    <group ref={groupRef} position={[0, 0, 0]}>
+    <group ref={groupRef} position={position}>
       <Lockheed10 speed={speed} landingGear={landingGear} />
     </group>
   );

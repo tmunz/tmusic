@@ -26,8 +26,7 @@ export const Clouds = ({ amount = 10, basePosition = [0, 0, 0], density = 1.0 }:
     color: `#${Math.floor((random(i) / 8 + 0.2) * 255)
       .toString(16)
       .padStart(2, '0')
-      .repeat(3)
-      }`,
+      .repeat(3)}`,
     scale: 10.0 + (random(i + 1982 - 3 - 19) - 0.5) * 5.0,
   }));
 
