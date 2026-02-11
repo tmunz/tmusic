@@ -72,12 +72,11 @@ export function createLodGeometry(size: number, segments: number, lod: number): 
     return currentStep;
   };
 
-
   for (let sector = 0; sector < 6; sector++) {
     const angle1 = (sector / 6) * Math.PI * 2;
     const angle2 = ((sector + 1) / 6) * Math.PI * 2;
 
-    for (let row = 0; row < maxRows;) {
+    for (let row = 0; row < maxRows; ) {
       const step = getRowStep(row);
       const prevStep = row > 0 ? getRowStep(row - 1) : step;
       const nextRow = Math.min(row + step, maxRows);
@@ -120,14 +119,14 @@ export function createLodGeometry(size: number, segments: number, lod: number): 
               const xIntermediate = Math.cos(angle1) * r1 * (1 - tIntermediate) + Math.cos(angle2) * r1 * tIntermediate;
               const yIntermediate = Math.sin(angle1) * r1 * (1 - tIntermediate) + Math.sin(angle2) * r1 * tIntermediate;
               const vIntermediate = getVertex(xIntermediate, yIntermediate);
-              
+
               const tPrev = row > 0 ? prevIntermediateCol / row : 0;
               const xPrev = Math.cos(angle1) * r1 * (1 - tPrev) + Math.cos(angle2) * r1 * tPrev;
               const yPrev = Math.sin(angle1) * r1 * (1 - tPrev) + Math.sin(angle2) * r1 * tPrev;
               const vPrev = getVertex(xPrev, yPrev);
-              
+
               indices.push(vPrev, v3, vIntermediate);
-              
+
               prevIntermediateCol = intermediateCol;
             }
             const tPrev = row > 0 ? prevIntermediateCol / row : 0;

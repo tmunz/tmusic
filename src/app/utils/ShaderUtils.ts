@@ -17,16 +17,28 @@ export const gaussianBlur = `
 `;
 
 export const interpolation = `
-  vec4 interpolation(sampler2D sampleData, vec2 uv, vec2 sampleDataSize, vec2 weight) {
+  vec4 interpolation(sampler2D sampleData, vec2 uv, vec2 sampleDataSize, vec2 weight, bool wrap) {
     vec2 samplePos = uv * sampleDataSize;
     vec2 pos0 = floor(samplePos);
     vec2 pos1 = pos0 + vec2(1.0);
     vec2 t = fract(samplePos) * weight;
     
-    vec4 sample00 = texture2D(sampleData, pos0 / sampleDataSize);
-    vec4 sample10 = texture2D(sampleData, vec2(pos1.x, pos0.y) / sampleDataSize);
-    vec4 sample01 = texture2D(sampleData, vec2(pos0.x, pos1.y) / sampleDataSize);
-    vec4 sample11 = texture2D(sampleData, pos1 / sampleDataSize);
+    vec2 uv00 = pos0 / sampleDataSize;
+    vec2 uv10 = vec2(pos1.x, pos0.y) / sampleDataSize;
+    vec2 uv01 = vec2(pos0.x, pos1.y) / sampleDataSize;
+    vec2 uv11 = pos1 / sampleDataSize;
+    
+    if (wrap) {
+      uv00 = fract(uv00);
+      uv10 = fract(uv10);
+      uv01 = fract(uv01);
+      uv11 = fract(uv11);
+    }
+    
+    vec4 sample00 = texture2D(sampleData, uv00);
+    vec4 sample10 = texture2D(sampleData, uv10);
+    vec4 sample01 = texture2D(sampleData, uv01);
+    vec4 sample11 = texture2D(sampleData, uv11);
     
     vec4 h0 = mix(sample00, sample10, t.x);
     vec4 h1 = mix(sample01, sample11, t.x);
@@ -34,7 +46,11 @@ export const interpolation = `
     return mix(h0, h1, t.y);
   }
 
+  vec4 interpolation(sampler2D sampleData, vec2 uv, vec2 sampleDataSize, vec2 weight) {
+    return interpolation(sampleData, uv, sampleDataSize, weight, false);
+  }
+
   vec4 interpolation(sampler2D sampleData, vec2 uv, vec2 sampleDataSize) {
-    return interpolation(sampleData, uv, sampleDataSize, vec2(1.0, 1.0));
+    return interpolation(sampleData, uv, sampleDataSize, vec2(1.0, 1.0), false);
   }
 `;

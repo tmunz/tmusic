@@ -8,12 +8,15 @@ export interface AppState {
 export enum VisualizationAction {
   SET_VISUALIZATION = 'SET_VISUALIZATION',
   UPDATE_VISUALIZATION_SETTINGS_VALUE = 'UPDATE_VISUALIZATION_SETTINGS_VALUE',
+  CHANGE_VISUALIZATION_SETTING_VALUE = 'CHANGE_VISUALIZATION_SETTING_VALUE',
 }
 
 type Action =
   | { type: VisualizationAction.SET_VISUALIZATION; visualization: Visualization | null }
   | {
-      type: VisualizationAction.UPDATE_VISUALIZATION_SETTINGS_VALUE;
+      type:
+        | VisualizationAction.UPDATE_VISUALIZATION_SETTINGS_VALUE
+        | VisualizationAction.CHANGE_VISUALIZATION_SETTING_VALUE;
       section: string;
       key: string;
       value: any;
@@ -41,6 +44,31 @@ const appStateReducer = (state: AppState, action: Action): AppState => {
               [action.key]: {
                 ...state.visualization.settings[action.section][action.key],
                 value: action.value,
+              },
+            },
+          },
+        },
+      };
+    case VisualizationAction.CHANGE_VISUALIZATION_SETTING_VALUE:
+      if (!state.visualization) {
+        return state;
+      }
+      const entry = state.visualization.settings[action.section][action.key];
+      let value = action.value;
+      if (isFinite(entry.value) && isFinite(action.value)) {
+        value = Math.max(entry.params?.min, Math.min(entry.params?.max, entry.value + action.value));
+      }
+      return {
+        ...state,
+        visualization: {
+          ...state.visualization,
+          settings: {
+            ...state.visualization.settings,
+            [action.section]: {
+              ...state.visualization.settings[action.section],
+              [action.key]: {
+                ...state.visualization.settings[action.section][action.key],
+                value,
               },
             },
           },

@@ -6,7 +6,10 @@ export const FiveMilesOutInstructions = (props: {}) => {
     <Instructions
       color="#5cc9ff"
       items={[
-        { key: <PiMouse />, description: 'Steering' },
+        { key: 'L', description: 'Toggle Steering Lock' },
+        { key: <PiMouse />, description: 'Steering (only if unlocked by L)' },
+        { key: 'W', description: 'Increase Speed (Reduce Sample Size)' },
+        { key: 'S', description: 'Decrease Speed (Increase Sample Size)' },
         { key: 'Y', description: 'Retract/Deploy Landing Gear' },
       ]}
     />
