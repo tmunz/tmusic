@@ -1,60 +1,66 @@
 import { useRef, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { ShaderMaterial, Vector3, DoubleSide } from 'three';
-import { useReferenceObject } from '../../../../utils/ReferenceObjectContext';
-import { SampleProvider } from '../../../../audio/SampleProvider';
-import { useSampleProviderTexture } from '../../../../audio/useSampleProviderTexture';
-import { interpolation } from '../../../../utils/ShaderUtils';
+import { useFrame, useLoader } from '@react-three/fiber';
+import { ShaderMaterial, TextureLoader, RepeatWrapping, LinearFilter, Vector3, DoubleSide } from 'three';
+import { useReferenceObject } from '../../../../../utils/ReferenceObjectContext';
+import { SampleProvider } from '../../../../../audio/SampleProvider';
+import { createLodGeometry } from './LodGeometryHex';
 
 export interface CloudCarpetProps {
   position?: [number, number, number];
   size?: number;
+  cloudTexture?: string;
   sampleProvider?: SampleProvider;
 }
 
-export const CloudCarpet = ({ position = [0, 0, 0], size = 100, sampleProvider }: CloudCarpetProps) => {
+export const CloudCarpet = ({
+  position = [0, 0, 0],
+  size = 1000,
+  cloudTexture = require('../assets/cloud-noise.png'),
+  sampleProvider,
+}: CloudCarpetProps) => {
   const meshRef = useRef<any>(null);
   const materialRef = useRef<ShaderMaterial | null>(null);
   const { referenceObjectRef } = useReferenceObject();
-  const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider);
+  const texture = useLoader(TextureLoader, cloudTexture);
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  texture.minFilter = LinearFilter;
+  texture.magFilter = LinearFilter;
 
   const cloudMaterial = useMemo(() => {
     return new ShaderMaterial({
       uniforms: {
         time: { value: 0 },
         cameraPos: { value: [0, 0, 0] },
+        cloudTexture: { value: texture },
         referenceObjectPos: { value: [0, 0, 0] },
         fadeStart: { value: 30.0 },
         fadeEnd: { value: 150.0 },
-        displacementScale: { value: 100.0 },
-        sampleData: { value: sampleTexture },
-        sampleDataSize: { value: { x: sampleTexture.image.width, y: sampleTexture.image.height } },
+        displacementScale: { value: 40.0 },
       },
       vertexShader: `
         varying vec2 vUv;
         varying vec3 vWorldPosition;
         varying float vDistanceToCamera;
-        varying vec2 mUv;
-        varying float vAudioSample;
+        varying vec2 vCloudUv;
         
         uniform vec3 cameraPos;
         uniform vec3 referenceObjectPos;
+        uniform sampler2D cloudTexture;
         uniform float displacementScale;
-        uniform sampler2D sampleData;
-        uniform vec2 sampleDataSize;
-        
-        ${interpolation}
         
         void main() {
           vUv = uv;
-          mUv = vec2(
-            uv.x + referenceObjectPos.x * 0.005,
-            uv.y + referenceObjectPos.z * 0.1 // TODO
+          vCloudUv = vec2(
+            uv.x + referenceObjectPos.x * 0.003,
+            uv.y - referenceObjectPos.z * 0.003
           );
           
-          vec4 audioSample = interpolation(sampleData, vec2(fract(mUv.x), 1.0 - uv.y), sampleDataSize, vec2(1.0, 1.0), true);
-          vAudioSample = audioSample.r;
-          vec3 displaced = position + normal * audioSample.r * displacementScale;
+          vec4 heightColor = texture2D(cloudTexture, vCloudUv);
+          float height = (heightColor.r + heightColor.g + heightColor.b) / 3.0;
+          
+          float displacement = (height * displacementScale - displacementScale * 0.5);
+          vec3 displaced = position + normal * displacement;
           
           vec4 worldPosition = modelMatrix * vec4(displaced, 1.0);
           vWorldPosition = worldPosition.xyz;
@@ -67,10 +73,10 @@ export const CloudCarpet = ({ position = [0, 0, 0], size = 100, sampleProvider }
         varying vec2 vUv;
         varying vec3 vWorldPosition;
         varying float vDistanceToCamera;
-        varying vec2 mUv;
-        varying float vAudioSample;
+        varying vec2 vCloudUv;
         
         uniform float time;
+        uniform sampler2D cloudTexture;
         uniform float fadeStart;
         uniform float fadeEnd;
         uniform sampler2D sampleData;
@@ -80,13 +86,17 @@ export const CloudCarpet = ({ position = [0, 0, 0], size = 100, sampleProvider }
 
         #define distantColor vec3(0.99, 0.94, 0.8)
         
-        void main() {   
-          vec3 clouds = vec3(vAudioSample);
-          clouds += (distantColor - vec3(0.5)) * smoothstep(fadeStart, fadeEnd, vDistanceToCamera) * 0.5;
+        void main() {
+          // Use pre-calculated cloud UV from vertex shader
+          vec3 clouds1 = texture2D(cloudTexture, vCloudUv * 2. - time * 0.01).rgb;
+          vec3 clouds2 = texture2D(cloudTexture, vCloudUv * 10. + time * 0.02).rgb;
+          vec3 clouds = mix(clouds1, clouds2, 0.4);
           
-          float opacityY = smoothstep(1.0, 0.5, vUv.y);
-          float opacityX = smoothstep(1.0, 0.7, abs(vUv.x - 0.5) * 2.0);
-          float opacity = opacityY * opacityX;
+          float distanceFade = smoothstep(fadeStart, fadeEnd, vDistanceToCamera);
+          clouds += (distantColor - vec3(0.5)) * distanceFade * 0.5;
+          
+          vec2 edgeDist = abs(vUv - 0.5) * 2.0;
+          float opacity = smoothstep(1.0, 0.4, max(edgeDist.x, edgeDist.y));
           
           gl_FragColor = vec4(clouds, opacity);
         }
@@ -95,7 +105,7 @@ export const CloudCarpet = ({ position = [0, 0, 0], size = 100, sampleProvider }
       transparent: true,
       depthWrite: true,
     });
-  }, [sampleTexture]);
+  }, [texture]);
 
   useFrame(state => {
     if (!meshRef.current || !referenceObjectRef.current) return;
@@ -105,23 +115,22 @@ export const CloudCarpet = ({ position = [0, 0, 0], size = 100, sampleProvider }
     meshRef.current.position.set(worldPos.x + position[0], position[1], worldPos.z + position[2]);
 
     if (!materialRef.current) return;
-
-    if (sampleProvider) {
-      updateSampleTexture();
-      materialRef.current.uniforms.sampleData.value = sampleTexture;
-    }
-
+    materialRef.current.uniforms.time.value = state.clock.elapsedTime;
+    materialRef.current.uniforms.cameraPos.value = [
+      state.camera.position.x,
+      state.camera.position.y,
+      state.camera.position.z,
+    ];
     materialRef.current.uniforms.referenceObjectPos.value = [worldPos.x, worldPos.y, worldPos.z];
   });
 
-  // const lodGeometry = useMemo(() => {
-  //   return createLodGeometry(size, 1028, 0.97);
-  // }, [size]);
+  const lodGeometry = useMemo(() => {
+    return createLodGeometry(size, 1028, 0.97);
+  }, [size]);
 
   return (
     <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={position} renderOrder={-1}>
-      <planeGeometry args={[size, size, 400, 400]} />
-      {/* <primitive object={lodGeometry} attach="geometry" /> */}
+      <primitive object={lodGeometry} attach="geometry" />
       <primitive object={cloudMaterial} ref={materialRef} attach="material" wireframe={false} />
     </mesh>
   );

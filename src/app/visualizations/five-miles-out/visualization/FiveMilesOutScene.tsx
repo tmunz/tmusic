@@ -3,13 +3,12 @@ import { useAppState, VisualizationAction } from '../../../AppContext';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Cloud, Sky } from '@react-three/drei';
 import { Airplane } from './airplane/Airplane';
-import { Clouds } from './clouds/Clouds';
 import { Stats } from '@react-three/drei';
 import { useRef, useState, useEffect } from 'react';
-import { CloudCarpet } from './clouds/CloudCarpet';
 import { HorizonClouds } from './clouds/HorizonClouds';
 import { ReferenceObjectProvider, useReferenceObject } from '../../../utils/ReferenceObjectContext';
 import { ReferenceObjectCamera } from './ReferenceObjectCamera';
+import { SampleCloudField } from './clouds/SampleCloudField';
 
 export interface FiveMilesOutSceneProps {
   width: number;
@@ -51,7 +50,6 @@ export const FiveMilesOutScene = ({ width, height, sampleProvider }: FiveMilesOu
   const CAMERA_OFFSET: [number, number, number] = [5, 1, 30];
   const CAMERA_TARGET_OFFSET: [number, number, number] = [1, 1, -2];
 
-  console.log('Rendering FiveMilesOutScene with sampleSize:', sampleProvider.sampleSize);
   return (
     <div style={{ position: 'relative', width, height }}>
       <Canvas
@@ -64,22 +62,20 @@ export const FiveMilesOutScene = ({ width, height, sampleProvider }: FiveMilesOu
         <directionalLight position={[3, 1, -5]} intensity={6} color="#fffadd" />
         <ReferenceObjectProvider>
           <CustomSky />
-          <CloudCarpet position={[-100, -100, -400]} size={1200} sampleProvider={sampleProvider} />
+          <SampleCloudField position={[0, -150, -500]} size={1500} sampleProvider={sampleProvider} />
           <HorizonClouds size={1000} />
-          {/* <Clouds basePosition={[-50, 20, 0]} /> */}
           <Airplane
             rotation={[0.0, 0.0, 0.18]}
             isReferenceObject
             landingGear={landingGear}
-            speed={10000.0 / sampleProvider.sampleSize}
+            speed={12000 / sampleProvider.sampleSize}
             locked={locked}
           />
           <ReferenceObjectCamera offset={CAMERA_OFFSET} targetOffset={CAMERA_TARGET_OFFSET} />
         </ReferenceObjectProvider>
-        <group position={[-60, -20, -50]} scale={10}>
-          <Cloud color="#4c4c4c" opacity={0.3} seed={2} fade={0} growth={10} speed={1} />
+        <group position={[-80, -20, -100]} scale={10}>
+          <Cloud color="#4c4c4c" opacity={0.7} seed={2} fade={0} growth={10} speed={1} />
         </group>
-        {/* <OrbitControls /> */}
       </Canvas>
     </div>
   );

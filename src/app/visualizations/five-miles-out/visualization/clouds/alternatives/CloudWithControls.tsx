@@ -25,7 +25,7 @@ export const CloudWithControls = () => {
     // Position
     x: { value: 0, min: -50, max: 50, step: 0.1 },
     y: { value: 0, min: -2000, max: 2000, step: 0.1 },
-    z: { value: -50, min: -3000, max: 50, step: 1 },
+    z: { value: -20, min: -3000, max: 50, step: 1 },
 
     rx: { value: 0, min: -Math.PI, max: Math.PI, step: 0.1 },
     ry: { value: 0, min: -Math.PI, max: Math.PI, step: 0.1 },

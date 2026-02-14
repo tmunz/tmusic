@@ -20,7 +20,6 @@ export const Airplane = ({
   speed = 20,
   landingGear = false,
   locked = true,
-
 }: AirplaneProps) => {
   const groupRef = useRef<Group>(null);
   const { referenceObjectRef } = useReferenceObject();

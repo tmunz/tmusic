@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Cloud } from '@react-three/drei';
 import { Group } from 'three';
-import { random } from '../../../../utils/Random';
+import { random } from '../../../../../utils/Random';
 
 export interface CloudsProps {
   amount?: number;
