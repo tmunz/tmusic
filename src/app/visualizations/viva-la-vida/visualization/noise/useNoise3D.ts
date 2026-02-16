@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Data3DTexture, LinearFilter, LinearMipMapLinearFilter, RGBAFormat } from 'three';
+import { Data3DTexture, LinearFilter, LinearMipMapLinearFilter, RepeatWrapping, RGBAFormat } from 'three';
 import { random } from '../../../../utils/Random';
 
 const cache = new Map<number, Data3DTexture>();
@@ -23,9 +23,9 @@ export const useNoise3D = (seed: number = 0): Data3DTexture => {
     texture.format = RGBAFormat;
     texture.minFilter = LinearMipMapLinearFilter;
     texture.magFilter = LinearFilter;
-    texture.wrapS = 1000; // RepeatWrapping
-    texture.wrapT = 1000; // RepeatWrapping
-    texture.wrapR = 1000; // RepeatWrapping for Z axis
+    texture.wrapS = RepeatWrapping;
+    texture.wrapT = RepeatWrapping;
+    texture.wrapR = RepeatWrapping;
     texture.needsUpdate = true;
 
     cache.set(seed, texture);

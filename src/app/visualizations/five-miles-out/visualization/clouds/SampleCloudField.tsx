@@ -18,7 +18,7 @@ export const SampleCloudField = ({
   position = [0, 0, 0],
   size = 1000,
   sampleProvider,
-  heightScale = 1
+  heightScale = 1,
 }: SampleCloudFieldProps) => {
   const isActive = useSampleProviderActive(sampleProvider ?? createDummySampleProvider(1, 1));
 
@@ -68,8 +68,8 @@ export const SampleCloudField = ({
 
       const newX = cloud.posX - offsetX;
       const newZ = cloud.posZ - offsetZ;
-      cloudRef.position.x = ((newX + size / 2) % size + size) % size - size / 2;
-      cloudRef.position.z = ((newZ + size / 2) % size + size) % size - size / 2;
+      cloudRef.position.x = ((((newX + size / 2) % size) + size) % size) - size / 2;
+      cloudRef.position.z = ((((newZ + size / 2) % size) + size) % size) - size / 2;
 
       const normalizedX = (cloudRef.position.x + size / 2) / size;
       const normalizedZ = (cloudRef.position.z + size / 2) / size;
@@ -94,7 +94,7 @@ export const SampleCloudField = ({
           const colorX = 1 - Math.pow(normalizedX - 0.9, 6);
           const lightX = normalizedX - 0.2;
           material.color.setHSL(
-            (normalizedX / 4.) % 1,
+            (normalizedX / 4) % 1,
             Math.max(1.4 - 1.2 * normalizedZ - colorX * 0.6, 0),
             Math.max(lightX + colorX * 0.5 - normalizedZ, 0)
           );
@@ -114,7 +114,7 @@ export const SampleCloudField = ({
         <group
           key={cloud.id}
           position={[cloud.posX, -itemSize, cloud.posZ]}
-          ref={(el) => {
+          ref={el => {
             cloudRefs.current[index] = el;
             if (el && el.children[0]) {
               const materials: any[] = [];
@@ -131,15 +131,14 @@ export const SampleCloudField = ({
           <Cloud
             seed={index}
             segments={2}
-            concentrate='inside'
+            concentrate="inside"
             bounds={[itemSize, 1, itemSize]}
             opacity={0.4}
             speed={isActive ? 0.2 : 0}
-            color='#ffffff' // `#${Math.floor(random(index) * 16777215).toString(16).padStart(6, '0')}`
+            color="#ffffff" // `#${Math.floor(random(index) * 16777215).toString(16).padStart(6, '0')}`
             volume={itemSize * 0.2}
             smallestVolume={itemSize * 0.1}
             growth={0.5}
-            
           />
         </group>
       ))}

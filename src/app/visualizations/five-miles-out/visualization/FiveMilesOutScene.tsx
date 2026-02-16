@@ -73,7 +73,7 @@ export const FiveMilesOutScene = ({ width, height, sampleProvider }: FiveMilesOu
           />
           <ReferenceObjectCamera offset={CAMERA_OFFSET} targetOffset={CAMERA_TARGET_OFFSET} />
         </ReferenceObjectProvider>
-        <group position={[-80, -20, -100]} scale={10}>
+        <group position={[-80, -20, -200]} scale={10}>
           <Cloud color="#4c4c4c" opacity={0.7} seed={2} fade={0} growth={10} speed={1} />
         </group>
       </Canvas>

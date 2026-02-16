@@ -17,6 +17,7 @@ import radioActivity from './radio-activity';
 import blueMonday from './blue-monday';
 import tameImpalaCurrents from './tame-impala-currents';
 import fiveMilesOut from './five-miles-out';
+import abbeyRoad from './abbey-road';
 
 export default [
   unknownPleasures,
@@ -30,6 +31,7 @@ export default [
   chvrchesEveryEyeOpen,
   crises,
   pushTheSkyAway,
+  abbeyRoad,
   vivaLaVida,
   santigold,
   velvetUnderground,
@@ -56,7 +58,6 @@ export default [
 // Yeah Yeah Yeahs - It's Blitz!
 // Led Zeppelin - Led Zeppelin
 // Placebo - Battle for the Sun
-// The Beatles - Abbey Road
 // T. Rex - Electric Warrior
 // David Bowie - Aladdin Sane
 // Rick Astley - I'm Never Gonna Give You Up :-P

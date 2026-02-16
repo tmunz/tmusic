@@ -132,6 +132,7 @@ const BrushPainting = ({
   const isMouseDown = useRef(false);
   const meshRef = useRef<Mesh>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const progressRef = useRef(0);
 
   const bufferScene = useMemo(() => {
     const scene = new Scene();
@@ -153,11 +154,9 @@ const BrushPainting = ({
         channel1: { value: null }, // Will be set to previous frame
         channel2: { value: blueNoise },
         resolution: { value: new Vector2(width, height) },
-        time: { value: 0 },
+        progress: { value: 0 },
         timeDelta: { value: 0 },
-        progressDelta: { value: 0 },
         mouse: { value: new Vector4(0, 0, 0, 0) },
-        speed: { value: speed },
         creaminess: { value: creaminess },
         dryness: { value: dryness },
         scale: { value: scale },
@@ -236,20 +235,20 @@ const BrushPainting = ({
     }
 
     const volume = sampleProvider.getAvg()[0] / 255;
+    const volumeValue = 0.4 + Math.pow(volume, 2) * 1.8;
 
     const pointerActive = isMouseDown.current ? 1 : 0;
     const pointerX = ((pointer.x + 1) / 2) * width;
     const pointerY = ((pointer.y + 1) / 2) * height;
 
     bufferAMaterial.uniforms.channel1.value = buffers.current.read.texture;
-    bufferAMaterial.uniforms.time.value = state.clock.getElapsedTime();
+    progressRef.current += delta * 0.2 + delta * volumeValue * speed;
+    bufferAMaterial.uniforms.progress.value = progressRef.current;
     bufferAMaterial.uniforms.timeDelta.value = delta;
-    bufferAMaterial.uniforms.progressDelta.value = delta * volume;
-    bufferAMaterial.uniforms.speed.value = speed;
     bufferAMaterial.uniforms.creaminess.value = creaminess;
     bufferAMaterial.uniforms.dryness.value = dryness;
     bufferAMaterial.uniforms.scale.value = scale;
-    bufferAMaterial.uniforms.strokeWidth.value = strokeWidth;
+    bufferAMaterial.uniforms.strokeWidth.value = strokeWidth * volumeValue;
     bufferAMaterial.uniforms.pouringSize.value = pouringSize;
     bufferAMaterial.uniforms.pouringAmount.value = pouringAmount;
     bufferAMaterial.uniforms.falloff.value = falloff;

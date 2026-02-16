@@ -14,7 +14,7 @@ const fiveMilesOut: Visualization = {
   component: FiveMilesOut,
   color: '#1a1a1a',
   settings: {
-    samples: createSampleSettings(32, 64),
+    samples: createSampleSettings(32, 100),
   },
   spotifyUri: 'spotify:album:1NqFhS3YNSTxowqOJ0TjOR',
   menuItems: [{ icon: PiKeyboard, component: FiveMilesOutInstructions }],

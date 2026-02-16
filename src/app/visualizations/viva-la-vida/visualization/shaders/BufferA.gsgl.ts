@@ -10,10 +10,8 @@ uniform sampler2D channel1; // Buffer A (previous frame)
 uniform sampler2D channel2; // Blue noise
 uniform vec2 resolution;
 uniform vec4 mouse;
-uniform float time;
+uniform float progress;
 uniform float timeDelta;
-uniform float progressDelta;
-uniform float speed;
 uniform float creaminess;
 uniform float dryness;
 uniform float scale;
@@ -45,7 +43,7 @@ void drawPath(out vec4 fragColor, in vec2 fragCoord) {
   vec3 dither = texture(channel2, fragCoord.xy / 1024.).rgb;
   
   // sample curve position
-  float t = time * speed + dither.x * dryness / 100.;
+  float t = progress + dither.x * dryness / 100.;
   vec2 current = drawPath(t) * scale / 2.;
   vec2 prev = drawPath(t - .01) * scale / 2.;
   vec2 velocity = normalize(prev-current);
