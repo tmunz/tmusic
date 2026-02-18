@@ -18,6 +18,7 @@ import blueMonday from './blue-monday';
 import tameImpalaCurrents from './tame-impala-currents';
 import fiveMilesOut from './five-miles-out';
 import abbeyRoad from './abbey-road';
+import novoPiano from './novo-piano';
 
 export default [
   unknownPleasures,
@@ -32,6 +33,7 @@ export default [
   crises,
   pushTheSkyAway,
   abbeyRoad,
+  novoPiano,
   vivaLaVida,
   santigold,
   velvetUnderground,
@@ -43,21 +45,26 @@ export default [
 ];
 
 // Arctic Monkeys - AM
-// Kraftwerk - Mensch-Maschine
-// The Sounds
-// Keane - Under the Iron Sea
-// The Strokes - Is This It
+// Kraftwerk - Mensch-Maschine / Computerwelt
+// The Sounds - Crossing the Rubicon / Something to Die For
+// Brockdorff Klang Labor
+// Mogwai - Every Country's Sun
 // Kite - VI
 // Radiohead - Kid A
+// Keane - Under the Iron Sea
+// The Strokes - Is This It
+// Wes Montgomery - Road Song
 // Elo - Time
+// Little River Band - Time Exposure
 // Beastiboys - Licensed to Ill
 // Nirvana - Nevermind
 // The Who - Who's Next
 // Green Day - American Idiot
 // Bruce Springsteen - Born in the USA
 // Yeah Yeah Yeahs - It's Blitz!
-// Led Zeppelin - Led Zeppelin
+// Led Zeppelin - Led Zeppelin / Physical Graffiti
 // Placebo - Battle for the Sun
 // T. Rex - Electric Warrior
 // David Bowie - Aladdin Sane
+// Liquido - At the Rocks
 // Rick Astley - I'm Never Gonna Give You Up :-P

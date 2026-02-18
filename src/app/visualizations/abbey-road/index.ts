@@ -12,7 +12,7 @@ const abbeyRoad: Visualization = {
   description:
     "'Abbey Road' is the eleventh studio album by The Beatles, released on 26 September 1969. The iconic cover photograph by Iain Macmillan shows the four Beatles walking across the zebra crossing outside Abbey Road Studios. The simple yet powerful composition has become one of the most recognizable and parodied album covers in music history, capturing a moment of casual elegance that perfectly embodies the band's legacy.",
   component: AbbeyRoad,
-  color: '#45830c',
+  color: '#475152',
   settings: {
     samples: createSampleSettings(36, 32),
     visualization: {
@@ -26,6 +26,30 @@ const abbeyRoad: Visualization = {
           min: 0,
           max: 3,
           step: 1,
+        },
+      },
+      intensity: {
+        id: 'intensity',
+        name: 'Intensity',
+        description: 'Intensity of the audio data effect on the crossing stripes',
+        type: SettingType.NUMBER,
+        value: 1.0,
+        params: {
+          min: 0.0,
+          max: 2.0,
+          step: 0.1,
+        },
+      },
+      pointerSensitivity: {
+        id: 'pointerSensitivity',
+        name: 'Pointer Sensitivity',
+        description: 'Sensitivity of the pointer movement parallax effect',
+        type: SettingType.NUMBER,
+        value: 1.0,
+        params: {
+          min: 0.0,
+          max: 2.0,
+          step: 0.1,
         },
       },
     },

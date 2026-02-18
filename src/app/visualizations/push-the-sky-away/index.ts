@@ -1,4 +1,5 @@
 import { createSampleSettings } from '../../audio/SampleSettings';
+import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { PushTheSkyAway } from './visualization/PushTheSkyAway';
 
@@ -14,6 +15,20 @@ const pushTheSkyAway: Visualization = {
   color: '#cccccc',
   settings: {
     samples: createSampleSettings(32, 16),
+    visualization: {
+      pointerSensitivity: {
+        id: 'pointerSensitivity',
+        name: 'Pointer Sensitivity',
+        description: 'Sensitivity of the pointer movement parallax effect',
+        type: SettingType.NUMBER,
+        value: 1.0,
+        params: {
+          min: 0.0,
+          max: 2.0,
+          step: 0.1,
+        },
+      },
+    },
   },
   spotifyUri: 'spotify:album:6CBN58EXbkJ7lIxvmLUxVA',
 };

@@ -1,6 +1,6 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Cloud } from '@react-three/drei';
+import { Cloud, Clouds } from '@react-three/drei';
 import { Vector3 } from 'three';
 import { useReferenceObject } from '../../../../utils/ReferenceObjectContext';
 import { createDummySampleProvider, SampleProvider } from '../../../../audio/SampleProvider';
@@ -128,18 +128,20 @@ export const SampleCloudField = ({
             }
           }}
         >
-          <Cloud
-            seed={index}
-            segments={2}
-            concentrate="inside"
-            bounds={[itemSize, 1, itemSize]}
-            opacity={0.4}
-            speed={isActive ? 0.2 : 0}
-            color="#ffffff" // `#${Math.floor(random(index) * 16777215).toString(16).padStart(6, '0')}`
-            volume={itemSize * 0.2}
-            smallestVolume={itemSize * 0.1}
-            growth={0.5}
-          />
+          <Clouds>
+            <Cloud
+              seed={index}
+              segments={2}
+              concentrate="inside"
+              bounds={[itemSize, 1, itemSize]}
+              opacity={0.4}
+              speed={isActive ? 0.2 : 0}
+              color="#ffffff" // `#${Math.floor(random(index) * 16777215).toString(16).padStart(6, '0')}`
+              volume={itemSize * 0.2}
+              smallestVolume={itemSize * 0.1}
+              growth={0.5}
+            />
+          </Clouds>
         </group>
       ))}
     </group>
