@@ -7,10 +7,12 @@ export const useAudioAnalysis = (
   sampleSize = 1,
   minFrequency = 0,
   maxFrequency = 22050,
-  melodicScale = false,
+  chromaticScale = false,
+  spectralContrastBoost = 0,
   fftSize = 2048
 ) => {
-  const audioDataRef = useRef<Uint8Array | null>(null);
+  const REFERENCE_FREQUENCY = 440; // 440 hz => A4
+  const audioDataRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const [audioFrames, setAudioFrames] = useState(
     new SampleProvider(sampleSize, new Uint8Array(frequencyBands).fill(0))
@@ -42,6 +44,13 @@ export const useAudioAnalysis = (
     };
   }, [streamProvider, fftSize]);
 
+  const calculateReferenceNoteIndex = (minFreq: number) => {
+    if (chromaticScale) {
+      return -Math.round(12 * Math.log2(minFreq / REFERENCE_FREQUENCY));
+    }
+    return -1;
+  };
+
   const getFrequencyData = () => {
     if (analyserRef.current && audioDataRef.current) {
       analyserRef.current.getByteFrequencyData(audioDataRef.current);
@@ -49,27 +58,58 @@ export const useAudioAnalysis = (
       const nyquist = analyserRef.current.context.sampleRate / 2;
       const minIndex = Math.max(0, Math.floor((minFrequency / nyquist) * frequencyData.length));
       const maxIndex = Math.min(frequencyData.length - 1, Math.floor((maxFrequency / nyquist) * frequencyData.length));
-
-      const slicedData = frequencyData.slice(minIndex, maxIndex + 1);
       const bands = new Uint8Array(frequencyBands);
 
-      if (slicedData.length === 0) {
+      if (bands.length === 0) {
         return bands;
       }
 
-      const bandSize = slicedData.length / frequencyBands;
+      if (chromaticScale) {
+        // Map frequency bands logarithmically to match musical notes (chromatic scale)
+        const startNote = Math.round(12 * Math.log2(minFrequency / REFERENCE_FREQUENCY));
+        for (let i = 0; i < frequencyBands; i++) {
+          const noteNumber = startNote + i;
+          const noteFreq = REFERENCE_FREQUENCY * Math.pow(2, noteNumber / 12);
+          const nextNoteFreq = REFERENCE_FREQUENCY * Math.pow(2, (noteNumber + 1) / 12);
+          const startBinIdx = Math.floor((noteFreq / nyquist) * frequencyData.length);
+          const endBinIdx = Math.floor((nextNoteFreq / nyquist) * frequencyData.length);
+          const clampedStart = Math.max(minIndex, Math.min(maxIndex, startBinIdx));
+          const clampedEnd = Math.max(clampedStart + 1, Math.min(maxIndex + 1, endBinIdx)); // Ensure at least 1 bin
 
-      for (let i = 0; i < frequencyBands; i++) {
-        const startIdx = Math.floor(i * bandSize);
-        const endIdx = Math.floor((i + 1) * bandSize);
-        let sum = 0;
+          let sum = 0;
+          let count = 0;
+          for (let j = clampedStart; j < clampedEnd; j++) {
+            sum += frequencyData[j];
+            count++;
+          }
 
-        for (let j = startIdx; j < endIdx && j < slicedData.length; j++) {
-          sum += slicedData[j];
+          bands[i] = count > 0 ? Math.round(sum / count) : 0;
         }
+      } else {
+        // Linear frequency bands
+        const slicedData = frequencyData.slice(minIndex, maxIndex + 1);
+        const bandSize = slicedData.length / frequencyBands;
 
-        const count = Math.max(1, endIdx - startIdx);
-        bands[i] = Math.round(sum / count);
+        for (let i = 0; i < frequencyBands; i++) {
+          const startIdx = Math.floor(i * bandSize);
+          const endIdx = Math.floor((i + 1) * bandSize);
+          let sum = 0;
+
+          for (let j = startIdx; j < endIdx && j < slicedData.length; j++) {
+            sum += slicedData[j];
+          }
+
+          const count = Math.max(1, endIdx - startIdx);
+          bands[i] = Math.round(sum / count);
+        }
+      }
+
+      if (spectralContrastBoost > 0) {
+        for (let i = 0; i < bands.length; i++) {
+          const normalized = bands[i] / 255.0;
+          const boosted = Math.pow(normalized, 1 / (1 - spectralContrastBoost * 0.9));
+          bands[i] = Math.round(boosted * 255);
+        }
       }
 
       return bands;
@@ -78,8 +118,11 @@ export const useAudioAnalysis = (
   };
 
   useEffect(() => {
-    setAudioFrames(new SampleProvider(sampleSize, new Uint8Array(frequencyBands).fill(0)));
-  }, [sampleSize, frequencyBands, minFrequency, maxFrequency]);
+    const provider = new SampleProvider(sampleSize, new Uint8Array(frequencyBands).fill(0));
+    provider.referenceNoteIndex = calculateReferenceNoteIndex(minFrequency);
+    setAudioFrames(provider);
+
+  }, [sampleSize, frequencyBands, minFrequency, maxFrequency, chromaticScale, spectralContrastBoost]);
 
   useEffect(() => {
     const actualSampleRate = analyserRef.current?.context.sampleRate ?? 44100;
@@ -88,7 +131,6 @@ export const useAudioAnalysis = (
     const intervalId = setInterval(() => {
       const audioData = getFrequencyData();
       if (audioData) {
-        // Calculate and set hz when audio is active
         const hz = 1000 / (interval * sampleSize);
         audioFrames.hz = hz;
         audioFrames.push(audioData);
@@ -99,7 +141,7 @@ export const useAudioAnalysis = (
     return () => {
       clearInterval(intervalId);
     };
-  }, [audioFrames, fftSize, sampleSize]);
+  }, [audioFrames, fftSize, sampleSize, minFrequency, maxFrequency, chromaticScale, spectralContrastBoost]);
 
   return audioFrames;
 };

@@ -7,7 +7,7 @@ export interface Visualization {
   id: string;
   title: string;
   artist: string;
-  design: string;
+  design?: string;
   imgSrc: string;
   description: ReactNode;
   component: (props: {

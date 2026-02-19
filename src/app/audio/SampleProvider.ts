@@ -6,6 +6,7 @@ export class SampleProvider extends FixedSizeQueue<Uint8Array> {
   private _frequencyBands = 1;
   private _activeListeners: ActiveListener[] = [];
   private _hz = 0;
+  private _referenceNoteIndex = -1; // only used for chromatic scale to determine which note is the closest to reference A4 (440Hz)
 
   constructor(size: number, defaultValue: Uint8Array) {
     super(size, defaultValue);
@@ -39,6 +40,14 @@ export class SampleProvider extends FixedSizeQueue<Uint8Array> {
 
   set hz(value: number) {
     this._hz = value;
+  }
+
+  get referenceNoteIndex() {
+    return this._referenceNoteIndex;
+  }
+
+  set referenceNoteIndex(value: number) {
+    this._referenceNoteIndex = value;
   }
 
   get sampleSize() {

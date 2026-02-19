@@ -1,20 +1,21 @@
+import { PiMusicNotesFill } from 'react-icons/pi';
 import { createSampleSettings } from '../../audio/SampleSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
+import { ChromaticScale } from './chromatic-scale/ChromaticScale';
 import { NovoPiano } from './visualization/NovoPiano';
 
 const novoPiano: Visualization = {
   id: 'novo-piano',
   title: 'Novö Piano',
   artist: 'Maxence Cyrin',
-  design: 'Maxence Cyrin',
   imgSrc: require('./novo-piano.jpg'),
   description:
     "'Novö Piano' by Maxence Cyrin is a stunning collection of piano interpretations of iconic songs, transforming rock and pop classics into intimate, minimalist compositions. Released in 2005, this album showcases Cyrin's virtuosic piano skills and his ability to reimagine familiar melodies with emotional depth and elegance. The album's aesthetic is one of simplicity and beauty, much like its stripped-down musical arrangements.",
   component: NovoPiano,
   color: '#b2b3b5',
   settings: {
-    samples: createSampleSettings(61, 1),
+    samples: createSampleSettings(61, 1, 65.4, 2093, true, 0.95),
     visualization: {
       intensity: {
         id: 'intensity',
@@ -31,6 +32,7 @@ const novoPiano: Visualization = {
     },
   },
   spotifyUri: 'spotify:album:21wMUhXhWLew2zsWQhlYEM',
+  menuItems: [{ icon: PiMusicNotesFill, component: ChromaticScale }],
 };
 
 export default novoPiano;
