@@ -16,7 +16,14 @@ export interface CrossingProps {
   intensity?: number;
 }
 
-export const Crossing = ({ sampleProvider, width, height, perspectiveEffect = 0.08, direction = 0, intensity = 1.0 }: CrossingProps) => {
+export const Crossing = ({
+  sampleProvider,
+  width,
+  height,
+  perspectiveEffect = 0.08,
+  direction = 0,
+  intensity = 1.0,
+}: CrossingProps) => {
   const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider);
   const active = useSampleProviderActive(sampleProvider);
 

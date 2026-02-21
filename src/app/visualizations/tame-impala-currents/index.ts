@@ -14,7 +14,7 @@ const tameImpalaCurrents: Visualization = {
   component: TameImpalaCurrents,
   color: '#f42a3e',
   settings: {
-    samples: createSampleSettings(64, 64),
+    samples: createSampleSettings(64, 128),
     visualization: {
       intensity: {
         id: 'intensity',

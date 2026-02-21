@@ -23,7 +23,15 @@ export const SampleProviderComponent = ({
   spectralContrastBoost = 0,
 }: SampleProviderProps) => {
   const [streamProvider, setStreamProvider] = React.useState<Promise<MediaStream | null>>(Promise.resolve(null));
-  const sampleProvider = useAudioAnalysis(streamProvider, frequencyBands, sampleSize, minFrequency, maxFrequency, chromaticScale, spectralContrastBoost);
+  const sampleProvider = useAudioAnalysis(
+    streamProvider,
+    frequencyBands,
+    sampleSize,
+    minFrequency,
+    maxFrequency,
+    chromaticScale,
+    spectralContrastBoost
+  );
 
   useEffect(() => {
     onSampleProviderChange(sampleProvider);

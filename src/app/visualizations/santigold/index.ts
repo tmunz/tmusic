@@ -13,7 +13,7 @@ const santigold: Visualization = {
   component: Santigold,
   color: '#dfe0f3',
   settings: {
-    samples: createSampleSettings(32, 32),
+    samples: createSampleSettings(32, 64),
   },
   spotifyUri: 'spotify:album:4TGvBVWFdYgARvdajEfAkU',
 };

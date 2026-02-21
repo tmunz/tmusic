@@ -86,7 +86,7 @@ export const drawActor = `
   float sdfBody(vec2 uv, vec2 position, vec2 leftFootPosition, vec2 rightFootPosition, vec2 headPosition) {
     float footThickness = 0.01;
     float headThickness = 0.035;
-    float footDistanceFactor = 0.9;
+    float footDistanceFactor = 0.95;
     float headDistanceFactor = 0.35;
     vec2 points[6];
     bool leftIsLower = leftFootPosition.x < rightFootPosition.x;
@@ -176,7 +176,7 @@ export const drawActor = `
     vec2 uv, float time, vec4 lineColor, vec4 fillColor,
     vec2 groundUv, sampler2D groundData, vec2 groundDataSize, float yOffset, float aspectRatio, float currentVolume, float minVolume, float maxVolume
   ) {
-    float speed = 460.0 * aspectRatio / groundDataSize.x;
+    float speed = 1000.0 * aspectRatio / groundDataSize.x;
     float phase = 0.9 + time * speed;
     float mainValue = getGroundYAtX(aspectRatio * (1.0 - 0.5), groundData, groundDataSize, yOffset, aspectRatio);
     vec2 leftFootGround = getFootGroundPosition(phase, groundData, groundDataSize, yOffset, aspectRatio);

@@ -14,7 +14,7 @@ const abbeyRoad: Visualization = {
   component: AbbeyRoad,
   color: '#475152',
   settings: {
-    samples: createSampleSettings(36, 32),
+    samples: createSampleSettings(36, 128),
     visualization: {
       direction: {
         id: 'direction',

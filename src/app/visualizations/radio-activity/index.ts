@@ -14,7 +14,7 @@ const radioActivity: Visualization = {
   component: RadioActivity,
   color: '#fbff36',
   settings: {
-    samples: createSampleSettings(32, 16),
+    samples: createSampleSettings(30, 60),
     visualization: {
       centerDataRatio: {
         id: 'centerDataRatio',

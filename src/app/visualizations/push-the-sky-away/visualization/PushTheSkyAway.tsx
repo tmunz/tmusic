@@ -11,7 +11,12 @@ export const PushTheSkyAway = ({ sampleProvider, canvas, pointerSensitivity = 1.
   const sizeRatio = 0.8;
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-      <Bedroom width={canvas.width * sizeRatio} height={canvas.height * sizeRatio} sampleProvider={sampleProvider} perspectiveEffect={pointerSensitivity * 0.08} />
+      <Bedroom
+        width={canvas.width * sizeRatio}
+        height={canvas.height * sizeRatio}
+        sampleProvider={sampleProvider}
+        perspectiveEffect={pointerSensitivity * 0.08}
+      />
     </div>
   );
 };

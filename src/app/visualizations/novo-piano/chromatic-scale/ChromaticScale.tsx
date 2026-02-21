@@ -17,8 +17,8 @@ const PIANO_PRESETS: PianoPreset[] = [
 ];
 
 export const ChromaticScale = () => {
-  const { appState, dispatch } = useAppState();
-  const [selectedPreset, setSelectedPreset] = useState('61');
+  const { dispatch } = useAppState();
+  const [selectedPreset, setSelectedPreset] = useState('88');
 
   const applyPreset = (preset: PianoPreset) => {
     setSelectedPreset(preset.id);
@@ -47,7 +47,7 @@ export const ChromaticScale = () => {
       type: VisualizationAction.UPDATE_VISUALIZATION_SETTINGS_VALUE,
       section: 'samples',
       key: 'chromaticScale',
-      value: 1, // true
+      value: true,
     });
   };
 
@@ -55,37 +55,37 @@ export const ChromaticScale = () => {
     <div style={{ display: 'flex', flexDirection: 'column', padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
       <h2 style={{ marginTop: 0 }}>Chromatic Scale</h2>
       <p>
-        The chromatic scale maps frequency bands logarithmically to match musical notes.
-        Works best with piano music or any music where distinct notes are prominent. 
-        There will be resonances, that can be reduced by increasing the spectral contrast boost.
+        The chromatic scale maps frequency bands logarithmically to match musical notes. Works best with piano music or
+        any music where distinct notes are prominent. Normally there are resonances, that can be reduced by increasing
+        the spectral contrast boost.
       </p>
       <h2>Piano Presets</h2>
-      {PIANO_PRESETS.map(preset => (
-        <label
-          key={preset.id}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            cursor: 'pointer',
-            padding: '8px',
-            borderRadius: '4px',
-            backgroundColor: selectedPreset === preset.id ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
-          }}
-        >
-          <input
-            type="radio"
-            name="piano-preset"
-            value={preset.id}
-            checked={selectedPreset === preset.id}
-            onChange={() => applyPreset(preset)}
-            style={{ cursor: 'pointer' }}
-          />
-          <span>
-            {preset.description}
-          </span>
-        </label>
-      ))}
+      <p>
+        {PIANO_PRESETS.map(preset => (
+          <label
+            key={preset.id}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              cursor: 'pointer',
+              padding: '8px',
+              borderRadius: '4px',
+              backgroundColor: selectedPreset === preset.id ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+            }}
+          >
+            <input
+              type="radio"
+              name="piano-preset"
+              value={preset.id}
+              checked={selectedPreset === preset.id}
+              onChange={() => applyPreset(preset)}
+              style={{ cursor: 'pointer' }}
+            />
+            <span>{preset.description}</span>
+          </label>
+        ))}
+      </p>
     </div>
   );
-}
+};

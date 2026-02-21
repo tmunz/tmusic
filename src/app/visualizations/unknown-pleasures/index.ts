@@ -13,7 +13,7 @@ const unknownPleasures: Visualization = {
   component: UnknownPleasures,
   color: '#000000',
   settings: {
-    samples: createSampleSettings(80, 32),
+    samples: createSampleSettings(80, 80),
   },
   spotifyUri: 'spotify:album:5Dgqy4bBg09Rdw7CQM545s',
 };

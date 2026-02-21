@@ -44,6 +44,8 @@ export default [
   tameImpalaCurrents,
 ];
 
+// Rick Astley - I'm Never Gonna Give You Up :-P Zoetrope
+
 // Arctic Monkeys - AM
 // Kraftwerk - Mensch-Maschine / Computerwelt
 // The Sounds - Crossing the Rubicon / Something to Die For
@@ -67,4 +69,3 @@ export default [
 // T. Rex - Electric Warrior
 // David Bowie - Aladdin Sane
 // Liquido - At the Rocks
-// Rick Astley - I'm Never Gonna Give You Up :-P

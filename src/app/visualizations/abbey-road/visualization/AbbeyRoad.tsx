@@ -9,7 +9,13 @@ export interface AbbeyRoadProps {
   pointerSensitivity?: number;
 }
 
-export const AbbeyRoad = ({ sampleProvider, canvas, direction = 0, intensity = 1.0, pointerSensitivity = 1.0 }: AbbeyRoadProps) => {
+export const AbbeyRoad = ({
+  sampleProvider,
+  canvas,
+  direction = 0,
+  intensity = 1.0,
+  pointerSensitivity = 1.0,
+}: AbbeyRoadProps) => {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
       <Crossing

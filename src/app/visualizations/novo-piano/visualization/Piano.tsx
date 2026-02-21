@@ -3,16 +3,40 @@ import { useSampleProviderTexture } from '../../../audio/useSampleProviderTextur
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
 import { RootState } from '@react-three/fiber';
 import { interpolation } from '../../../utils/ShaderUtils';
+import { useKeyColors } from './useKeyColors';
+import { useMemo } from 'react';
+import { DataTexture, RGBAFormat, UnsignedByteType } from 'three';
 
 export interface PianoProps {
   width: number;
   height: number;
   sampleProvider: SampleProvider;
   intensity?: number;
+  colorGradient?: number;
+  colorSparks?: number;
+  perspective?: number;
+  debug?: boolean;
 }
 
-export const Piano = ({ sampleProvider, width, height, intensity = 1.0 }: PianoProps) => {
+export const Piano = ({
+  sampleProvider,
+  width,
+  height,
+  intensity = 1.0,
+  colorGradient = 0.0,
+  colorSparks = 0.0,
+  perspective = 0.0,
+  debug = false,
+}: PianoProps) => {
   const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider);
+
+  const keyColors = useKeyColors(sampleProvider.frequencyBands, colorGradient, colorSparks);
+
+  const keyColorTexture = useMemo(() => {
+    const texture = new DataTexture(keyColors, keyColors.length / 4, 1, RGBAFormat, UnsignedByteType);
+    texture.needsUpdate = true;
+    return texture;
+  }, [keyColors]);
 
   const getUniforms = (rootState: RootState) => {
     updateSampleTexture();
@@ -23,6 +47,11 @@ export const Piano = ({ sampleProvider, width, height, intensity = 1.0 }: PianoP
       intensity: { value: intensity },
       resolution: { value: [width, height] },
       referenceNoteIndex: { value: sampleProvider.referenceNoteIndex },
+      colorGradient: { value: colorGradient },
+      colorSparks: { value: colorSparks },
+      perspective: { value: perspective },
+      keyColor: { value: keyColorTexture },
+      debug: { value: debug },
     };
   };
 
@@ -41,7 +70,12 @@ export const Piano = ({ sampleProvider, width, height, intensity = 1.0 }: PianoP
       uniform float intensity;
       uniform vec2 resolution;
       uniform float referenceNoteIndex;
-
+      uniform float colorGradient;
+      uniform float colorSparks;
+      uniform float perspective;
+      uniform sampler2D keyColor;
+      uniform bool debug;
+      
       ${interpolation}
 
       // Map white key position in octave (0-6) to chromatic offset (0,2,4,5,7,9,11)
@@ -74,19 +108,23 @@ export const Piano = ({ sampleProvider, width, height, intensity = 1.0 }: PianoP
         return mod(startChromaticNote + chromaticOffset, 12.0);
       }
       
-      float sampleIndexToWhiteKeyIndex(float sampleIndex) {
-        float octaves = floor(sampleIndex / 12.0);
-        float chromaticPos = mod(sampleIndex, 12.0);
+      float sampleIndexToWhiteKeyIndex(float sampleIndex, float startChromaticNote) {
+        float absoluteChromatic = sampleIndex + startChromaticNote;
+        float octaves = floor(absoluteChromatic / 12.0);
+        float chromaticPos = mod(absoluteChromatic, 12.0);
         float whiteKeyInOctave = chromaticToWhiteKeyOffset(chromaticPos);
-        return octaves * 7.0 + whiteKeyInOctave;
+        float startWhiteKeyOffset = chromaticToWhiteKeyOffset(startChromaticNote);
+        return octaves * 7.0 + whiteKeyInOctave - startWhiteKeyOffset;
       }
       
       float whiteKeyIndexToSampleIndex(float whiteKeyIndex, float startChromaticNote) {
-        float octaves = floor(whiteKeyIndex / 7.0);
-        float keyInOctave = mod(whiteKeyIndex, 7.0);
+        float startWhiteKeyOffset = chromaticToWhiteKeyOffset(startChromaticNote);
+        float adjustedWhiteKeyIndex = whiteKeyIndex + startWhiteKeyOffset;
+        float octaves = floor(adjustedWhiteKeyIndex / 7.0);
+        float keyInOctave = mod(adjustedWhiteKeyIndex, 7.0);
         float chromaticOffset = whiteKeyToChromaticOffset(keyInOctave);
-        float chromaticPosFromStart = octaves * 12.0 + chromaticOffset;
-        return chromaticPosFromStart + startChromaticNote;
+        float absoluteChromatic = octaves * 12.0 + chromaticOffset;
+        return absoluteChromatic - startChromaticNote;
       }
 
       bool getKeyState(float sampleX, float intensityMult, float areaStart, float areaEnd, float areaHeight, float uvY, float keyHeight) {
@@ -102,17 +140,32 @@ export const Piano = ({ sampleProvider, width, height, intensity = 1.0 }: PianoP
       }
 
       void main() {
-        vec2 uv = vUv;
+        // padding
+        vec2 uv = vec2(-0.1 + vUv.x * 1.2, vUv.y);
+
+        // perspective transformation (division creates straight lines to vanishing point)
+        float p = 1.0 + perspective * (1. - uv.y);
+        uv.x = 0.5 + (uv.x - 0.5) / p;
+        uv = vec2(
+          uv.x = 0.5 + (uv.x - 0.5) / p / (1. - perspective * 0.6),
+          pow(uv.y, 1.0 + perspective * 0.2) + perspective * 0.3
+        );
+        
+        // limit to piano area
+        if (uv.x < 0.0 || uv.x > 1.0) {
+          gl_FragColor = vec4(0.0);
+          return;
+        }
+        
         float aspect = resolution.x / resolution.y;
         
-        float keyAreaHeight = 0.15 * aspect;
+        float keyAreaHeight = 0.14 * aspect;
         float keyAreaCenter = 0.5;
         float keyAreaStart = keyAreaCenter - keyAreaHeight / 2.0;
         float keyAreaEnd = keyAreaCenter + keyAreaHeight / 2.0;
         
         float whiteKeys = floor((sampleDataSize.x / 12.0) * 7.0 + 1.);
         
-        // Normalize UV within key area (0 = top of keys, 1 = bottom)
         float keyY = (uv.y - keyAreaStart) / keyAreaHeight;
         float whiteKeyX = uv.x * whiteKeys;
         float whiteKeyIndex = floor(whiteKeyX);
@@ -124,7 +177,7 @@ export const Piano = ({ sampleProvider, width, height, intensity = 1.0 }: PianoP
         float blackKeyPosition = fract(blackKeyX);
         float distanceFromBlackCenter = abs(blackKeyPosition - 0.5);
         
-        float blackKeyWidth = 0.6;
+        float blackKeyWidth = 0.8;
         float blackKeyHeight = 0.65;
         bool inBlackKeyX = distanceFromBlackCenter < (blackKeyWidth * 0.5);
     
@@ -155,35 +208,34 @@ export const Piano = ({ sampleProvider, width, height, intensity = 1.0 }: PianoP
         bool inBlackKeyY = getKeyState(blackSampleX, intensity * aspect, keyAreaStart, keyAreaEnd, keyAreaHeight, uv.y, blackKeyHeight);
         bool inBlackKey = inBlackKeyX && inBlackKeyY;
         
-        /////////////////////////////////////////////////////////
-        // Calculate reference keys for coloring
-        float referenceWhiteKey = sampleIndexToWhiteKeyIndex(referenceNoteIndex); // A4
-        float cBelowReference = sampleIndexToWhiteKeyIndex(referenceNoteIndex - 8.0); // C4
-        
-        // Check if current white key is a reference key
-        bool isReferenceKey = abs(whiteKeyIndex - referenceWhiteKey) < 0.5;
-        bool isCKey = abs(whiteKeyIndex - cBelowReference) < 0.5;
-        /////////////////////////////////////////////////////////
-        
         vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
         
-        // Debug: Show sample values in y 0.9-1.0 range
-        // if (uv.y >= 0.9 && uv.y <= 1.0) {
-        //   vec2 sampleUv = vec2(uv.x, 0.0);
-        //   float debugValue = texture(sampleData, sampleUv).r;
-        //   color = vec4(vec3(debugValue), 1.0);
-        // }
+        if (debug && 0.1 <= uv.y && uv.y <= 1.) {
+          float debugValue = texture(sampleData, vec2(uv.x, 0.0)).r;
+          color = vec4(vec3(debugValue), 1.0);
+        }
+        if (debug && 0.0 <= uv.y && uv.y <= 0.1) {
+          color = texture(keyColor, vec2(uv.x, 0.0));
+        }
         
         if (inBlackKey) {
-          color = vec4(vec3(0.05, 0.05, 0.05), 1.0);
+          vec4 colorKey = texture(keyColor, vec2(blackSampleX, 0.0));
+          color = mix(vec4(0.05, 0.05, 0.05, 1.0), colorKey, colorKey.a);
         } else if (inWhiteKey) {
-          if (isReferenceKey) {
-            color = vec4(0.0, 0.8, 0.0, 1.0); // Green for A4
-          } else if (isCKey) {
-            color = vec4(0.8, 0.0, 0.0, 1.0); // Red for C
-          } else {
-            color = vec4(vec3(0.95, 0.95, 0.95), 1.0);
-          }
+          vec4 colorKey = texture(keyColor, vec2(whiteSampleX, 0.0));
+          color = mix(vec4(0.95, 0.95, 0.95, 1.0), colorKey, colorKey.a);
+          if (debug) {
+
+            float referenceWhiteKey = sampleIndexToWhiteKeyIndex(referenceNoteIndex, startChromaticNote); // A4
+            float cBelowReference = sampleIndexToWhiteKeyIndex(referenceNoteIndex - 9.0, startChromaticNote); // C4 (9 semitones below A4)
+            bool isReferenceKey = abs(whiteKeyIndex - referenceWhiteKey) < 0.5;
+            bool isCKey = abs(whiteKeyIndex - cBelowReference) < 0.5;
+            if (isReferenceKey) {
+              color = vec4(0.0, 0.8, 0.0, 1.0); // Green for A4
+            } else if (isCKey) {
+              color = vec4(0.8, 0.0, 0.0, 1.0); // Red for C
+            }
+          }  
         }
 
         gl_FragColor = color;

@@ -27,7 +27,7 @@ export const createSampleSettings = (
     type: SettingType.NUMBER,
     params: {
       min: 1,
-      max: 250,
+      max: 500,
       step: 1,
     },
     value: sampleSize,
@@ -59,7 +59,8 @@ export const createSampleSettings = (
   spectralContrastBoost: {
     id: 'spectralContrastBoost',
     name: 'Spectral Contrast Boost',
-    description: 'Reduces lower volume frequencies to make higher frequencies stand out more prominently (0 = no change, 1 = maximum boost).',
+    description:
+      'Reduces lower volume frequencies to make higher frequencies stand out more prominently (0 = no change, 1 = maximum boost).',
     type: SettingType.NUMBER,
     params: {
       min: 0,
@@ -71,7 +72,7 @@ export const createSampleSettings = (
   chromaticScale: {
     id: 'chromaticScale',
     name: 'Chromatic Scale',
-    description: 'Map frequency bands to musical notes (chromatic scale).',
+    description: 'Map frequency bands to chromatic scale (musical notes).',
     type: SettingType.NUMBER, // TODO change to boolean
     params: {
       min: 0,

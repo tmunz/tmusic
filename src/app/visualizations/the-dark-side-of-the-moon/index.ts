@@ -15,7 +15,7 @@ const theDarkSideOfTheMoon: Visualization = {
   component: TheDarkSideOfTheMoon,
   color: '#060606',
   settings: {
-    samples: createSampleSettings(36, 32),
+    samples: createSampleSettings(36, 64),
     visualization: {
       volumeAmountIndicator: {
         id: 'volumeAmountIndicator',
