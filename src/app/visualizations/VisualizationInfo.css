@@ -1,17 +1,10 @@
 .visualization-info {
+  width: 400px!important;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   text-align: justify;
-  width: 400px;
-  max-width: 100%;
-  padding: 1rem;
   box-sizing: border-box;
-
-  h1,
-  h2 {
-    margin: 0;
-  }
 
   h3 {
     font-size: 0.8rem;

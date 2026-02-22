@@ -3,4 +3,14 @@
   justify-content: center;
   flex-direction: column;
   height: 100%;
+
+  .menu-item-content-wrapper > *{
+    width: 300px;
+    padding: 1rem;
+    box-sizing: border-box;
+
+    h2:first-child {
+      margin-top: 0;
+    }
+  }
 }

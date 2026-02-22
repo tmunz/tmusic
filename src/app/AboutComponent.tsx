@@ -4,7 +4,7 @@ import './AboutComponent.css';
 export const AboutComponent = () => (
   <div className="about-container">
     <h2>About</h2>
-    <p style={{ marginTop: '2em' }}>
+    <p>
       This is an open-source project dedicated to visually interpreting music data, inspired by iconic album cover art.
       <br />
       Discover more about this project, its source code, and the author:

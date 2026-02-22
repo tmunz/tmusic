@@ -19,6 +19,7 @@ import tameImpalaCurrents from './tame-impala-currents';
 import fiveMilesOut from './five-miles-out';
 import abbeyRoad from './abbey-road';
 import novoPiano from './novo-piano';
+import neverGonnaGiveYouUp from './never-gonna-give-you-up';
 
 export default [
   unknownPleasures,
@@ -39,12 +40,11 @@ export default [
   velvetUnderground,
   fiveMilesOut,
   minorEarthMajorSky,
+  neverGonnaGiveYouUp,
   theRiddle,
   parallelLines,
   tameImpalaCurrents,
 ];
-
-// Rick Astley - I'm Never Gonna Give You Up :-P Zoetrope
 
 // Arctic Monkeys - AM
 // Kraftwerk - Mensch-Maschine / Computerwelt

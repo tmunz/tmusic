@@ -1,0 +1,28 @@
+.zoetrope-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.zoetrope-info h2 {
+  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+}
+
+.zoetrope-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.zoetrope-content p {
+  line-height: 1.6;
+  text-align: justify;
+}
+
+.zoetrope-content strong {
+  font-weight: 600;
+}

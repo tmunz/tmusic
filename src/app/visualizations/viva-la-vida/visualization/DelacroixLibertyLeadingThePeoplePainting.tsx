@@ -143,11 +143,7 @@ const BrushPainting = ({
 
   const bufferAMaterial = useMemo(() => {
     const fragmentShader = getBufferAFragmentShader(drawingPath);
-
-    console.log('Creating Buffer A material with settings:', {
-      creaminess,
-    });
-
+    
     return new ShaderMaterial({
       uniforms: {
         channel0: { value: noise3D },

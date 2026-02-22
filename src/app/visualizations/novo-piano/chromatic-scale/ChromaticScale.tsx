@@ -52,8 +52,8 @@ export const ChromaticScale = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
-      <h2 style={{ marginTop: 0 }}>Chromatic Scale</h2>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <h2>Chromatic Scale</h2>
       <p>
         The chromatic scale maps frequency bands logarithmically to match musical notes. Works best with piano music or
         any music where distinct notes are prominent. Normally there are resonances, that can be reduced by increasing

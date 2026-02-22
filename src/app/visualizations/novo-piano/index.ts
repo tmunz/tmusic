@@ -9,6 +9,7 @@ const novoPiano: Visualization = {
   id: 'novo-piano',
   title: 'Novö Piano',
   artist: 'Maxence Cyrin',
+  design: 'Matthieu Delahaie',
   imgSrc: require('./novo-piano.jpg'),
   description:
     "'Novö Piano' by Maxence Cyrin is a stunning collection of piano interpretations of iconic songs, transforming rock and pop classics into intimate, minimalist compositions. Released in 2005, this album showcases Cyrin's virtuosic piano skills and his ability to reimagine familiar melodies with emotional depth and elegance. The album's aesthetic is one of simplicity and beauty, much like its stripped-down musical arrangements.",
