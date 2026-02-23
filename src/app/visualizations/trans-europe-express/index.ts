@@ -13,7 +13,7 @@ const transEuropeExpress: Visualization = {
   component: TransEuropeExpress,
   color: '#0a0a0a',
   settings: {
-    samples: createSampleSettings(32, 32),
+    samples: createSampleSettings({ frequencyBands: 32, sampleSize: 32 }),
   },
   spotifyUri: 'spotify:album:0HHRIVjvBcnTepfeRVgS2f',
 };

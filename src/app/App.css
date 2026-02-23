@@ -4,8 +4,7 @@
   flex-direction: column;
   height: 100%;
 
-  .menu-item-content-wrapper > *{
-    width: 300px;
+  .menu-item-content-wrapper > * {
     padding: 1rem;
     box-sizing: border-box;
 

@@ -17,7 +17,7 @@ const vivaLaVida: Visualization = {
   component: VivaLaVida,
   color: '#342b1c',
   settings: {
-    samples: createSampleSettings(32, 32),
+    samples: createSampleSettings({ frequencyBands: 32, sampleSize: 32 }),
     visualization: {
       speed: {
         id: 'speed',

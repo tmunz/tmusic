@@ -1,4 +1,5 @@
 import { createSampleSettings } from '../../audio/SampleSettings';
+import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { UnknownPleasures } from './visualization/UnknownPleasures';
 
@@ -13,7 +14,45 @@ const unknownPleasures: Visualization = {
   component: UnknownPleasures,
   color: '#000000',
   settings: {
-    samples: createSampleSettings(80, 80),
+    samples: createSampleSettings({ frequencyBands: 80, sampleSize: 30, sampleRate: 24 }),
+    visualization: {
+      baseIntensity: {
+        id: 'baseIntensity',
+        name: 'Base Intensity',
+        description: 'Base intensity value for all samples',
+        type: SettingType.NUMBER,
+        value: 0.3,
+        params: {
+          min: 0,
+          max: 1,
+          step: 0.1,
+        },
+      },
+      sampleWeight: {
+        id: 'sampleWeight',
+        name: 'Sample Weight',
+        description: 'Weight factor for individual sample',
+        type: SettingType.NUMBER,
+        value: 0.3,
+        params: {
+          min: 0,
+          max: 1,
+          step: 0.1,
+        },
+      },
+      dominatingWeight: {
+        id: 'dominatingWeight',
+        name: 'Dominating Weight',
+        description: 'Weight factor for dominating sample',
+        type: SettingType.NUMBER,
+        value: 0.4,
+        params: {
+          min: 0,
+          max: 1,
+          step: 0.1,
+        },
+      },
+    },
   },
   spotifyUri: 'spotify:album:5Dgqy4bBg09Rdw7CQM545s',
 };

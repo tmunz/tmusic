@@ -13,7 +13,7 @@ const parallelLines: Visualization = {
   component: ParallelLines,
   color: '#000000',
   settings: {
-    samples: createSampleSettings(11, 64),
+    samples: createSampleSettings({ frequencyBands: 11, sampleSize: 64 }),
   },
   spotifyUri: 'spotify:album:4M6s2jbhKWEcOdXZ8WiHts',
 };

@@ -55,7 +55,7 @@ export const useCompanionIdle = (
     const companionPosition = companionRef.current?.position;
     if (!targetPosition || !companionPosition) return 0;
     const distance = companionPosition.distanceTo(targetPosition);
-    let targetSpeed = Math.min(
+    const targetSpeed = Math.min(
       (distance * IDLE_MOVEMENT_CHARACTERISTICS.acceleration) / 14,
       IDLE_MOVEMENT_CHARACTERISTICS.maxSpeed
     );

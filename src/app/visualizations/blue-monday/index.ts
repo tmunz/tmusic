@@ -16,7 +16,7 @@ const blueMonday: Visualization = {
   component: BlueMonday,
   color: '#252525',
   settings: {
-    samples: createSampleSettings(336, 80, 10, 10000, false, 0.5),
+    samples: createSampleSettings({ frequencyBands: 336, sampleSize: 80, spectralContrastBoost: 0.5 }),
     visualization: {
       coverOpacity: {
         id: 'coverOpacity',

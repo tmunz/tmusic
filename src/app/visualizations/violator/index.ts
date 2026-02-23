@@ -13,7 +13,7 @@ const violator: Visualization = {
   component: Violator,
   color: '#111111',
   settings: {
-    samples: createSampleSettings(64, 64),
+    samples: createSampleSettings({ frequencyBands: 64, sampleSize: 64 }),
   },
   spotifyUri: 'spotify:album:45YmvYK4hB4CgQgTMuNRm8',
 };

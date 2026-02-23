@@ -14,7 +14,7 @@ const pushTheSkyAway: Visualization = {
   component: PushTheSkyAway,
   color: '#cccccc',
   settings: {
-    samples: createSampleSettings(32, 16),
+    samples: createSampleSettings({ frequencyBands: 32, sampleSize: 16 }),
     visualization: {
       pointerSensitivity: {
         id: 'pointerSensitivity',

@@ -13,7 +13,7 @@ const crises: Visualization = {
   component: Crises,
   color: '#12745f',
   settings: {
-    samples: createSampleSettings(64, 192),
+    samples: createSampleSettings({ frequencyBands: 64, sampleSize: 192 }),
   },
   spotifyUri: 'spotify:album:56irNmW0iq9Flh41YbAv55',
 };

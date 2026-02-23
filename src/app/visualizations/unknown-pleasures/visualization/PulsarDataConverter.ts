@@ -2,7 +2,20 @@ import { SampleProvider } from '../../../audio/SampleProvider';
 
 export type PulsarData = { value: number; sampleIndex: number };
 
-export function convertPulsarData(sampleProvider?: SampleProvider): Uint8Array {
+export interface IntensitySettings {
+  baseIntensity: number;
+  sampleWeight: number;
+  dominatingWeight: number;
+}
+
+export function convertPulsarData(
+  sampleProvider?: SampleProvider,
+  intensitySettings: IntensitySettings = {
+    baseIntensity: 0.3,
+    sampleWeight: 0.3,
+    dominatingWeight: 0.4,
+  }
+): Uint8Array {
   if (!sampleProvider) return new Uint8Array();
   const result = new Uint8Array(sampleProvider.sampleSize * sampleProvider.frequencyBands);
   for (let i = 0; i < sampleProvider.frequencyBands; i++) {
@@ -11,7 +24,7 @@ export function convertPulsarData(sampleProvider?: SampleProvider): Uint8Array {
       sampleIndex,
     }));
     const sortedFrequency: PulsarData[] = [...frequency].sort((a, b) => b.value - a.value);
-    const relevance = calculateRelevance(
+    const dominatingSampleRelevance = calculateRelevance(
       sortedFrequency[0].sampleIndex,
       sampleProvider.sampleSize,
       Math.min(6, sampleProvider.sampleSize)
@@ -24,8 +37,17 @@ export function convertPulsarData(sampleProvider?: SampleProvider): Uint8Array {
     for (let j = 0; j < sampleProvider.sampleSize; j++) {
       const normalized = (resultFrequency[j].value - min) / Math.max(max - min, 1); // increase difference by moving baseline to min
       const sampleWeight = getWeight(j / sampleProvider.sampleSize); // fall off towards the edges
+      const sampleRelevance = calculateRelevance(
+        sortedFrequency[j].sampleIndex,
+        sampleProvider.sampleSize,
+        Math.min(6, sampleProvider.sampleSize)
+      );
       const frequencyWeight = (max * Math.exp(normalized * 3)) / Math.exp(3); // emphasize high values
-      const raw = normalized * relevance * sampleWeight * frequencyWeight;
+      const intensity =
+        intensitySettings.baseIntensity +
+        intensitySettings.sampleWeight * sampleRelevance +
+        intensitySettings.dominatingWeight * dominatingSampleRelevance;
+      const raw = normalized * sampleWeight * frequencyWeight * intensity;
       const clamped = Math.min(255, Math.max(0, Math.round(raw)));
       result[j * sampleProvider.frequencyBands + i] = clamped;
     }

@@ -77,13 +77,13 @@ export function App() {
         <CollapsibleMenubarItem icon={PiVinylRecord}>
           <VisualizationInfo visualization={appState.visualization} />
         </CollapsibleMenubarItem>
-        <CollapsibleMenubarItem icon={PiSlidersHorizontalDuotone}>
+        <CollapsibleMenubarItem icon={PiSlidersHorizontalDuotone} key={`settings-${appState.visualization?.id}`}>
           <SettingsComponent />
         </CollapsibleMenubarItem>
         {appState.visualization?.menuItems?.map((item, index) => {
           const ItemComponent = item.component;
           return (
-            <CollapsibleMenubarItem key={index} icon={item.icon}>
+            <CollapsibleMenubarItem key={`menu-item-${appState.visualization?.id}-${index}`} icon={item.icon}>
               <ItemComponent />
             </CollapsibleMenubarItem>
           );

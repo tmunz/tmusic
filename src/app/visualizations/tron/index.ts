@@ -15,7 +15,7 @@ const tron: Visualization = {
   component: Tron,
   color: '#000000',
   settings: {
-    samples: createSampleSettings(64, 64),
+    samples: createSampleSettings({ frequencyBands: 64, sampleSize: 64 }),
   },
   spotifyUri: 'spotify:album:3AMXFnwHWXCvNr5NCCpLZI',
   menuItems: [{ icon: PiKeyboard, component: TronInstructions }],

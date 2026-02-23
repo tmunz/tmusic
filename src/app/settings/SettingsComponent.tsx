@@ -24,8 +24,13 @@ export const SettingsComponent = () => {
     );
   };
 
+  const sectionCount = Object.keys(appState.visualization?.settings ?? {}).length;
+  const hasVisualizationSettings = sectionCount > 0;
+  
   return (
-    <div className="settings">
+    <div
+      className={`settings ${hasVisualizationSettings ? 'settings--with-visualization' : ''}`}
+    >
       {Object.entries(appState.visualization?.settings ?? {}).map(([sectionKey, section]) => (
         <section key={sectionKey}>
           <h2>{sectionKey}</h2>

@@ -1,5 +1,4 @@
 .settings {
-  width: 250px!important;
   display: flex;
   flex-direction: column;
   gap: 2rem;
@@ -11,4 +10,9 @@
       text-transform: capitalize;
     }
   }
+}
+
+.settings--with-visualization {
+  display: flex;
+  flex-direction: row;
 }

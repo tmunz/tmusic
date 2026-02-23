@@ -1,5 +1,6 @@
 .about-container {
   text-align: justify;
+  width: 350px;
 
   .about-links {
     display: flex;

@@ -131,7 +131,7 @@ export const useAudioAnalysis = (
     const provider = new SampleProvider(sampleSize, new Uint8Array(frequencyBands).fill(0));
     provider.referenceNoteIndex = calculateReferenceNoteIndex(minFrequency);
     setAudioFrames(provider);
-  }, [sampleSize, frequencyBands, minFrequency, maxFrequency, chromaticScale, spectralContrastBoost]);
+  }, [sampleSize, frequencyBands, minFrequency, maxFrequency, chromaticScale, spectralContrastBoost, sampleRate]);
 
   useEffect(() => {
     const interval = 1000 / sampleRate;
@@ -147,7 +147,7 @@ export const useAudioAnalysis = (
     return () => {
       clearInterval(intervalId);
     };
-  }, [audioFrames, fftSize, sampleSize, minFrequency, maxFrequency, chromaticScale, spectralContrastBoost]);
+  }, [audioFrames, fftSize, sampleSize, minFrequency, maxFrequency, chromaticScale, spectralContrastBoost, sampleRate]);
 
   return audioFrames;
 };

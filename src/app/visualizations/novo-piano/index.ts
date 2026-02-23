@@ -16,7 +16,14 @@ const novoPiano: Visualization = {
   component: NovoPiano,
   color: '#b2b3b5',
   settings: {
-    samples: createSampleSettings(88, 1, 27.5, 4186, true, 0.8),
+    samples: createSampleSettings({
+      frequencyBands: 88,
+      sampleSize: 1,
+      minFrequency: 27.5,
+      maxFrequency: 4186,
+      chromaticScale: true,
+      spectralContrastBoost: 0.8,
+    }),
     visualization: {
       intensity: {
         id: 'intensity',

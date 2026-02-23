@@ -1,43 +1,57 @@
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
 import { SampleProvider } from '../../../audio/SampleProvider';
 import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
-import { LinearFilter } from 'three';
+import { LinearFilter, TextureLoader } from 'three';
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { interpolation } from '../../../utils/ShaderUtils';
+import { RootState } from '@react-three/fiber';
+import { useRecordPlayerArm } from './useRecordPlayerArm';
 
 export interface ZoetropeSzeneProps {
   width: number;
   height: number;
   sampleProvider: SampleProvider;
-  coverOpacity?: number;
   dataStartAngle?: number;
   dataRatio?: number;
   stroboscopicEffect?: number;
   stroboscopicAngle?: number;
   imageUrl: string;
+  recordPlayerOpacity?: number;
+  recordPlayerArmSpeed?: number;
+  onRecordFinished?: () => void;
 }
 
 export const ZoetropeSzene = ({
   width,
   height,
   sampleProvider,
-  coverOpacity = 0.5,
   dataStartAngle = 0,
   dataRatio = 1.0,
   stroboscopicEffect = 0,
   stroboscopicAngle = 6,
   imageUrl,
+  recordPlayerOpacity = 0.8,
+  recordPlayerArmSpeed = 1.0,
+  onRecordFinished,
 }: ZoetropeSzeneProps) => {
   const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider);
 
-  const rotationRef = useRef(0);
-  const lastTimeRef = useRef(Date.now());
-  
-  // Zoom state
+  const recordRotationRef = useRef(0);
+  const lastElapsedTimeRef = useRef(0);
+  const updateArmRotation = useRecordPlayerArm(sampleProvider, recordPlayerArmSpeed, onRecordFinished);
+
+  const [recordPlayerSize, setRecordPlayerSize] = useState({ x: 2, y: 1 });
+
+  useEffect(() => {
+    const loader = new TextureLoader();
+    loader.load(require('./braun-sk-61-main.png'), texture => {
+      setRecordPlayerSize({ x: texture.image.width, y: texture.image.height });
+    });
+  }, []);
+
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomCenter, setZoomCenter] = useState({ x: 0.5, y: 0.5 });
   const [hoverPos, setHoverPos] = useState({ x: 0.5, y: 0.5 });
-  const [isHovering, setIsHovering] = useState(false);
   const [animatedZoomFactor, setAnimatedZoomFactor] = useState(0);
   const zoomAnimationRef = useRef<number | null>(null);
 
@@ -54,12 +68,9 @@ export const ZoetropeSzene = ({
     const animate = () => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1.0);
-      
-      // Ease in-out cubic
-      const easedProgress = progress < 0.5
-        ? 4 * progress * progress * progress
-        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-      
+      const easedProgress =
+        progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
       const newValue = startValue + (targetValue - startValue) * easedProgress;
       setAnimatedZoomFactor(newValue);
 
@@ -86,39 +97,44 @@ export const ZoetropeSzene = ({
     setHoverPos({ x, y });
   }, []);
 
-  const handleClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    if (!isZoomed) {
-      const rect = event.currentTarget.getBoundingClientRect();
-      const x = (event.clientX - rect.left) / rect.width;
-      const y = 1 - (event.clientY - rect.top) / rect.height;
-      setZoomCenter({ x, y });
-    }
-    setIsZoomed(!isZoomed);
-  }, [isZoomed]);
+  const handleClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (!isZoomed) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width;
+        const y = 1 - (event.clientY - rect.top) / rect.height;
+        setZoomCenter({ x, y });
+      }
+      setIsZoomed(!isZoomed);
+    },
+    [isZoomed]
+  );
 
-  const getUniforms = () => {
+  const getUniforms = (rootState: RootState) => {
     updateSampleTexture();
+    const elapsedTime = rootState.clock.getElapsedTime();
+    const deltaTime = elapsedTime - lastElapsedTimeRef.current;
+    lastElapsedTimeRef.current = elapsedTime;
 
-    const now = Date.now();
-    const deltaTime = (now - lastTimeRef.current) / 1000; // Convert to seconds
-    lastTimeRef.current = now;
+    const armRotation = updateArmRotation(elapsedTime, deltaTime);
 
     const hz = sampleProvider.hz;
     if (hz > 0) {
-      rotationRef.current -= 2 * Math.PI * hz * deltaTime;
+      recordRotationRef.current -= 2 * Math.PI * hz * deltaTime;
     }
 
-    let displayRotation = rotationRef.current;
+    let displayRotation = recordRotationRef.current;
     if (stroboscopicEffect > 0) {
       const frameSize = (stroboscopicAngle * Math.PI) / 180;
-      const discreteRotation = Math.round(rotationRef.current / frameSize) * frameSize;
-      displayRotation = rotationRef.current * (1 - stroboscopicEffect) + discreteRotation * stroboscopicEffect;
+      const discreteRotation = Math.round(recordRotationRef.current / frameSize) * frameSize;
+      displayRotation = recordRotationRef.current * (1 - stroboscopicEffect) + discreteRotation * stroboscopicEffect;
     }
 
     return {
       sampleData: { value: sampleTexture },
       sampleDataSize: { value: { x: sampleTexture.image.width, y: sampleTexture.image.height } },
-      coverOpacity: { value: coverOpacity },
+      sampleProviderHz: { value: sampleProvider.hz },
+      sampleProviderActive: { value: sampleProvider.active ? 1 : 0 },
       rotation: { value: displayRotation },
       dataStartAngle: { value: (dataStartAngle * Math.PI) / 180 },
       dataRatio: { value: dataRatio },
@@ -127,19 +143,22 @@ export const ZoetropeSzene = ({
       zoomMagnification: { value: 6.0 },
       indicatorPos: { value: { x: hoverPos.x, y: hoverPos.y } },
       resolution: { value: { x: width, y: height } },
+      recordPlayerOpacity: { value: recordPlayerOpacity },
+      recordPlayerSize: { value: recordPlayerSize },
+      armRotation: { value: armRotation },
     };
   };
 
   return (
-    <div 
-      onClick={handleClick} 
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-      style={{ cursor: 'pointer', width, height }}
-    >
+    <div onClick={handleClick} onMouseMove={handleMouseMove} style={{ cursor: 'pointer', width, height }}>
       <ShaderImage
-        imageUrls={{ image: imageUrl }}
+        imageUrls={{
+          image: imageUrl,
+          recordPlayerMain: require('./braun-sk-61-main.png'),
+          recordPlayerArm: require('./braun-sk-61-arm.png'),
+          recordPlayerRpm: require('./braun-sk-61-rpm.png'),
+          recordPlayerPower: require('./braun-sk-61-power.png'),
+        }}
         objectFit="fill"
         width={width}
         height={height}
@@ -157,7 +176,7 @@ export const ZoetropeSzene = ({
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `}
-      fragmentShader={`
+        fragmentShader={`
         precision mediump float;
         varying vec2 vUv;
         varying vec2 vPosition;
@@ -166,7 +185,8 @@ export const ZoetropeSzene = ({
         uniform sampler2D image;
         uniform sampler2D sampleData;
         uniform vec2 sampleDataSize;
-        uniform float coverOpacity;
+        uniform float sampleProviderHz;
+        uniform float sampleProviderActive;
         uniform float rotation;
         uniform float dataStartAngle;
         uniform float dataRatio;
@@ -175,10 +195,20 @@ export const ZoetropeSzene = ({
         uniform float zoomMagnification;
         uniform vec2 indicatorPos;
         uniform vec2 resolution;
+        uniform float recordPlayerOpacity;
+        uniform sampler2D recordPlayerMain;
+        uniform sampler2D recordPlayerArm;
+        uniform sampler2D recordPlayerRpm;
+        uniform sampler2D recordPlayerPower;
+        uniform vec2 recordPlayerSize;
+        uniform float armRotation;
 
         vec4 dataColor = vec4(1.);
-        float innerRadius = 0.15;
-        float outerRadius = 0.48;
+        float pinRadius = 0.012;
+        float innerDataRadius = 0.14;
+        float outerDataRadius = 0.48;
+        float outerRadius = 0.495;
+        float sa = 0.001; // smoothstep distance for anti-aliasing
 
         ${interpolation}
 
@@ -207,6 +237,8 @@ export const ZoetropeSzene = ({
 
         void main() {
           const float PI = 3.14159265;
+
+          // zooming
           const float initialZoom = 0.9;
           vec2 uvInitial = (vUv - 0.5) / initialZoom + 0.5;
           float zoomSize = 1.0 / zoomMagnification;
@@ -215,14 +247,25 @@ export const ZoetropeSzene = ({
           vec2 borderSize = 1.0 / resolution;
           vec2 distFromEdge = min(vUv, 1.0 - vUv);
           float border = step(distFromEdge.x, borderSize.x) + step(distFromEdge.y, borderSize.y);
-          
           float aspectRatio = vSize.x / vSize.y;
+
+          // aspect ratio correction
           if (aspectRatio > 1.0) {
             uv.x = (uv.x - 0.5) * aspectRatio + 0.5;
           } else {
             uv.y = (uv.y - 0.5) / aspectRatio + 0.5;
           }
-          
+
+          // record player
+          float recordPlayerAspect = recordPlayerSize.x / recordPlayerSize.y;
+          vec2 recordPlayerUv = (uv * vec2(1.0, recordPlayerAspect) + vec2(-0.121, -0.175)) * 0.62;
+          vec4 color = mix(vec4(0.9, 0.9, 0.9, 0.0), texture2D(recordPlayerMain, recordPlayerUv), recordPlayerOpacity);
+          vec4 recordPlayerPower = texture2D(recordPlayerPower, vec2(recordPlayerUv.x, recordPlayerUv.y + smoothstep(0.1, 0.9, sampleProviderActive) * 0.048));
+          color = mix(color, recordPlayerPower, recordPlayerOpacity * recordPlayerPower.a);
+          vec4 recordPlayerRpm = texture2D(recordPlayerRpm, vec2(recordPlayerUv.x, recordPlayerUv.y - 0.008 + smoothstep(16., 78., 75. * sampleProviderHz) * 0.12));
+          color = mix(color, recordPlayerRpm, recordPlayerOpacity * recordPlayerRpm.a);
+
+          // record and data visualization
           vec2 center = vec2(0.5, 0.5);
           vec2 fromCenter = uv - center;
           float dist = length(fromCenter);
@@ -230,20 +273,20 @@ export const ZoetropeSzene = ({
           
           float normalizedAngle = (angle + PI * 0.5 + dataStartAngle) / (2.0 * PI);
           normalizedAngle = mod(normalizedAngle, 1.0);
-
           vec2 rotatedFromCenter = rotate(fromCenter, rotation);
           vec2 rotatedUv = rotatedFromCenter + center;
           vec4 pictureDiscColor = texture2D(image, rotatedUv);
-          pictureDiscColor.a = smoothstep(0.5, 0.49, dist);
+          pictureDiscColor.a = smoothstep(pinRadius, pinRadius + sa, dist) * smoothstep(outerRadius, outerRadius - sa, dist);
+          color = mix(color, pictureDiscColor, pictureDiscColor.a);
           
           float frequencyIndex = normalizedAngle;
-          float radialPos = (dist - innerRadius) / (outerRadius - innerRadius);
+          float radialPos = (dist - innerDataRadius) / (outerDataRadius - innerDataRadius);
           float sampleValue = interpolation(sampleData, vec2(radialPos, 1.0 - frequencyIndex), sampleDataSize, vec2(0., 1.)).r;
-          dataColor.a = smoothstep(outerRadius, outerRadius - 0.01, dist);
-          float dataArea = smoothstep(innerRadius, innerRadius + 0.01, dist) * smoothstep(outerRadius, outerRadius - 0.01, dist);
-          
-          vec4 color = mix(pictureDiscColor, dataColor, dataArea * dataRatio * sampleValue);
+          dataColor.a = smoothstep(outerDataRadius, outerDataRadius - sa, dist);
+          float dataArea = smoothstep(innerDataRadius, innerDataRadius + sa, dist) * smoothstep(outerDataRadius, outerDataRadius - sa, dist);
+          color = mix(color, dataColor, dataArea * dataRatio * sampleValue);
 
+          // zoom indicator
           vec2 adjustedIndicatorPos = indicatorPos;
           vec2 adjustedZoomSize = vec2(zoomSize);
           if (aspectRatio > 1.0) {
@@ -253,11 +296,20 @@ export const ZoetropeSzene = ({
             adjustedIndicatorPos.y = (adjustedIndicatorPos.y - 0.5) / aspectRatio + 0.5;
             adjustedZoomSize.y = zoomSize / aspectRatio;
           }
-
           if (isOnIndicatorBorder(uv, adjustedIndicatorPos, adjustedZoomSize, resolution)) {
             color = mix(color, vec4(1.0, 1.0, 1.0, 1.0), 0.5 - zoomFactor * 0.5);
           }
+
+          // record player arm
+          vec2 armPivot = vec2(1.0, 0.77);
+          vec2 armUvBase = uv - armPivot;
+          armUvBase = rotate(armUvBase, armRotation);
+          armUvBase = armUvBase + armPivot;
+          vec2 armUv = (armUvBase * vec2(1.0, recordPlayerAspect) + vec2(-0.121, -0.175)) * 0.62;
+          vec4 armColor = texture2D(recordPlayerArm, armUv);
+          color = mix(color, armColor, armColor.a * recordPlayerOpacity);
           
+          // final color output
           gl_FragColor = color;
         }`}
       />

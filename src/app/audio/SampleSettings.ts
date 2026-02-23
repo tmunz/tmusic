@@ -1,13 +1,26 @@
 import { Settings, SettingType } from '../settings/Setting';
 
-export const createSampleSettings = (
-  frequencyBands = 32,
-  sampleSize = 1,
-  minFrequency = 10,
-  maxFrequency = 10000,
-  chromaticScale = false,
-  spectralContrastBoost = 0
-): Settings => ({
+export interface SampleSettingTypes {
+  frequencyBands?: number;
+  sampleSize?: number;
+  sampleRate?: number;
+  minFrequency?: number;
+  maxFrequency?: number;
+  chromaticScale?: boolean;
+  spectralContrastBoost?: number;
+}
+
+const DEFAULT_SAMPLE_SETTINGS: SampleSettingTypes = {
+  frequencyBands: 32,
+  sampleSize: 1,
+  sampleRate: 60,
+  minFrequency: 10,
+  maxFrequency: 10000,
+  chromaticScale: false,
+  spectralContrastBoost: 0,
+};
+
+export const createSampleSettings = (settings: SampleSettingTypes = DEFAULT_SAMPLE_SETTINGS): Settings => ({
   frequencyBands: {
     id: 'frequencyBands',
     name: 'Frequency Bands',
@@ -18,7 +31,7 @@ export const createSampleSettings = (
       max: 1024,
       step: 1,
     },
-    value: frequencyBands,
+    value: settings.frequencyBands ?? DEFAULT_SAMPLE_SETTINGS.frequencyBands,
   },
   sampleSize: {
     id: 'sampleSize',
@@ -30,7 +43,19 @@ export const createSampleSettings = (
       max: 500,
       step: 1,
     },
-    value: sampleSize,
+    value: settings.sampleSize ?? DEFAULT_SAMPLE_SETTINGS.sampleSize,
+  },
+  sampleRate: {
+    id: 'sampleRate',
+    name: 'Sample Rate',
+    description: 'The rate at which samples are taken.',
+    type: SettingType.NUMBER,
+    params: {
+      min: 1,
+      max: 60,
+      step: 1,
+    },
+    value: settings.sampleRate ?? DEFAULT_SAMPLE_SETTINGS.sampleRate,
   },
   minFrequency: {
     id: 'minFrequency',
@@ -42,7 +67,7 @@ export const createSampleSettings = (
       max: 22000,
       step: 0.1,
     },
-    value: minFrequency,
+    value: settings.minFrequency ?? DEFAULT_SAMPLE_SETTINGS.minFrequency,
   },
   maxFrequency: {
     id: 'maxFrequency',
@@ -54,7 +79,7 @@ export const createSampleSettings = (
       max: 22050,
       step: 0.1,
     },
-    value: maxFrequency,
+    value: settings.maxFrequency ?? DEFAULT_SAMPLE_SETTINGS.maxFrequency,
   },
   spectralContrastBoost: {
     id: 'spectralContrastBoost',
@@ -67,7 +92,7 @@ export const createSampleSettings = (
       max: 1,
       step: 0.01,
     },
-    value: spectralContrastBoost,
+    value: settings.spectralContrastBoost ?? DEFAULT_SAMPLE_SETTINGS.spectralContrastBoost,
   },
   chromaticScale: {
     id: 'chromaticScale',
@@ -79,8 +104,6 @@ export const createSampleSettings = (
       max: 1,
       step: 1,
     },
-    value: chromaticScale ? 1 : 0,
+    value: settings.chromaticScale ? 1 : 0,
   },
 });
-
-export default createSampleSettings();

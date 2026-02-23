@@ -143,7 +143,7 @@ const BrushPainting = ({
 
   const bufferAMaterial = useMemo(() => {
     const fragmentShader = getBufferAFragmentShader(drawingPath);
-    
+
     return new ShaderMaterial({
       uniforms: {
         channel0: { value: noise3D },

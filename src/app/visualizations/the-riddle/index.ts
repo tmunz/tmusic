@@ -13,7 +13,7 @@ const theRiddle: Visualization = {
   component: TheRiddle,
   color: '#01A101',
   settings: {
-    samples: createSampleSettings(32, 192),
+    samples: createSampleSettings({ frequencyBands: 32, sampleSize: 192 }),
   },
   spotifyUri: 'spotify:album:5aSbB0dVq5o7N5eSfnexjV',
 };

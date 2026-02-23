@@ -13,7 +13,7 @@ const karpatenhund: Visualization = {
   component: Karpatenhund,
   color: '#fda600',
   settings: {
-    samples: createSampleSettings(32, 1),
+    samples: createSampleSettings({ frequencyBands: 32, sampleSize: 1 }),
   },
   spotifyUri: 'spotify:album:7MSnJiBuHQMTckW9K3L6bu',
 };

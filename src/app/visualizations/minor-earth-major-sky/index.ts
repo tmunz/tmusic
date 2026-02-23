@@ -14,7 +14,7 @@ const minorEarthMajorSky: Visualization = {
   component: MinorEarthMajorSky,
   color: '#aad8e7',
   settings: {
-    samples: createSampleSettings(32, 64),
+    samples: createSampleSettings({ frequencyBands: 32, sampleSize: 64 }),
     visualization: {
       intensity: {
         id: 'intensity',

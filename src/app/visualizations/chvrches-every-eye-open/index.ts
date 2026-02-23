@@ -14,7 +14,7 @@ const chvrchesEveryOpenEye: Visualization = {
   component: ChvrchesEveryOpenEye,
   color: '#ded6d4',
   settings: {
-    samples: createSampleSettings(64, 64),
+    samples: createSampleSettings({ frequencyBands: 64, sampleSize: 64 }),
     visualization: {
       visibilityThreshold: {
         id: 'visibilityThreshold',

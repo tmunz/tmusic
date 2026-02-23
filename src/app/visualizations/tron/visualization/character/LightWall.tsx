@@ -156,7 +156,7 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
               segmentsFromStart < fadeSegments ? (segmentsFromStart / fadeSegments) * opacity : opacity;
             alpha = Math.min(fadeInAlpha, fadeOutAlpha);
           }
-          let perpendicular = new Vector3();
+          const perpendicular = new Vector3();
           if (i < trailPoints.current.length - 1) {
             const next = trailPoints.current[i + 1];
             perpendicular.subVectors(next.lower, point.lower).normalize();
@@ -262,7 +262,7 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
                 // Calculate OBB corners for this segment
                 // Each segment is a quad defined by point1.lower, point1.upper, point2.lower, point2.upper
                 // Use perpendicular vector for thickness
-                let perpendicular = new Vector3();
+                const perpendicular = new Vector3();
                 perpendicular.subVectors(point2.lower, point1.lower).normalize();
                 perpendicular
                   .cross(new Vector3(0, 1, 0))
