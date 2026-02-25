@@ -20,6 +20,7 @@ import fiveMilesOut from './five-miles-out';
 import abbeyRoad from './abbey-road';
 import novoPiano from './novo-piano';
 import neverGonnaGiveYouUp from './never-gonna-give-you-up';
+import xx from './xx';
 
 export default [
   unknownPleasures,
@@ -28,6 +29,7 @@ export default [
   tron,
   transEuropeExpress,
   radioActivity,
+  xx,
   violator,
   karpatenhund,
   chvrchesEveryEyeOpen,

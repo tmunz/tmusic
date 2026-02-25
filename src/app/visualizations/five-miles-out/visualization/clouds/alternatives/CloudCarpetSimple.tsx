@@ -1,6 +1,6 @@
 import { useRef, useMemo } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
-import { ShaderMaterial, TextureLoader, RepeatWrapping, LinearFilter, Vector3, DoubleSide } from 'three';
+import { ShaderMaterial, TextureLoader, RepeatWrapping, Vector3, DoubleSide } from 'three';
 import { useReferenceObject } from '../../../../../utils/ReferenceObjectContext';
 import { SampleProvider } from '../../../../../audio/SampleProvider';
 import { createLodGeometry } from './LodGeometryHex';
@@ -24,8 +24,6 @@ export const CloudCarpet = ({
   const texture = useLoader(TextureLoader, cloudTexture);
   texture.wrapS = RepeatWrapping;
   texture.wrapT = RepeatWrapping;
-  texture.minFilter = LinearFilter;
-  texture.magFilter = LinearFilter;
 
   const cloudMaterial = useMemo(() => {
     return new ShaderMaterial({

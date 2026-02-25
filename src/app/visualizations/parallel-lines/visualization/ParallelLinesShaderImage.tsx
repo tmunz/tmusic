@@ -1,7 +1,7 @@
 import { SampleProvider } from '../../../audio/SampleProvider';
 import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
-import { DataTexture, FloatType, LinearFilter, RedFormat } from 'three';
+import { DataTexture, FloatType, RedFormat } from 'three';
 import { useEffect, useState } from 'react';
 
 export interface ParallelLinesShaderImageProps {
@@ -85,7 +85,6 @@ export const ParallelLinesShaderImage = ({ sampleProvider, width, height }: Para
       width={width}
       height={height}
       getUniforms={getUniforms}
-      imageFilter={LinearFilter}
       fragmentShader={`
       precision mediump float;
       varying vec2 vUv;

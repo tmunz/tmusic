@@ -45,7 +45,6 @@ export const Piano = ({
       sampleData: { value: sampleTexture },
       sampleDataSize: { value: { x: sampleTexture.image.width, y: sampleTexture.image.height } },
       intensity: { value: intensity },
-      resolution: { value: [width, height] },
       referenceNoteIndex: { value: sampleProvider.referenceNoteIndex },
       colorGradient: { value: colorGradient },
       colorSparks: { value: colorSparks },
@@ -64,11 +63,11 @@ export const Piano = ({
       precision mediump float;
       varying vec2 vUv;
       varying vec2 vPosition;
+      varying vec2 vSize;
 
       uniform sampler2D sampleData;
       uniform vec2 sampleDataSize;
       uniform float intensity;
-      uniform vec2 resolution;
       uniform float referenceNoteIndex;
       uniform float colorGradient;
       uniform float colorSparks;
@@ -157,7 +156,7 @@ export const Piano = ({
           return;
         }
         
-        float aspect = resolution.x / resolution.y;
+        float aspect = vSize.x / vSize.y;
         
         float keyAreaHeight = 0.14 * aspect;
         float keyAreaCenter = 0.5;

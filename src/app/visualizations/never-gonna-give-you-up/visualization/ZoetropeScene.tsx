@@ -1,7 +1,7 @@
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
 import { SampleProvider } from '../../../audio/SampleProvider';
 import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
-import { LinearFilter, TextureLoader } from 'three';
+import { TextureLoader } from 'three';
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { interpolation } from '../../../utils/ShaderUtils';
 import { RootState } from '@react-three/fiber';
@@ -142,7 +142,6 @@ export const ZoetropeSzene = ({
       zoomCenter: { value: { x: zoomCenter.x, y: zoomCenter.y } },
       zoomMagnification: { value: 6.0 },
       indicatorPos: { value: { x: hoverPos.x, y: hoverPos.y } },
-      resolution: { value: { x: width, y: height } },
       recordPlayerOpacity: { value: recordPlayerOpacity },
       recordPlayerSize: { value: recordPlayerSize },
       armRotation: { value: armRotation },
@@ -163,19 +162,6 @@ export const ZoetropeSzene = ({
         width={width}
         height={height}
         getUniforms={getUniforms}
-        imageFilter={LinearFilter}
-        vertexShader={`
-        varying vec2 vUv;
-        varying vec2 vPosition;
-        varying vec2 vSize;
-        
-        void main() {
-          vUv = uv;
-          vSize = vec2(length(modelMatrix[0].xyz), length(modelMatrix[1].xyz));
-          vPosition = vec2(position + 0.5) * vSize;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `}
         fragmentShader={`
         precision mediump float;
         varying vec2 vUv;
@@ -194,7 +180,6 @@ export const ZoetropeSzene = ({
         uniform vec2 zoomCenter;
         uniform float zoomMagnification;
         uniform vec2 indicatorPos;
-        uniform vec2 resolution;
         uniform float recordPlayerOpacity;
         uniform sampler2D recordPlayerMain;
         uniform sampler2D recordPlayerArm;
@@ -219,13 +204,13 @@ export const ZoetropeSzene = ({
           return m * v;
         }
 
-        bool isOnIndicatorBorder(vec2 uv, vec2 indicatorPos, vec2 zoomSize, vec2 resolution) {
+        bool isOnIndicatorBorder(vec2 uv, vec2 indicatorPos, vec2 zoomSize, vec2 fullSize) {
           vec2 indicatorMin = indicatorPos - zoomSize * 0.5;
           vec2 indicatorMax = indicatorPos + zoomSize * 0.5;
           
           vec2 distToMin = abs(uv - indicatorMin);
           vec2 distToMax = abs(uv - indicatorMax);
-          vec2 borderThickness = 1.0 / resolution;
+          vec2 borderThickness = 1.0 / fullSize;
           
           bool onLeftEdge = distToMin.x < borderThickness.x && uv.y >= indicatorMin.y && uv.y <= indicatorMax.y;
           bool onRightEdge = distToMax.x < borderThickness.x && uv.y >= indicatorMin.y && uv.y <= indicatorMax.y;
@@ -244,7 +229,7 @@ export const ZoetropeSzene = ({
           float zoomSize = 1.0 / zoomMagnification;
           vec2 uvZoomed = zoomCenter + (vUv - 0.5) * zoomSize / initialZoom;
           vec2 uv = mix(uvInitial, uvZoomed, zoomFactor);
-          vec2 borderSize = 1.0 / resolution;
+          vec2 borderSize = 1.0 / vSize;
           vec2 distFromEdge = min(vUv, 1.0 - vUv);
           float border = step(distFromEdge.x, borderSize.x) + step(distFromEdge.y, borderSize.y);
           float aspectRatio = vSize.x / vSize.y;
@@ -296,7 +281,7 @@ export const ZoetropeSzene = ({
             adjustedIndicatorPos.y = (adjustedIndicatorPos.y - 0.5) / aspectRatio + 0.5;
             adjustedZoomSize.y = zoomSize / aspectRatio;
           }
-          if (isOnIndicatorBorder(uv, adjustedIndicatorPos, adjustedZoomSize, resolution)) {
+          if (isOnIndicatorBorder(uv, adjustedIndicatorPos, adjustedZoomSize, vSize)) {
             color = mix(color, vec4(1.0, 1.0, 1.0, 1.0), 0.5 - zoomFactor * 0.5);
           }
 

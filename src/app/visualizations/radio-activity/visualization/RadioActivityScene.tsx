@@ -1,7 +1,6 @@
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
 import { SampleProvider } from '../../../audio/SampleProvider';
 import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
-import { LinearFilter } from 'three';
 
 export interface RadioActivitySceneProps {
   width: number;
@@ -37,19 +36,6 @@ export const RadioActivityScene = ({
       width={width}
       height={height}
       getUniforms={getUniforms}
-      imageFilter={LinearFilter}
-      vertexShader={`
-        varying vec2 vUv;
-        varying vec2 vPosition;
-        varying vec2 vSize;
-        
-        void main() {
-          vUv = uv;
-          vSize = vec2(length(modelMatrix[0].xyz), length(modelMatrix[1].xyz));
-          vPosition = vec2(position + 0.5) * vSize;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `}
       fragmentShader={`
         precision mediump float;
         varying vec2 vUv;

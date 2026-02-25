@@ -23,7 +23,6 @@ export const Pulsar = ({ width, height, sampleProvider, intensitySettings }: Pul
     return {
       sampleData: { value: sampleTexture },
       sampleDataSize: { value: { x: sampleTexture.image.width, y: sampleTexture.image.height } },
-      dimensions: { value:  { x: width, y: height } },
     };
   };
 
@@ -37,9 +36,10 @@ export const Pulsar = ({ width, height, sampleProvider, intensitySettings }: Pul
 
         varying vec2 vUv;
         varying vec2 vPosition;
+        varying vec2 vSize;
+        
         uniform sampler2D sampleData;
         uniform vec2 sampleDataSize;
-        uniform vec2 dimensions;
 
         ${interpolation}
 
@@ -49,7 +49,7 @@ export const Pulsar = ({ width, height, sampleProvider, intensitySettings }: Pul
           float h = .9;
           float lines = sampleDataSize.x;
           float distance = h / (lines - 1.);
-          float strokeWidth = 2.5 / dimensions.y;
+          float strokeWidth = 2.5 / vSize.y;
 
           for (float i = 1.; i <= lines; i++) {
             float currLine = lines - i; // from top to bottom

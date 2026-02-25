@@ -2,7 +2,6 @@ import { useRef } from 'react';
 import { SampleProvider } from '../../../audio/SampleProvider';
 import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
-import { LinearFilter } from 'three';
 import { RootState } from '@react-three/fiber';
 import { interpolation } from '../../../utils/ShaderUtils';
 import { useSampleProviderActive } from '../../../audio/useSampleProviderActive';
@@ -43,7 +42,6 @@ export const Crossing = ({
       direction: { value: direction },
       intensity: { value: intensity },
       isActive: { value: active ? 1.0 : 0.0 },
-      resolution: { value: [width, height] },
     };
   };
 
@@ -54,21 +52,11 @@ export const Crossing = ({
       width={width}
       height={height}
       getUniforms={getUniforms}
-      imageFilter={LinearFilter}
-      vertexShader={`
-        varying vec2 vUv;
-        varying vec2 vPosition;
-        
-        void main() {
-          vUv = uv;
-          vPosition = position.xy;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `}
       fragmentShader={`
       precision mediump float;
       varying vec2 vUv;
       varying vec2 vPosition;
+      varying vec2 vSize;
 
       uniform sampler2D image;
       uniform sampler2D sampleData;
@@ -79,7 +67,6 @@ export const Crossing = ({
       uniform float direction;
       uniform float intensity;
       uniform float isActive;
-      uniform vec2 resolution;
 
       ${interpolation}
       
@@ -109,7 +96,7 @@ export const Crossing = ({
       void main() {
         vec2 uv = vUv;
         vec2 imageSize = vec2(1.0);
-        vec2 containUv = getContainUv(uv, imageSize, resolution);
+        vec2 containUv = getContainUv(uv, imageSize, vSize);
         
         bool inBounds = containUv.x >= 0.0 && containUv.x <= 1.0 && containUv.y >= 0.0 && containUv.y <= 1.0;
 

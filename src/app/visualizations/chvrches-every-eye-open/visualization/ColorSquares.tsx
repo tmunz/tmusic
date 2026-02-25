@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { SampleProvider } from '../../../audio/SampleProvider';
 import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
+import { NearestFilter } from 'three';
 
 export interface ColorSquaresProps {
   size: number;
@@ -37,6 +38,7 @@ export const ColorSquares = ({ sampleProvider, size, visibilityThreshold, backgr
       objectFit="contain"
       width={size}
       height={size}
+      imageFilter={NearestFilter}
       getUniforms={getUniforms}
       fragmentShader={`
       precision mediump float;

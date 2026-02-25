@@ -1,7 +1,6 @@
 import { SampleProvider } from '../../../audio/SampleProvider';
 import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
-import { LinearFilter } from 'three';
 
 export interface PsychedelicSwirlProps {
   width: number;
@@ -28,7 +27,6 @@ export const PsychedelicSwirl = ({ sampleProvider, width, height, intensity = 1 
       width={width}
       height={height}
       getUniforms={getUniforms}
-      imageFilter={LinearFilter}
       fragmentShader={`
         precision mediump float;
         varying vec2 vUv;

@@ -1,11 +1,10 @@
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
 import { SampleProvider } from '../../../audio/SampleProvider';
 import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
-import { LinearFilter } from 'three';
 import { useRef } from 'react';
 import { interpolation } from '../../../utils/ShaderUtils';
 
-export interface BlueMondaySceneProps {
+export interface FloppyDiskProps {
   width: number;
   height: number;
   sampleProvider: SampleProvider;
@@ -13,13 +12,13 @@ export interface BlueMondaySceneProps {
   dataStartAngle?: number;
 }
 
-export const BlueMondayScene = ({
+export const FloppyDisk = ({
   width,
   height,
   sampleProvider,
   coverOpacity = 0.5,
   dataStartAngle = 0,
-}: BlueMondaySceneProps) => {
+}: FloppyDiskProps) => {
   const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider);
 
   const { current: imageUrls } = useRef({
@@ -58,7 +57,6 @@ export const BlueMondayScene = ({
       width={width}
       height={height}
       getUniforms={getUniforms}
-      imageFilter={LinearFilter}
       vertexShader={`
         varying vec2 vUv;
         varying vec2 vPosition;

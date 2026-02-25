@@ -3,7 +3,6 @@ import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
 import { SampleProvider } from '../../../audio/SampleProvider';
 import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
 import { gaussianBlur } from '../../../utils/ShaderUtils';
-import { LinearFilter } from 'three';
 
 export interface TrainRideProps {
   width: number;
@@ -35,15 +34,6 @@ export const TrainRide = ({ width, height, sampleProvider, intensity = 1 }: Trai
       width={width}
       height={height}
       getUniforms={getUniforms}
-      imageFilter={LinearFilter}
-      vertexShader={`
-        varying vec2 vUv;
-        
-        void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `}
       fragmentShader={`
         precision mediump float;
         varying vec2 vUv;

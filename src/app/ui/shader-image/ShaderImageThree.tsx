@@ -17,11 +17,16 @@ export const DEFAULT_FRAGMENT_SHADER = `
   }
 `;
 
-const DEFAULT_VERTEX_SHADER = `
-  varying vec2 vUv; 
 
+const DEFAULT_VERTEX_SHADER = `
+  varying vec2 vUv;
+  varying vec2 vPosition;
+  varying vec2 vSize;
+  
   void main() {
-    vUv = uv; 
+    vUv = uv;
+    vSize = vec2(length(modelMatrix[0].xyz), length(modelMatrix[1].xyz));
+    vPosition = vec2(position + 0.5) * vSize;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
@@ -67,7 +72,7 @@ export const ShaderImageThreePlane = ({
   fragmentShader = DEFAULT_FRAGMENT_SHADER,
   objectFit = 'cover',
   getUniforms = () => ({}),
-  imageFilter = NearestFilter,
+  imageFilter = LinearFilter,
 }: ShaderImageThreeProps) => {
   const ref = useRef<Mesh>(null);
   const materialRef = useRef<ShaderMaterial>(null);

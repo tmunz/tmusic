@@ -57,18 +57,6 @@ export const Rose = ({ width, height, sampleProvider, depth = 2, leafsPerBranch 
       width={width}
       height={height}
       getUniforms={getUniforms}
-      vertexShader={` 
-      varying vec2 vUv;
-      varying vec2 vPosition;
-      varying vec2 vSize;
-
-      void main() {
-        vUv = uv;
-        vSize = vec2(length(modelMatrix[0].xyz), length(modelMatrix[1].xyz));
-        vPosition = vec2(position + 0.5) * vSize;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `}
       fragmentShader={`
       precision mediump float;
       #define PI 3.14159
