@@ -14,7 +14,7 @@ const DEFAULT_SAMPLE_SETTINGS: SampleSettingTypes = {
   frequencyBands: 32,
   sampleSize: 1,
   sampleRate: 60,
-  minFrequency: 10,
+  minFrequency: 20,
   maxFrequency: 10000,
   chromaticScale: false,
   spectralContrastBoost: 0,
