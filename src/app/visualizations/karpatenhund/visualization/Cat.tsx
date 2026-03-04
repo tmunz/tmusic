@@ -47,8 +47,8 @@ export const Cat = ({ width, height, sampleProvider }: CatProps) => {
   
         ${interpolation}
 
-        float _shapeFactor (float x) {
-          return 0.9 * (cos(12. * x) / 3.0 + .5) * (1. - x / 2.) + 0.1;
+        float shapeFactor (float x) {
+          return (cos(12. * x) / 3.0 + .5) * (0.8 - x / 2.) + 0.1;
         }
 
         void main() {
@@ -63,18 +63,16 @@ export const Cat = ({ width, height, sampleProvider }: CatProps) => {
             float dataX0 = 0.0;
             float dataX1 = 1.0;
             float dataY0 = 0.5;
-            float dataY1 = 0.8;
+            float dataY1 = 1.0;
             if (dataX0 <= uv.x && uv.x <= dataX1 && dataY0 <= uv.y) {
-              float dateWidth = dataX1 - dataX0;
+              float dataWidth = dataX1 - dataX0;
               float dataHeight = dataY1 - dataY0;
-              vec2 correctedUv = (uv - vec2(dataX0, dataY0)) / vec2(dateWidth, dataHeight);
+              vec2 correctedUv = (uv - vec2(dataX0, dataY0)) / vec2(dataWidth, dataHeight);
               
               vec4 sampleColor = interpolation(sampleData, correctedUv, sampleDataSize);
 
-              float factor = dataHeight;
-              uv.y -= sampleColor.r * factor * _shapeFactor(uv.x) * correctedUv.y;
-              // sampleColor.rgb = vec3(sampleColor.r);
-              // color = sampleColor;
+              uv.y -= sampleColor.r * dataHeight * shapeFactor(uv.x) * correctedUv.y;
+              // color = vec4(vec3(sampleColor.r), 1.0);
             }
 
             uv.y -= sampleDataAvg * clamp(uv.y - baseY, 0., dataY0 - baseY) * avgFactor;

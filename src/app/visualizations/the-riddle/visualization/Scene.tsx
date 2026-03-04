@@ -13,9 +13,10 @@ export interface SceneProps {
   width: number;
   height: number;
   volumeFactor?: number;
+  strokeNoise?: number;
 }
 
-export const Scene = ({ sampleProvider, width, height, volumeFactor = 0.5 }: SceneProps) => {
+export const Scene = ({ sampleProvider, width, height, volumeFactor = 0.5, strokeNoise = 0.5 }: SceneProps) => {
   // Inverted direction and flipped: newest value to the right, oldest left
   const [volumeTexture, updateVolumeTexture] = useSampleProviderTexture(
     sampleProvider,
@@ -59,6 +60,7 @@ export const Scene = ({ sampleProvider, width, height, volumeFactor = 0.5 }: Sce
       currentVolume: {
         value: volumeArray.length > 0 ? volumeArray[volumeArray.length - 1] / 255.0 : 0,
       },
+      strokeNoise: { value: strokeNoise },
     };
   };
 
@@ -79,9 +81,21 @@ export const Scene = ({ sampleProvider, width, height, volumeFactor = 0.5 }: Sce
         uniform float currentVolume;
         uniform float minVolume;
         uniform float maxVolume;
+        uniform float strokeNoise;
 
         vec4 lineColor = vec4(1.);
-        vec4 fillColor = vec4(0.0039, 0.6314, 0.0039, 1.0); // #01A101
+        
+        // fillColor currently only used as marker on r channel
+        // works only if 'a' is set, see blendOver in drawActor
+        vec4 fillColor = vec4(1., 0., 0., 0.0001);
+        
+        float rand(float x) { 
+          return fract(sin(x) * 71.5413291); 
+        }
+        
+        float rand(vec2 x) { 
+          return rand(dot(x, vec2(13.4251, 15.5128))); 
+        }
         
         ${getGroundY}
         ${drawGround}
@@ -96,10 +110,12 @@ export const Scene = ({ sampleProvider, width, height, volumeFactor = 0.5 }: Sce
           if (uv.y + 0.003 >= groundY + yOffset) {
             actorColor = drawActor(uv, time, lineColor, fillColor, groundUv, groundData, groundDataSize, yOffset, aspectRatio, currentVolume, minVolume, maxVolume );
           }
-          vec4 color = actorColor;
-          if (actorColor.a == 0.0) {
-            color = drawGround(groundUv, groundY, lineColor);
-          }
+          vec4 color = mix(actorColor, drawGround(groundUv, groundY, lineColor),  step(actorColor.r, 0.5));
+
+          float noiseValue = rand(vec2(fract(uv.x * 5343.1 + time), fract(uv.y * 123.02 + time))) * 2.0 - 1.0;
+          color.a *= 1. - noiseValue * strokeNoise;
+
+          color.a *= 1.;
           gl_FragColor = color;
         }
       `}

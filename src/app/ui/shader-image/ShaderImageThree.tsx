@@ -17,7 +17,6 @@ export const DEFAULT_FRAGMENT_SHADER = `
   }
 `;
 
-
 const DEFAULT_VERTEX_SHADER = `
   varying vec2 vUv;
   varying vec2 vPosition;

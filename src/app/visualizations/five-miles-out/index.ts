@@ -3,6 +3,7 @@ import { createSampleSettings } from '../../audio/SampleSettings';
 import { Visualization } from '../Visualization';
 import { FiveMilesOut } from './visualization/FiveMilesOut';
 import { FiveMilesOutInstructions } from './FiveMilesOutInstructions';
+import { SettingType } from '../../settings/Setting';
 
 const fiveMilesOut: Visualization = {
   id: 'five-miles-out',
@@ -15,6 +16,20 @@ const fiveMilesOut: Visualization = {
   color: '#1a1a1a',
   settings: {
     samples: createSampleSettings({ frequencyBands: 32, sampleSize: 100 }),
+    visualization: {
+      intensity: {
+        id: 'intensity',
+        name: 'Intensity',
+        description: 'Intensity of the audio data effect on the clouds',
+        type: SettingType.NUMBER,
+        value: 0.3,
+        params: {
+          min: 0,
+          max: 1,
+          step: 0.05,
+        },
+      },
+    },
   },
   spotifyUri: 'spotify:album:1NqFhS3YNSTxowqOJ0TjOR',
   menuItems: [{ icon: PiKeyboard, component: FiveMilesOutInstructions }],

@@ -10,7 +10,14 @@ export interface XXProps {
   sectionLength?: number;
 }
 
-export const XX = ({ sampleProvider, canvas, numberOfSections = 4, offsetAngle = 45.0, sectionWidth = 0.2, sectionLength = 0.8 }: XXProps) => {
+export const XX = ({
+  sampleProvider,
+  canvas,
+  numberOfSections = 4,
+  offsetAngle = 45.0,
+  sectionWidth = 0.2,
+  sectionLength = 0.8,
+}: XXProps) => {
   const sizeRatio = 0.9;
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>

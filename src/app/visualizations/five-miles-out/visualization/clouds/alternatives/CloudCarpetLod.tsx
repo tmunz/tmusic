@@ -1,6 +1,6 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { ShaderMaterial,Vector3, DoubleSide } from 'three';
+import { ShaderMaterial, Vector3, DoubleSide } from 'three';
 import { useReferenceObject } from '../../../../../utils/ReferenceObjectContext';
 import { SampleProvider } from '../../../../../audio/SampleProvider';
 import { useSampleProviderTexture } from '../../../../../audio/useSampleProviderTexture';

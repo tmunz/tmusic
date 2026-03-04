@@ -35,25 +35,25 @@ export const PlaneInDesert = ({ sampleProvider, width, height, intensity = 1 }: 
       height={height}
       getUniforms={getUniforms}
       fragmentShader={`
-      precision mediump float;
-      varying vec2 vUv;
+        precision mediump float;
+        varying vec2 vUv;
 
-      uniform sampler2D image;
-      uniform sampler2D sampleData;
-      uniform vec2 sampleDataSize;
-      uniform float intensity;
+        uniform sampler2D image;
+        uniform sampler2D sampleData;
+        uniform vec2 sampleDataSize;
+        uniform float intensity;
 
-      ${interpolation}
+        ${interpolation}
 
-      void main() {
-        vec2 uv = vUv;
+        void main() {
+          vec2 uv = vUv;
 
-        float sampleValue = interpolation(sampleData, vec2(uv.y, 1. - uv.x), sampleDataSize).r;
-        vec4 color = texture2D(image, uv);
-        vec4 valueColor = vec4(.857, .794, .565, intensity) * sampleValue;
-        color.rgb = mix(color.rgb, valueColor.rgb, clamp(valueColor.a, 0., 1.));
-        gl_FragColor = color;
-      }`}
+          float sampleValue = interpolation(sampleData, vec2(uv.y, 1. - uv.x), sampleDataSize).r;
+          vec4 color = texture2D(image, uv);
+          vec4 valueColor = vec4(.857, .794, .565, intensity) * sampleValue;
+          color.rgb = mix(color.rgb, valueColor.rgb, clamp(valueColor.a, 0., 1.));
+          gl_FragColor = color;
+        }`}
     />
   );
 };

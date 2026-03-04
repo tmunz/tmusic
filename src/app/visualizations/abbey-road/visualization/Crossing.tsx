@@ -27,7 +27,8 @@ export const Crossing = ({
   const active = useSampleProviderActive(sampleProvider);
 
   const { current: imageUrls } = useRef({
-    image: require('./crossing.png'),
+    image: require('../abbey-road.jpg'),
+    mask: require('./crossing-mask.jpg'),
     depthMap: require('./crossing-depth-map.jpg'),
   });
 
@@ -59,6 +60,7 @@ export const Crossing = ({
       varying vec2 vSize;
 
       uniform sampler2D image;
+      uniform sampler2D mask;
       uniform sampler2D sampleData;
       uniform vec2 sampleDataSize;
       uniform sampler2D depthMap;
@@ -119,7 +121,8 @@ export const Crossing = ({
         float sampleValue = interpolation(sampleData, crossingUv, sampleDataSize).r;
 
         bool isInCrossing = uv.y < 0.238 - offset.y;
-        vec4 imageColor = texture2D(image, containUvOffset);
+        vec4 imageColor = vec4(texture2D(image, containUvOffset).rgb, texture2D(mask, containUvOffset).r);
+
         float sampleColorValue = (sampleValue * 0.5 - 0.25) * intensity * isActive;
         vec3 basedataColor = vec3(0.824, 0.820, 0.741);
         vec4 dataColor = vec4(basedataColor + sampleColorValue * basedataColor, mix(0.0, 1.0, inBounds || isInCrossing && xCoord.y > 0.5));

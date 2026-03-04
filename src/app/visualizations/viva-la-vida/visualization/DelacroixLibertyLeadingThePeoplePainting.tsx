@@ -4,8 +4,8 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useFBO } from '@react-three/drei';
 import { getBufferAFragmentShader } from './shaders/BufferA.gsgl';
 import { imageFragmentShader } from './shaders/Image.gsgl';
-import { useNoise3D } from './noise/useNoise3D';
-import { useBlueNoise } from './noise/useBlueNoise';
+import { useNoise3D } from '../../../utils/noise/useNoise3D';
+import { useBlueNoise } from '../../../utils/noise/useBlueNoise';
 import {
   LinearFilter,
   Mesh,

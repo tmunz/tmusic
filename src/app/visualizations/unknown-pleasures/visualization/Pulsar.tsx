@@ -12,10 +12,8 @@ export interface PulsarProps {
 }
 
 export const Pulsar = ({ width, height, sampleProvider, intensitySettings }: PulsarProps) => {
-
-  const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(
-    sampleProvider,
-    (sp) => convertPulsarData(sp, intensitySettings)
+  const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider, sp =>
+    convertPulsarData(sp, intensitySettings)
   );
 
   const getUniforms = () => {

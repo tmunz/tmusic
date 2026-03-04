@@ -1,6 +1,7 @@
 import { createSampleSettings } from '../../audio/SampleSettings';
+import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
-import { TheRiddle } from './visualization/TheRiddle';
+import { TheRiddle, DEFAULT_SAMPLE_SIZE } from './visualization/TheRiddle';
 
 const theRiddle: Visualization = {
   id: 'the-riddle',
@@ -13,7 +14,21 @@ const theRiddle: Visualization = {
   component: TheRiddle,
   color: '#01A101',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 32, sampleSize: 192 }),
+    samples: createSampleSettings({ frequencyBands: 32, sampleSize: DEFAULT_SAMPLE_SIZE }),
+    visualization: {
+      strokeNoise: {
+        id: 'strokeNoise',
+        name: 'Stroke Noise',
+        description: 'Amount of noise variation in the strokes',
+        type: SettingType.NUMBER,
+        value: 0.5,
+        params: {
+          min: 0,
+          max: 1,
+          step: 0.05,
+        },
+      },
+    },
   },
   spotifyUri: 'spotify:album:5aSbB0dVq5o7N5eSfnexjV',
 };

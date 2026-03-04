@@ -14,9 +14,10 @@ export interface FiveMilesOutSceneProps {
   width: number;
   height: number;
   sampleProvider: SampleProvider;
+  intensity?: number;
 }
 
-export const FiveMilesOutScene = ({ width, height, sampleProvider }: FiveMilesOutSceneProps) => {
+export const FiveMilesOutScene = ({ width, height, sampleProvider, intensity = 0.5 }: FiveMilesOutSceneProps) => {
   const [landingGear, setLandingGear] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
   const [locked, setLocked] = useState(true);
@@ -62,7 +63,12 @@ export const FiveMilesOutScene = ({ width, height, sampleProvider }: FiveMilesOu
         <directionalLight position={[3, 1, -5]} intensity={6} color="#fffadd" />
         <ReferenceObjectProvider>
           <CustomSky />
-          <SampleCloudField position={[0, -150, -500]} size={1500} sampleProvider={sampleProvider} />
+          <SampleCloudField
+            position={[0, -150, -500]}
+            size={1500}
+            sampleProvider={sampleProvider}
+            heightScale={intensity}
+          />
           <HorizonClouds size={1000} />
           <Airplane
             rotation={[0.0, 0.0, 0.18]}

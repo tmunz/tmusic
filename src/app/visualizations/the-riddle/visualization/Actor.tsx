@@ -65,15 +65,11 @@ export const drawActor = `
 
   vec4 blendObject(vec4 current, float obj, float borderThickness, vec4 fillColor, vec4 borderColor, float mask) {
     float fill = step(obj, 0.0);
-    if (fill > 0.0) {
-      current = blendOver(fillColor * fill, current);
-    }
-    if (obj > 0.0) {
+    current = blendOver(fillColor * fill, current);
+    if (obj >= 0.0) {
       float border = smoothstep(borderThickness, borderThickness - 0.002, abs(obj));
       float maskedBorder = border * mask;
-      if (maskedBorder > 0.0) {
-        current = blendOver(vec4(borderColor.rgb, maskedBorder), current);
-      }
+      current = blendOver(vec4(borderColor.rgb, maskedBorder), current);
     }
     return current;
   }
