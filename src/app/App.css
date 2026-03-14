@@ -4,9 +4,9 @@
   flex-direction: column;
   height: 100%;
 
-  .menu-item-content-wrapper > * {
-    padding: 1rem;
+  .menu-item-content-wrapper {
     box-sizing: border-box;
+    padding: 1.5rem;
 
     h2:first-child {
       margin-top: 0;

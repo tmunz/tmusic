@@ -9,10 +9,10 @@ const blueMonday: Visualization = {
   id: 'blue-monday',
   title: 'Blue Monday',
   artist: 'New Order',
-  design: 'Peter Saville',
+  design: 'Peter Saville (Factory Records)',
   imgSrc: require('./blue-monday.jpg'),
   description:
-    "'Blue Monday' by New Order is the best-selling 12-inch single of all time. The original artwork is designed to resemble a 5¼ inch floppy disk. The sleeve does not display either the group name or song title. Instead the legend 'FAC 73 BLUE MONDAY AND THE BEACH NEW ORDER' is represented in code by a series of coloured blocks (front & back). The key enabling this to be deciphered was printed on the back sleeve of the album from the same era 'Power, Corruption & Lies'. You can encode your own text in the Encoding tab to see how it would look in the 'Peter Saville' color code.",
+    "'Blue Monday' by New Order is the best-selling 12-inch single of all time. The original artwork is designed to resemble a 5¼ inch floppy disk. The sleeve shows neither the group name nor song title. Instead 'FAC 73 BLUE MONDAY AND THE BEACH NEW ORDER' is represented in code by a series of coloured blocks (front & back). The key enabling this to be deciphered was printed on the back sleeve of the album from the same era 'Power, Corruption & Lies'. You can use the 'Color Coding' tab to see how your own text looks like encoded in the 'Peter Saville' color code.",
   component: BlueMonday,
   color: '#252525',
   settings: {

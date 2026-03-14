@@ -10,7 +10,7 @@ const xx: Visualization = {
   design: 'Phil Lee',
   imgSrc: require('./xx.png'),
   description:
-    "Maybe one of the greatest introductions ever. The XX presented themselves on their debut studio album 'XX' with an epic opening track that already lays out the theme of the album without revealing too much of what will come. The album continues with this minimalist sound characterized by sparse arrangements, leading to the intimate vocal sections, and a blend of electronic and indie pop elements of the following tracks such as 'Crystalised' and 'VCR', where you can find true showcase of the band's unique approach to songwriting and production. Sometimes, great music really is as simple as this cover art.",
+    "Maybe one of the greatest introductions ever. The XX presented themselves on their debut studio album 'XX' with an epic opening track that already lays out the theme of the album without revealing too much of what will come. The album continues with this minimalist sound characterized by sparse arrangements, leading to the intimate vocal sections, and a blend of electronic and indie pop elements of the following tracks such as 'Crystalised' and 'VCR', where you can find true showcases of the band's unique approach to songwriting and production. Sometimes, great music really is as simple as this cover art.",
   component: XX,
   color: '#000000',
   settings: {

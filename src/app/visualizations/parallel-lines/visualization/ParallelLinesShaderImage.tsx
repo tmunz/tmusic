@@ -1,8 +1,6 @@
 import { SampleProvider } from '../../../audio/SampleProvider';
 import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
-import { DataTexture, FloatType, RedFormat } from 'three';
-import { useEffect, useState } from 'react';
 
 export interface ParallelLinesShaderImageProps {
   width: number;
@@ -13,69 +11,11 @@ export interface ParallelLinesShaderImageProps {
 export const ParallelLinesShaderImage = ({ sampleProvider, width, height }: ParallelLinesShaderImageProps) => {
   const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider);
 
-  const [cumulativeTexture, setCumulativeTexture] = useState<DataTexture>(
-    new DataTexture(new Float32Array(1), 1, 1, RedFormat, FloatType)
-  );
-
-  const getCumulativePositions = (sp: SampleProvider): Float32Array => {
-    const numBands = sp.frequencyBands;
-    const sampleSize = sp.sampleSize;
-    const result = new Float32Array(numBands * sampleSize);
-    const samples = sp.samples;
-
-    for (let y = 0; y < sampleSize; y++) {
-      let totalFreqValue = 0;
-      for (let x = 0; x < numBands; x++) {
-        totalFreqValue += samples[y][x];
-      }
-
-      let cumulativePosition = 0;
-      for (let x = 0; x < numBands; x++) {
-        const freqValue = samples[y][x];
-        const proportionalWidth = totalFreqValue > 0 ? freqValue / totalFreqValue : 1.0 / numBands;
-        cumulativePosition += proportionalWidth;
-
-        result[y * numBands + x] = x === numBands - 1 ? 1.0 : cumulativePosition;
-      }
-    }
-
-    return result;
-  };
-
-  useEffect(() => {
-    if (
-      sampleProvider &&
-      (sampleProvider.frequencyBands !== cumulativeTexture.image.width ||
-        sampleProvider.sampleSize !== cumulativeTexture.image.height)
-    ) {
-      setCumulativeTexture(
-        new DataTexture(
-          getCumulativePositions(sampleProvider),
-          sampleProvider.frequencyBands,
-          sampleProvider.sampleSize,
-          RedFormat,
-          FloatType
-        )
-      );
-    }
-  }, [sampleProvider?.frequencyBands, sampleProvider?.sampleSize]);
-
-  const updateCumulativeTexture = () => {
-    if (!sampleProvider) return;
-    Object.assign(cumulativeTexture.image, {
-      data: getCumulativePositions(sampleProvider),
-      width: sampleProvider.frequencyBands,
-      height: sampleProvider.sampleSize,
-    });
-    cumulativeTexture.needsUpdate = true;
-  };
-
   const getUniforms = () => {
     updateSampleTexture();
-    updateCumulativeTexture();
     return {
-      cumulativeDataSize: { value: { x: sampleTexture.image.width, y: sampleTexture.image.height } },
-      cumulativeData: { value: cumulativeTexture },
+      sampleData: { value: sampleTexture },
+      sampleDataSize: { value: { x: sampleTexture.image.width, y: sampleTexture.image.height } },
     };
   };
 
@@ -89,8 +29,8 @@ export const ParallelLinesShaderImage = ({ sampleProvider, width, height }: Para
       precision mediump float;
       varying vec2 vUv;
 
-      uniform sampler2D cumulativeData;
-      uniform vec2 cumulativeDataSize;
+      uniform sampler2D sampleData;
+      uniform vec2 sampleDataSize;
       
       float interpolate(sampler2D tex, float x, float y, vec2 size) {
         float yPixel = y * size.y;
@@ -104,22 +44,43 @@ export const ParallelLinesShaderImage = ({ sampleProvider, width, height }: Para
         return mix(val0, val1, t);
       }
 
+      float getTotalSum(float y, vec2 size) {
+        float totalSum = 0.0;
+        for (float i = 0.0; i < size.x; i += 1.0) {
+          float sx = (i + 0.5) / size.x;
+          totalSum += interpolate(sampleData, sx, y, size);
+        }
+        return totalSum;
+      }
+
+      float getCumulativePosition(float bandIndex, float y, vec2 size, float totalSum) {
+        float cumulativePos = 0.0;
+        for (float i = 0.0; i < bandIndex; i += 1.0) {
+          float sx = (i + 0.5) / size.x;
+          float value = interpolate(sampleData, sx, y, size);
+          float proportionalWidth = totalSum > 0.0 ? value / totalSum : 1.0 / size.x;
+          cumulativePos += proportionalWidth;
+        }
+        return cumulativePos;
+      }
+
       void main() {
         vec2 uv = vUv;
-        float numBands = cumulativeDataSize.x;
+        float numBands = sampleDataSize.x;
         float targetX = uv.x;
+        
+        float totalSum = getTotalSum(uv.y, sampleDataSize);
         
         int foundBandIndex = 0;
         int low = 0;
         int high = int(numBands) - 1;
         
-        // 1024 max number of bands supported: log2(1024) = 10
+        // Binary search - 1024 max number of bands supported: log2(1024) = 10
         for(int i = 0; i <= 10; i++) {
           if(high <= low) break;
           
           int mid = (low + high) / 2;
-          float sx = (float(mid) + 0.5) / numBands;
-          float cumulativePos = interpolate(cumulativeData, sx, uv.y, cumulativeDataSize);
+          float cumulativePos = getCumulativePosition(float(mid + 1), uv.y, sampleDataSize, totalSum);
           
           if(targetX <= cumulativePos) {
             high = mid;
@@ -130,14 +91,8 @@ export const ParallelLinesShaderImage = ({ sampleProvider, width, height }: Para
         
         foundBandIndex = low;
         
-        float bandStart = 0.0;
-        if(foundBandIndex > 0) {
-          float prevSx = (float(foundBandIndex - 1) + 0.5) / numBands;
-          bandStart = interpolate(cumulativeData, prevSx, uv.y, cumulativeDataSize);
-        }
-        
-        float sx = (float(foundBandIndex) + 0.5) / numBands;
-        float bandEnd = interpolate(cumulativeData, sx, uv.y, cumulativeDataSize);
+        float bandStart = getCumulativePosition(float(foundBandIndex), uv.y, sampleDataSize, totalSum);
+        float bandEnd = getCumulativePosition(float(foundBandIndex + 1), uv.y, sampleDataSize, totalSum);
         float bandWidth = bandEnd - bandStart;
         
         float finalBandIndex = float(foundBandIndex);

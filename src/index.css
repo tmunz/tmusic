@@ -12,6 +12,8 @@ body {
   font-family: 'Berthold Akzidenz Grotesk BE', sans-serif;
   font-weight: 300;
   font-size: 16px;
+  text-align: justify;
+  line-height: 1.4;
   margin: 0;
   padding: 0;
   color: var(--color-text);
@@ -30,6 +32,7 @@ h6 {
 
 button {
   color: var(--color-action);
+
   &:hover {
     color: var(--color-action-hover);
   }

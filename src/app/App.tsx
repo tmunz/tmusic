@@ -29,9 +29,14 @@ export function App() {
     const visualization = visualizations.find(v => v.id === pathId);
     if (visualization) {
       dispatch({ type: VisualizationAction.SET_VISUALIZATION, visualization });
+      localStorage.setItem('visualizationId', visualization.id);
     } else {
-      navigate('/', { replace: false });
-      dispatch({ type: VisualizationAction.SET_VISUALIZATION, visualization: visualizations[0] });
+      const visualizationId = localStorage.getItem('visualizationId');
+      const defaultVisualization = visualizationId 
+        ? visualizations.find(v => v.id === visualizationId) || visualizations[0]
+        : visualizations[0];
+      navigate(`/${defaultVisualization.id}`, { replace: false });
+      dispatch({ type: VisualizationAction.SET_VISUALIZATION, visualization: defaultVisualization });
     }
   }, [location.pathname, navigate, dispatch]);
 
@@ -44,6 +49,7 @@ export function App() {
     startTransition(() => {
       navigate(`/${id}`);
       dispatch({ type: VisualizationAction.SET_VISUALIZATION, visualization });
+      localStorage.setItem('visualizationId', id);
     });
   };
 

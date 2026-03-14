@@ -19,7 +19,7 @@ const abbeyRoad: Visualization = {
       direction: {
         id: 'direction',
         name: 'Direction',
-        description: 'Rotation of the audio data visualization (0-3, each step rotates 90 degrees)',
+        description: 'Rotation of the audio data visualization',
         type: SettingType.NUMBER,
         value: 0,
         params: {

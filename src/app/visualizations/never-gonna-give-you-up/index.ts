@@ -12,7 +12,7 @@ const neverGonnaGiveYouUp: Visualization = {
   design: 'Simon West (Director)',
   imgSrc: require('./whenever-you-need-somebody.jpg'),
   description:
-    "'Never Gonna Give You Up' by Rick Astley – originally released on his 1987 album Whenever You Need Somebody – became one of the most iconic songs of the 1980s. Decades later, it experienced a resurgence in popularity as the centerpiece of the internet prank known as 'Rickrolling' in which unsuspecting users are redirected to the song's music video. This visualization is based on a 2025 rerelease and features zoetrope-style visuals inspired primarily by scenes from the mentioned video. Learn more about the zoetrope effect in the Info tab.",
+    "'Never Gonna Give You Up' by Rick Astley – originally released on his 1987 album 'Whenever You Need Somebody' – became one of the most iconic songs of the 1980s. Decades later, it experienced a resurgence in popularity as the centerpiece of the internet prank known as 'Rickrolling' in which unsuspecting users are redirected to the song's music video. This visualization is based on a 2025 rerelease and features zoetrope-style visuals inspired primarily by scenes from the mentioned video. Learn more about the zoetrope effect in the Info tab.",
   component: NeverGonnaGiveYouUp,
   color: '#eae9e5',
   settings: {

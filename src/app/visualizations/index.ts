@@ -22,6 +22,7 @@ import novoPiano from './novo-piano';
 import neverGonnaGiveYouUp from './never-gonna-give-you-up';
 import xx from './xx';
 import crossingTheRubicon from './crossing-the-rubicon';
+import enTuCalle from './en-tu-calle';
 
 export default [
   unknownPleasures,
@@ -36,10 +37,11 @@ export default [
   chvrchesEveryEyeOpen,
   crises,
   pushTheSkyAway,
-  vivaLaVida,
-  abbeyRoad,
-  novoPiano,
   crossingTheRubicon,
+  vivaLaVida,
+  enTuCalle,
+  novoPiano,
+  abbeyRoad,
   neverGonnaGiveYouUp,
   santigold,
   velvetUnderground,
@@ -50,7 +52,6 @@ export default [
   tameImpalaCurrents,
 ];
 
-// Los Flechazos - En tu calle (Mondrean)
 // Arctic Monkeys - AM
 // Kraftwerk - Mensch-Maschine / Computerwelt
 // The Sounds - Crossing the Rubicon / Something to Die For

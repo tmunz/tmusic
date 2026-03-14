@@ -45,13 +45,20 @@ export const RisingHorse = ({ width, height, sampleProvider, intensity }: Rising
 
       ${interpolation}
 
+      vec4 sampleChannel(vec2 uv, vec2 dataUv, float sectionOffset, vec2 direction, float f) {
+        float sampleValue = interpolation(sampleData, vec2(sectionOffset + dataUv.y / 3., dataUv.x), sampleDataSize).r;
+        vec2 displacedUv = uv + direction * f * sampleValue;
+        return texture2D(image, displacedUv);
+      }
+
       void main() {
-        vec2 uv = vUv * 0.9 + .05;
-        
+        vec2 imageUv = vUv * 0.9 + .05;
+        vec2 dataUv = vUv;
+
         float f = intensity * .05;
-        float r = texture2D(image, vec2(uv.x, uv.y + f * interpolation(sampleData, vec2(uv.y / 3., uv.x), sampleDataSize).r)).r;
-        float g = texture2D(image, vec2(uv.x - f * interpolation(sampleData, vec2(1./3. + uv.y / 3., uv.x), sampleDataSize).r, uv.y)).g;
-        float b = texture2D(image, vec2(uv.x, uv.y - f * interpolation(sampleData, vec2(2./3. + uv.y / 3., uv.x), sampleDataSize).r)).b;
+        float r = sampleChannel(imageUv, dataUv, 0./3., vec2(0.0, 1.0), f).r;
+        float g = sampleChannel(imageUv, dataUv.yx, 1./3., vec2(-1.0, 0.0), f).g;
+        float b = sampleChannel(imageUv, dataUv, 2./3., vec2(0.0, -1.0), f).b;
         
         vec4 color = vec4(r, g, b, 1.);
         

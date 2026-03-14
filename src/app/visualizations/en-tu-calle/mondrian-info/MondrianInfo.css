@@ -1,0 +1,68 @@
+.mondrian-info {
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+
+  h2 {
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+  }
+
+  .mondrian-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mondrian-images {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+  }
+
+  .mondrian-image-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 150px;
+    max-width: 200px;
+
+    img {
+      width: 100%;
+      height: auto;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+  }
+
+  .image-caption {
+    font-size: 0.875rem;
+    font-style: italic;
+    text-align: center;
+    margin: 0;
+  }
+
+  .mondrian-action {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+  }
+
+  .mondrian-button {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background-color: #000;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: #333;
+    }
+  }
+}
