@@ -1,5 +1,5 @@
 import { PiMusicNotesFill } from 'react-icons/pi';
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { createSampleSettings } from '../../sampleProvider/SampleSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { ChromaticScale } from './chromatic-scale/ChromaticScale';
@@ -17,7 +17,7 @@ const novoPiano: Visualization = {
   color: '#b2b3b5',
   settings: {
     samples: createSampleSettings({
-      frequencyBands: 88,
+      frameSize: 88,
       sampleSize: 1,
       minFrequency: 27.5,
       maxFrequency: 4186,

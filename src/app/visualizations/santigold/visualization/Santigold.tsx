@@ -1,4 +1,4 @@
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 import { Canvas } from '@react-three/fiber';
 import { GlitterParticles } from './GlitterParticles';
 import { OrbitControls } from '@react-three/drei';

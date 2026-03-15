@@ -1,5 +1,5 @@
 import { PiBarcode } from 'react-icons/pi';
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { createSampleSettings } from '../../sampleProvider/SampleSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { BlueMonday } from './visualization/BlueMonday';
@@ -16,7 +16,7 @@ const blueMonday: Visualization = {
   component: BlueMonday,
   color: '#252525',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 336, sampleSize: 80, spectralContrastBoost: 0.5 }),
+    samples: createSampleSettings({ frameSize: 336, sampleSize: 80, spectralContrastBoost: 0.5 }),
     visualization: {
       coverOpacity: {
         id: 'coverOpacity',

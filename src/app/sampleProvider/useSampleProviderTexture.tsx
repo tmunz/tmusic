@@ -5,7 +5,7 @@ import { DataTexture, RedFormat, UnsignedByteType } from 'three';
 export const useSampleProviderTexture = (
   sampleProvider?: SampleProvider,
   getData: (sampleProvider?: SampleProvider) => Uint8Array = sp => sp?.flat() ?? new Uint8Array(),
-  getWidth: (sampleProvider?: SampleProvider) => number = sp => sp?.frequencyBands ?? 0,
+  getWidth: (sampleProvider?: SampleProvider) => number = sp => sp?.frameSize ?? 0,
   getHeight: (sampleProvider?: SampleProvider) => number = sp => sp?.sampleSize ?? 0
 ): [DataTexture, () => void] => {
   const [sampleTexture, setSampleTexture] = useState<DataTexture>(
@@ -23,7 +23,7 @@ export const useSampleProviderTexture = (
     ) {
       setSampleTexture(new DataTexture(getData(sampleProvider), width, height, RedFormat, UnsignedByteType));
     }
-  }, [sampleProvider?.frequencyBands, sampleProvider?.sampleSize]);
+  }, [sampleProvider?.frameSize, sampleProvider?.sampleSize]);
 
   const applyToSampleTexture = () => {
     if (!sampleProvider) return;

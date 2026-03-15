@@ -1,9 +1,9 @@
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 
 export function convertLightData(sampleProvider?: SampleProvider) {
   if (!sampleProvider) return new Uint8Array();
-  const result = new Uint8Array(sampleProvider.sampleSize * sampleProvider.frequencyBands);
-  for (let i = 0; i < sampleProvider.frequencyBands; i++) {
+  const result = new Uint8Array(sampleProvider.sampleSize * sampleProvider.frameSize);
+  for (let i = 0; i < sampleProvider.frameSize; i++) {
     const frequency: number[] = sampleProvider.samples.map(sample => sample[i]);
     const sortedFrequency: number[] = [...frequency].sort((a, b) => b - a);
     const max = sortedFrequency[0];
@@ -11,7 +11,7 @@ export function convertLightData(sampleProvider?: SampleProvider) {
     const spread = 255 / (max - min);
     for (let j = 0; j < sampleProvider.sampleSize; j++) {
       const value = (frequency[j] - min) * spread;
-      result[j * sampleProvider.frequencyBands + i] = value;
+      result[j * sampleProvider.frameSize + i] = value;
     }
   }
   return result;

@@ -25,7 +25,7 @@ export const ChromaticScale = () => {
     dispatch({
       type: VisualizationAction.UPDATE_VISUALIZATION_SETTINGS_VALUE,
       section: 'samples',
-      key: 'frequencyBands',
+      key: 'frameSize',
       value: preset.keys,
     });
 

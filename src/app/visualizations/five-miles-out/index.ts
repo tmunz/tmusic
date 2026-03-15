@@ -1,5 +1,5 @@
 import { PiKeyboard } from 'react-icons/pi';
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { createSampleSettings } from '../../sampleProvider/SampleSettings';
 import { Visualization } from '../Visualization';
 import { FiveMilesOut } from './visualization/FiveMilesOut';
 import { FiveMilesOutInstructions } from './FiveMilesOutInstructions';
@@ -15,7 +15,7 @@ const fiveMilesOut: Visualization = {
   component: FiveMilesOut,
   color: '#1a1a1a',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 32, sampleSize: 100 }),
+    samples: createSampleSettings({ frameSize: 32, sampleSize: 100 }),
     visualization: {
       intensity: {
         id: 'intensity',

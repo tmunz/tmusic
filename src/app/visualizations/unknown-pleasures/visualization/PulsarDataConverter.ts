@@ -1,4 +1,4 @@
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 
 export type PulsarData = { value: number; sampleIndex: number };
 
@@ -17,8 +17,8 @@ export function convertPulsarData(
   }
 ): Uint8Array {
   if (!sampleProvider) return new Uint8Array();
-  const result = new Uint8Array(sampleProvider.sampleSize * sampleProvider.frequencyBands);
-  for (let i = 0; i < sampleProvider.frequencyBands; i++) {
+  const result = new Uint8Array(sampleProvider.sampleSize * sampleProvider.frameSize);
+  for (let i = 0; i < sampleProvider.frameSize; i++) {
     const frequency: PulsarData[] = sampleProvider.samples.map((sample, sampleIndex) => ({
       value: sample[i],
       sampleIndex,
@@ -49,7 +49,7 @@ export function convertPulsarData(
         intensitySettings.dominatingWeight * dominatingSampleRelevance;
       const raw = normalized * sampleWeight * frequencyWeight * intensity;
       const clamped = Math.min(255, Math.max(0, Math.round(raw)));
-      result[j * sampleProvider.frequencyBands + i] = clamped;
+      result[j * sampleProvider.frameSize + i] = clamped;
     }
   }
   return result;

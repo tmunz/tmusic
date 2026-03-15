@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 import { ZoetropeSzene } from './ZoetropeScene';
 import { useAppState, VisualizationAction } from '../../../AppContext';
 

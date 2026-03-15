@@ -3,7 +3,7 @@ import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useEffect, useRef } from 'react';
 import { AnimationAction, AnimationClip, AnimationMixer, Clock, Group, LoopOnce, Mesh } from 'three';
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 import { BananaShader } from './BananaShader';
 
 export const Banana = forwardRef<Group, { peeled: boolean; sampleProvider?: SampleProvider }>(

@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { createSampleSettings } from '../../sampleProvider/SampleSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { UnknownPleasures } from './visualization/UnknownPleasures';
@@ -14,7 +14,7 @@ const unknownPleasures: Visualization = {
   component: UnknownPleasures,
   color: '#000000',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 80, sampleSize: 30, sampleRate: 24 }),
+    samples: createSampleSettings({ frameSize: 80, sampleSize: 30, sampleRate: 24 }),
     visualization: {
       baseIntensity: {
         id: 'baseIntensity',

@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Points, Texture } from 'three';
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 import { useTexture } from '@react-three/drei';
 import { random } from '../../../utils/Random';
 import './GlitterMaterial';
@@ -19,7 +19,7 @@ export const GlitterParticles = ({ sampleProvider, count = 50, textureScale = 0.
   );
 
   const particles = useMemo(() => {
-    const particleCount = sampleProvider.sampleSize * sampleProvider.frequencyBands * count;
+    const particleCount = sampleProvider.sampleSize * sampleProvider.frameSize * count;
     const positions = new Float32Array(particleCount * 3);
     const textureOffsets = new Float32Array(particleCount * 2);
     for (let i = 0; i < particleCount; i++) {
@@ -27,7 +27,7 @@ export const GlitterParticles = ({ sampleProvider, count = 50, textureScale = 0.
       textureOffsets[i * 2 + 1] = random(i + particleCount);
     }
     return { positions, textureOffsets };
-  }, [sampleProvider.sampleSize, sampleProvider.frequencyBands, textureScale]);
+  }, [sampleProvider.sampleSize, sampleProvider.frameSize, textureScale]);
 
   // [0, 1]
   const shapeFactor = (x: number, y: number, k: number, i: number): number[] => {
@@ -43,14 +43,14 @@ export const GlitterParticles = ({ sampleProvider, count = 50, textureScale = 0.
   useFrame(() => {
     if (pointsRef.current) {
       const positions = pointsRef.current.geometry.attributes.position.array as Float32Array;
-      for (let i = 0; i < sampleProvider.frequencyBands; i++) {
+      for (let i = 0; i < sampleProvider.frameSize; i++) {
         for (let j = 0; j < sampleProvider.sampleSize; j++) {
           const sampleValue = sampleProvider.get(j)[i] / 255;
           for (let k = 0; k < count; k++) {
-            const a = i / sampleProvider.frequencyBands;
+            const a = i / sampleProvider.frameSize;
             const b = 1 - j / sampleProvider.sampleSize;
             const c = k / count;
-            const index = (j * sampleProvider.frequencyBands * count + i * count + k) * 3;
+            const index = (j * sampleProvider.frameSize * count + i * count + k) * 3;
             const [x, y, z] = shapeFactor(a, b, c, index);
             positions[index] = x + (a - 0.5) * sampleValue * 0.2;
             positions[index + 1] = y - (1.05 - b) * sampleValue * 3;

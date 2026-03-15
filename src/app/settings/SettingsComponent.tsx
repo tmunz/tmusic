@@ -3,6 +3,7 @@ import { useAppState, VisualizationAction } from '../AppContext';
 import { NumberSettingsComponent } from './NumberSettingsComponent';
 import { Settings, Setting, SettingType } from './Setting';
 import { ExternalSettingsComponent } from './ExternalSettingsComponent';
+import { BooleanSettingsComponent } from './BooleanSettingsComponent';
 
 export const SettingsComponent = () => {
   const { appState, dispatch } = useAppState();
@@ -24,6 +25,23 @@ export const SettingsComponent = () => {
     );
   };
 
+  const getBooleanSettingComponent = (sectionKey: string, key: string, setting: Setting<boolean>) => {
+    return (
+      <BooleanSettingsComponent
+        key={key}
+        setting={setting as Setting<boolean>}
+        onChange={(value: boolean) =>
+          dispatch({
+            type: VisualizationAction.UPDATE_VISUALIZATION_SETTINGS_VALUE,
+            section: sectionKey,
+            key,
+            value,
+          })
+        }
+      />
+    );
+  };
+
   const sectionCount = Object.keys(appState.visualization?.settings ?? {}).length;
   const hasVisualizationSettings = sectionCount > 0;
 
@@ -34,6 +52,8 @@ export const SettingsComponent = () => {
           <h2>{sectionKey}</h2>
           {Object.entries(section as Settings).map(([key, setting]) => {
             switch (setting.type) {
+              case SettingType.BOOLEAN:
+                return getBooleanSettingComponent(sectionKey, key, setting);
               case SettingType.NUMBER:
                 return getNumberSettingComponent(sectionKey, key, setting);
               case SettingType.EXTERNAL:

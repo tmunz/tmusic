@@ -1,5 +1,5 @@
 import { MoonLightScene } from './MoonLightScene';
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 
 export interface CrisesProps {
   sampleProvider: SampleProvider;

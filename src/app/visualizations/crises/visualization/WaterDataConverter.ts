@@ -1,11 +1,11 @@
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 
 type WaterData = { value: number; sampleIndex: number };
 
 export function convertWaterData(sampleProvider?: SampleProvider) {
   if (!sampleProvider) return new Uint8Array();
-  const result = new Uint8Array(sampleProvider.sampleSize * sampleProvider.frequencyBands);
-  for (let i = 0; i < sampleProvider.frequencyBands; i++) {
+  const result = new Uint8Array(sampleProvider.sampleSize * sampleProvider.frameSize);
+  for (let i = 0; i < sampleProvider.frameSize; i++) {
     const frequency: WaterData[] = sampleProvider.samples.map((sample, sampleIndex) => ({
       value: sample[i],
       sampleIndex,
@@ -17,7 +17,7 @@ export function convertWaterData(sampleProvider?: SampleProvider) {
         sampleProvider.sampleSize,
         sampleProvider.sampleSize
       );
-      result[j * sampleProvider.frequencyBands + i] = sortedFrequency[j].value * sampleRelevance;
+      result[j * sampleProvider.frameSize + i] = sortedFrequency[j].value * sampleRelevance;
     }
   }
   return result;

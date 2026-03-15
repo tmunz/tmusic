@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { Overlay } from './Overlay';
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 import { BananaScene } from './BananaScene';
 
 export interface VelvetUndergroundProps {

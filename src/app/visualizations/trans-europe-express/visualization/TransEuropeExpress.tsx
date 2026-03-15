@@ -1,4 +1,4 @@
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 import { TrainRide } from './TrainRide';
 
 export interface TransEuropeExpressProps {

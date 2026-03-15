@@ -1,5 +1,5 @@
-import { PiKeyboard } from 'react-icons/pi';
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { PiGameController } from 'react-icons/pi';
+import { createSampleSettings } from '../../sampleProvider/SampleSettings';
 import { Visualization } from '../Visualization';
 import { TronInstructions } from './TronInstructions';
 import { Tron } from './visualization/Tron';
@@ -15,10 +15,10 @@ const tron: Visualization = {
   component: Tron,
   color: '#000000',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 64, sampleSize: 64 }),
+    samples: createSampleSettings({ frameSize: 64, sampleSize: 64 }),
   },
   spotifyUri: 'spotify:album:3AMXFnwHWXCvNr5NCCpLZI',
-  menuItems: [{ icon: PiKeyboard, component: TronInstructions }],
+  menuItems: [{ icon: PiGameController, component: TronInstructions }],
 };
 
 export default tron;

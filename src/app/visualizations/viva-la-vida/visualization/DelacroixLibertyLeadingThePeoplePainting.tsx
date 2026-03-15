@@ -1,5 +1,5 @@
 import { useRef, useMemo, useEffect } from 'react';
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useFBO } from '@react-three/drei';
 import { getBufferAFragmentShader } from './shaders/BufferA.gsgl';

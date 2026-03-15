@@ -1,12 +1,12 @@
 import { IUniform } from 'three';
 import { RootState } from '@react-three/fiber';
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
 import { drawActor } from './Actor';
 import { drawGround, getGroundY } from './Ground';
-import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
+import { useSampleProviderTexture } from '../../../sampleProvider/useSampleProviderTexture';
 import { useElapsed } from '../../../utils/useElapsed';
-import { useSampleProviderActive } from '../../../audio/useSampleProviderActive';
+import { useSampleProviderActive } from '../../../sampleProvider/useSampleProviderActive';
 
 export interface SceneProps {
   sampleProvider: SampleProvider;

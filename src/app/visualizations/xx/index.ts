@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { createSampleSettings } from '../../sampleProvider/SampleSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { XX } from './visualization/XX';
@@ -14,7 +14,7 @@ const xx: Visualization = {
   component: XX,
   color: '#000000',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 80, sampleSize: 40 }),
+    samples: createSampleSettings({ frameSize: 80, sampleSize: 40 }),
     visualization: {
       numberOfSections: {
         id: 'numberOfSections',

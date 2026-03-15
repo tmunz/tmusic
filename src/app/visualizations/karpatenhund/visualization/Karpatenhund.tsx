@@ -1,5 +1,5 @@
 import { Cat } from './Cat';
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 
 export interface KarpatenhundProps {
   sampleProvider: SampleProvider;

@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 
 export const useRecordPlayerArm = (
   sampleProvider: SampleProvider,

@@ -7,7 +7,7 @@ import { TronCube } from '../object/TronCube';
 import { MinimapRenderer, Minimap } from '../ui/Minimap';
 import { SpeedBar } from '../ui/SpeedBar';
 import { GameStatus } from '../ui/GameStatus';
-import { SampleProvider } from '../../../../audio/SampleProvider';
+import { SampleProvider } from '../../../../sampleProvider/SampleProvider';
 
 interface LightCycleBattleProps {
   userRef: RefObject<Object3D>;

@@ -1,6 +1,6 @@
 import { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { SampleProvider } from '../../../../audio/SampleProvider';
-import { useSampleProviderTexture } from '../../../../audio/useSampleProviderTexture';
+import { SampleProvider } from '../../../../sampleProvider/SampleProvider';
+import { useSampleProviderTexture } from '../../../../sampleProvider/useSampleProviderTexture';
 import { useLightWallSoundMaterial } from './LightWallSoundMaterial';
 import { useCollision } from '../collision/CollisionContext';
 import { Box3, BufferAttribute, BufferGeometry, Color, DoubleSide, DynamicDrawUsage, Vector3 } from 'three';

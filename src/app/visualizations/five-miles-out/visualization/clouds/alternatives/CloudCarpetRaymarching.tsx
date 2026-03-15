@@ -2,8 +2,8 @@ import { useRef, useMemo, useEffect } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
 import { ShaderMaterial, Vector3, DoubleSide, TextureLoader, RepeatWrapping } from 'three';
 import { useReferenceObject } from '../../../../../utils/ReferenceObjectContext';
-import { SampleProvider } from '../../../../../audio/SampleProvider';
-import { useSampleProviderTexture } from '../../../../../audio/useSampleProviderTexture';
+import { SampleProvider } from '../../../../../sampleProvider/SampleProvider';
+import { useSampleProviderTexture } from '../../../../../sampleProvider/useSampleProviderTexture';
 import { interpolation } from '../../../../../utils/ShaderUtils';
 
 export interface CloudCarpetProps {

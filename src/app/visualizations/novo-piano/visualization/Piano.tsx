@@ -1,7 +1,6 @@
-import { SampleProvider } from '../../../audio/SampleProvider';
-import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
+import { Channel, SampleProvider } from '../../../sampleProvider/SampleProvider';
+import { useSampleProviderTexture } from '../../../sampleProvider/useSampleProviderTexture';
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
-import { RootState } from '@react-three/fiber';
 import { interpolation } from '../../../utils/ShaderUtils';
 import { useKeyColors } from './useKeyColors';
 import { useMemo } from 'react';
@@ -11,6 +10,7 @@ export interface PianoProps {
   width: number;
   height: number;
   sampleProvider: SampleProvider;
+  channel: Channel;
   intensity?: number;
   colorGradient?: number;
   colorSparks?: number;
@@ -19,18 +19,22 @@ export interface PianoProps {
 }
 
 export const Piano = ({
-  sampleProvider,
   width,
   height,
+  sampleProvider,
+  channel,
   intensity = 1.0,
   colorGradient = 0.0,
   colorSparks = 0.0,
   perspective = 0.0,
   debug = false,
 }: PianoProps) => {
-  const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider);
+  const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(
+    sampleProvider,
+    sp => sp?.flat(channel) ?? new Uint8Array()
+  );
 
-  const keyColors = useKeyColors(sampleProvider.frequencyBands, colorGradient, colorSparks);
+  const keyColors = useKeyColors(sampleProvider.frameSize, colorGradient, colorSparks);
 
   const keyColorTexture = useMemo(() => {
     const texture = new DataTexture(keyColors, keyColors.length / 4, 1, RGBAFormat, UnsignedByteType);
@@ -38,7 +42,7 @@ export const Piano = ({
     return texture;
   }, [keyColors]);
 
-  const getUniforms = (rootState: RootState) => {
+  const getUniforms = () => {
     updateSampleTexture();
 
     return {

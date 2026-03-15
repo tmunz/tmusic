@@ -1,4 +1,4 @@
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 import { useAppState, VisualizationAction } from '../../../AppContext';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Cloud, Sky } from '@react-three/drei';

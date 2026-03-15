@@ -1,5 +1,5 @@
 import { PiInfoBold } from 'react-icons/pi';
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { createSampleSettings } from '../../sampleProvider/SampleSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { EnTuCalle } from './visualization/EnTuCalle';
@@ -17,7 +17,7 @@ const enTuCalle: Visualization = {
   color: '#f9f9f9',
   settings: {
     samples: createSampleSettings({
-      frequencyBands: 6,
+      frameSize: 6,
       sampleSize: 60,
     }),
     visualization: {

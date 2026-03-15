@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { createSampleSettings } from '../../sampleProvider/SampleSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { TheDarkSideOfTheMoon } from './TheDarkSideOfTheMoon';
@@ -15,7 +15,7 @@ const theDarkSideOfTheMoon: Visualization = {
   component: TheDarkSideOfTheMoon,
   color: '#060606',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 36, sampleSize: 64 }),
+    samples: createSampleSettings({ frameSize: 36, sampleSize: 64 }),
     visualization: {
       volumeAmountIndicator: {
         id: 'volumeAmountIndicator',

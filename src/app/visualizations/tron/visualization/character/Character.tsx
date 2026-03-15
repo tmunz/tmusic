@@ -2,7 +2,7 @@ import { useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Object3D } from 'three';
 import { useLightWallCollision } from './useLightWallCollision';
-import { SampleProvider } from '../../../../audio/SampleProvider';
+import { SampleProvider } from '../../../../sampleProvider/SampleProvider';
 import { Vehicle, VehicleHandle } from '../object/vehicle/Vehicle';
 import { LightWall, LightWallHandle } from './LightWall';
 import { useTronStore } from '../state/TronStore';

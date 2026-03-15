@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { createSampleSettings } from '../../sampleProvider/SampleSettings';
 import { Visualization } from '../Visualization';
 import { Violator } from './visualization/Violator';
 
@@ -13,7 +13,7 @@ const violator: Visualization = {
   component: Violator,
   color: '#111111',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 64, sampleSize: 64 }),
+    samples: createSampleSettings({ frameSize: 64, sampleSize: 64 }),
   },
   spotifyUri: 'spotify:album:45YmvYK4hB4CgQgTMuNRm8',
 };

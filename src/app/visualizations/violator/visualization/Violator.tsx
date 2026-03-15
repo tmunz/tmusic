@@ -1,5 +1,5 @@
 import { Rose } from './Rose';
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 
 export interface ViolatorProps {
   sampleProvider: SampleProvider;

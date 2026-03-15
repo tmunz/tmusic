@@ -4,8 +4,8 @@ import { useTexture } from '@react-three/drei';
 import { AdditiveBlending, DynamicDrawUsage, Group, InstancedMesh, Mesh, Object3DEventMap, Vector3 } from 'three';
 import { Flare } from './Flare';
 import { MeshProps, useFrame } from '@react-three/fiber';
-import { SampleProvider } from '../../../audio/SampleProvider';
-import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
+import { useSampleProviderTexture } from '../../../sampleProvider/useSampleProviderTexture';
 
 export interface BeamSectionApi {
   adjustBeam: (start: Vector3, end: Vector3, width?: number, orientation?: number) => void;

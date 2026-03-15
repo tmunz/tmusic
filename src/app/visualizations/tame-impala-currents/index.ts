@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { createSampleSettings } from '../../sampleProvider/SampleSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { TameImpalaCurrents } from './visualization/TameImpalaCurrents';
@@ -14,7 +14,7 @@ const tameImpalaCurrents: Visualization = {
   component: TameImpalaCurrents,
   color: '#f42a3e',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 64, sampleSize: 128 }),
+    samples: createSampleSettings({ frameSize: 64, sampleSize: 128 }),
     visualization: {
       intensity: {
         id: 'intensity',

@@ -1,6 +1,6 @@
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
-import { SampleProvider } from '../../../audio/SampleProvider';
-import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
+import { useSampleProviderTexture } from '../../../sampleProvider/useSampleProviderTexture';
 import { TextureLoader } from 'three';
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { interpolation } from '../../../utils/ShaderUtils';
@@ -118,9 +118,9 @@ export const ZoetropeSzene = ({
 
     const armRotation = updateArmRotation(elapsedTime, deltaTime);
 
-    const hz = sampleProvider.hz;
-    if (hz > 0) {
-      recordRotationRef.current -= 2 * Math.PI * hz * deltaTime;
+    const rps = sampleProvider.rps;
+    if (rps) {
+      recordRotationRef.current -= 2 * Math.PI * rps * deltaTime;
     }
 
     let displayRotation = recordRotationRef.current;
@@ -133,7 +133,7 @@ export const ZoetropeSzene = ({
     return {
       sampleData: { value: sampleTexture },
       sampleDataSize: { value: { x: sampleTexture.image.width, y: sampleTexture.image.height } },
-      sampleProviderHz: { value: sampleProvider.hz },
+      sampleProviderRps: { value: sampleProvider.rps },
       sampleProviderActive: { value: sampleProvider.active ? 1 : 0 },
       rotation: { value: displayRotation },
       dataStartAngle: { value: (dataStartAngle * Math.PI) / 180 },
@@ -171,7 +171,7 @@ export const ZoetropeSzene = ({
         uniform sampler2D image;
         uniform sampler2D sampleData;
         uniform vec2 sampleDataSize;
-        uniform float sampleProviderHz;
+        uniform float sampleProviderRps;
         uniform float sampleProviderActive;
         uniform float rotation;
         uniform float dataStartAngle;
@@ -247,7 +247,7 @@ export const ZoetropeSzene = ({
           vec4 color = mix(vec4(0.9, 0.9, 0.9, 0.0), texture2D(recordPlayerMain, recordPlayerUv), recordPlayerOpacity);
           vec4 recordPlayerPower = texture2D(recordPlayerPower, vec2(recordPlayerUv.x, recordPlayerUv.y + smoothstep(0.1, 0.9, sampleProviderActive) * 0.048));
           color = mix(color, recordPlayerPower, recordPlayerOpacity * recordPlayerPower.a);
-          vec4 recordPlayerRpm = texture2D(recordPlayerRpm, vec2(recordPlayerUv.x, recordPlayerUv.y - 0.008 + smoothstep(16., 78., 75. * sampleProviderHz) * 0.12));
+          vec4 recordPlayerRpm = texture2D(recordPlayerRpm, vec2(recordPlayerUv.x, recordPlayerUv.y - 0.008 + smoothstep(16., 78., 75. * sampleProviderRps) * 0.12));
           color = mix(color, recordPlayerRpm, recordPlayerOpacity * recordPlayerRpm.a);
 
           // record and data visualization

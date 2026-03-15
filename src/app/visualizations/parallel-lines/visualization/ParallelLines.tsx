@@ -1,4 +1,4 @@
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 import { ParallelLinesShaderImage } from './ParallelLinesShaderImage';
 
 export interface ParallelLinesProps {

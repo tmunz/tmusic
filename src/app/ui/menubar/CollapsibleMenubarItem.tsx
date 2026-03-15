@@ -29,7 +29,6 @@ export const CollapsibleMenubarItem = ({ children, icon: Icon, onActiveChange }:
 
     if (active) {
       if (measuredWidth === null) {
-        wrapper.style.width = 'auto';
         element.style.width = 'auto';
         element.style.position = 'absolute';
         element.style.visibility = 'hidden';
@@ -40,23 +39,18 @@ export const CollapsibleMenubarItem = ({ children, icon: Icon, onActiveChange }:
         element.style.position = '';
         element.style.visibility = '';
         element.style.width = '0px';
-        wrapper.style.width = `${width}px`;
 
         requestAnimationFrame(() => {
           element.style.width = `${width}px`;
         });
       } else {
-        wrapper.style.width = `${measuredWidth}px`;
         element.style.width = `${measuredWidth}px`;
       }
     } else if (measuredWidth !== null) {
       element.style.width = '0px';
 
       setTimeout(() => {
-        if (wrapperRef.current) {
-          wrapperRef.current.style.width = '';
-          setMeasuredWidth(null);
-        }
+        setMeasuredWidth(null);
       }, COLLAPSIBLE_MENUBAR_ITEM_TRANSITION_DURATION_MS);
     }
   }, [active, measuredWidth]);

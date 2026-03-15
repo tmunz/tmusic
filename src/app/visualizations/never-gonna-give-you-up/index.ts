@@ -1,5 +1,5 @@
 import { PiInfoBold } from 'react-icons/pi';
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { createSampleSettings } from '../../sampleProvider/SampleSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { NeverGonnaGiveYouUp } from './visualization/NeverGonnaGiveYouUp';
@@ -16,7 +16,7 @@ const neverGonnaGiveYouUp: Visualization = {
   component: NeverGonnaGiveYouUp,
   color: '#eae9e5',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 336, sampleSize: 107, spectralContrastBoost: 0.5 }),
+    samples: createSampleSettings({ frameSize: 336, sampleSize: 107, spectralContrastBoost: 0.5 }),
     visualization: {
       record: {
         id: 'record',

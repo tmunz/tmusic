@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { createSampleSettings } from '../../sampleProvider/SampleSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { MinorEarthMajorSky } from './visualization/MinorEarthMajorSky';
@@ -14,7 +14,7 @@ const minorEarthMajorSky: Visualization = {
   component: MinorEarthMajorSky,
   color: '#aad8e7',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 32, sampleSize: 64 }),
+    samples: createSampleSettings({ frameSize: 32, sampleSize: 64 }),
     visualization: {
       intensity: {
         id: 'intensity',

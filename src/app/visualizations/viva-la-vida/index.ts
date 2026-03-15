@@ -1,5 +1,5 @@
 import { PiPen } from 'react-icons/pi';
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { createSampleSettings } from '../../sampleProvider/SampleSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { VivaLaVida } from './visualization/VivaLaVida';
@@ -17,7 +17,7 @@ const vivaLaVida: Visualization = {
   component: VivaLaVida,
   color: '#342b1c',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 32, sampleSize: 32 }),
+    samples: createSampleSettings({ frameSize: 32, sampleSize: 32 }),
     visualization: {
       speed: {
         id: 'speed',

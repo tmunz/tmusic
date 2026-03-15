@@ -1,6 +1,6 @@
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
-import { SampleProvider } from '../../../audio/SampleProvider';
-import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
+import { useSampleProviderTexture } from '../../../sampleProvider/useSampleProviderTexture';
 import { useRef } from 'react';
 import { interpolation } from '../../../utils/ShaderUtils';
 
@@ -36,9 +36,9 @@ export const FloppyDisk = ({
     const deltaTime = (now - lastTimeRef.current) / 1000; // Convert to seconds
     lastTimeRef.current = now;
 
-    const hz = sampleProvider.hz;
-    if (hz > 0) {
-      rotationRef.current -= 2 * Math.PI * hz * deltaTime;
+    const rps = sampleProvider.rps;
+    if (rps > 0) {
+      rotationRef.current -= 2 * Math.PI * rps * deltaTime;
     }
 
     return {

@@ -5,7 +5,7 @@ import { EffectComposer, DepthOfField } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import { Group, PerspectiveCamera as ThreePerspectiveCamera, Vector3 } from 'three';
 import { Banana } from './Banana';
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 
 export const BananaScene = ({ sampleProvider, depth = 20 }: { sampleProvider: SampleProvider; depth?: number }) => {
   const cameraRef = useRef<ThreePerspectiveCamera>(null);

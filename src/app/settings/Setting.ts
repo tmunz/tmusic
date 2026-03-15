@@ -1,4 +1,5 @@
 export enum SettingType {
+  BOOLEAN = 'boolean',
   NUMBER = 'number',
   EXTERNAL = 'external',
 }

@@ -1,11 +1,11 @@
 import { Canvas } from '@react-three/fiber';
 import { Stats } from '@react-three/drei';
-import { SampleProvider, createMaxSampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider, createMaxSampleProvider } from '../../../sampleProvider/SampleProvider';
 import { TronCamera } from './camera/TronCamera';
 import { useRef, useState, useEffect, useMemo, Suspense } from 'react';
 import { CollisionProvider } from './collision/CollisionContext';
 import { useUserInput } from './userInput/useUserInput';
-import { useSampleProviderActive } from '../../../audio/useSampleProviderActive';
+import { useSampleProviderActive } from '../../../sampleProvider/useSampleProviderActive';
 import { Companion } from './companion/Companion';
 import { useTronStore } from './state/TronStore';
 import { Mode } from './state/TronState';
