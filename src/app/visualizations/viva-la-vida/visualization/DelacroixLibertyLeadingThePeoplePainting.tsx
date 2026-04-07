@@ -230,7 +230,7 @@ const BrushPainting = ({
       imageMaterial.uniforms.textureResolution.value.set(backgroundTexture.image.width, backgroundTexture.image.height);
     }
 
-    const volume = sampleProvider.getAvg()[0] / 255;
+    const volume = sampleProvider.getAvg()[0];
     const volumeValue = 0.4 + Math.pow(volume, 2) * 1.8;
 
     const pointerActive = isMouseDown.current ? 1 : 0;

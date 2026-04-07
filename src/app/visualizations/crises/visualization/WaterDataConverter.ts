@@ -3,8 +3,8 @@ import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 type WaterData = { value: number; sampleIndex: number };
 
 export function convertWaterData(sampleProvider?: SampleProvider) {
-  if (!sampleProvider) return new Uint8Array();
-  const result = new Uint8Array(sampleProvider.sampleSize * sampleProvider.frameSize);
+  if (!sampleProvider) return new Float32Array();
+  const result = new Float32Array(sampleProvider.sampleSize * sampleProvider.frameSize);
   for (let i = 0; i < sampleProvider.frameSize; i++) {
     const frequency: WaterData[] = sampleProvider.samples.map((sample, sampleIndex) => ({
       value: sample[i],

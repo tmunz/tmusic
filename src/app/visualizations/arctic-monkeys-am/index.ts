@@ -14,14 +14,14 @@ const arcticMonkeysAM: Visualization = {
   component: ArcticMonkeysAM,
   color: '#000000',
   settings: {
-    samples: createSampleSettings({ frameSize: 1024, sampleSize: 1, sampleRate: 60, waveform: true }),
+    samples: createSampleSettings({ sampleSize: 1, sampleRate: 30, waveform: true }),
     visualization: {
       strokeWidth: {
         id: 'strokeWidth',
         name: 'Stroke Width',
         description: 'Width of the waveform line',
         type: SettingType.NUMBER,
-        value: 10,
+        value: 3,
         params: {
           min: 0.5,
           max: 20,

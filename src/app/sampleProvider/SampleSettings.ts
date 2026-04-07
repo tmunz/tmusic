@@ -26,7 +26,7 @@ const DEFAULT_SPECTRUM_SETTINGS: SampleSettingTypes = {
 
 const DEFAULT_WAVEFORM_SETTINGS: SampleSettingTypes = {
   sampleSize: 1,
-  frameSize: 2048,
+  frameSize: 735, // corresponds a sampleRate of 60 for 44.1kHz
   sampleRate: 60,
   stereo: false,
 };

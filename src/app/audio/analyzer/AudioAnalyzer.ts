@@ -2,8 +2,8 @@ import { SampleProvider } from '../../sampleProvider/SampleProvider';
 import { AudioAnalyzerConfig } from './AudioAnalyzerConfig';
 
 export abstract class AudioAnalyzer<Config extends AudioAnalyzerConfig> {
-  protected audioDataLeftRef: Uint8Array<ArrayBuffer> | null = null;
-  protected audioDataRightRef: Uint8Array<ArrayBuffer> | null = null;
+  protected audioDataLeftRef: Float32Array | null = null;
+  protected audioDataRightRef: Float32Array | null = null;
   protected analyserLeftRef: AnalyserNode | null = null;
   protected analyserRightRef: AnalyserNode | null = null;
   protected audioContext: AudioContext | null = null;
@@ -15,8 +15,8 @@ export abstract class AudioAnalyzer<Config extends AudioAnalyzerConfig> {
 
   abstract calculateFftSize(): number;
   abstract getDefaultValue(): number;
-  abstract initializeBuffers(analyser: AnalyserNode): Uint8Array<ArrayBuffer>;
-  abstract extractData(): { left: Uint8Array; right: Uint8Array | null } | null;
+  abstract initializeBuffers(analyser: AnalyserNode): Float32Array;
+  abstract extractData(): { left: Float32Array; right: Float32Array | null } | null;
 
   async initialize(streamSource: MediaStream): Promise<void> {
     this.audioContext = new AudioContext();
@@ -64,7 +64,7 @@ export abstract class AudioAnalyzer<Config extends AudioAnalyzerConfig> {
   }
 
   createSampleProvider(bands: number): SampleProvider {
-    const defaultValue = new Uint8Array(bands).fill(this.getDefaultValue());
+    const defaultValue = new Float32Array(bands).fill(this.getDefaultValue());
     const provider = new SampleProvider(this.config.sampleSize, this.config.sampleRate, defaultValue);
     provider.stereo = this.config.stereo;
     return provider;

@@ -21,8 +21,8 @@ export class SpectrumAnalyzer extends AudioAnalyzer<SpectrumAnalyzerConfig> {
     return 0;
   }
 
-  initializeBuffers(analyser: AnalyserNode): Uint8Array<ArrayBuffer> {
-    return new Uint8Array(analyser.frequencyBinCount) as Uint8Array<ArrayBuffer>;
+  initializeBuffers(analyser: AnalyserNode): Float32Array {
+    return new Float32Array(analyser.frequencyBinCount);
   }
 
   protected configureSmoothness(analyser: AnalyserNode): void {
@@ -36,10 +36,11 @@ export class SpectrumAnalyzer extends AudioAnalyzer<SpectrumAnalyzerConfig> {
     return -1;
   }
 
-  extractData(): { left: Uint8Array; right: Uint8Array | null } | null {
+  extractData(): { left: Float32Array; right: Float32Array | null } | null {
     if (this.analyserLeftRef && this.audioDataLeftRef) {
-      this.analyserLeftRef.getByteFrequencyData(this.audioDataLeftRef as Uint8Array<ArrayBuffer>);
-      const frequencyDataLeft = this.audioDataLeftRef;
+      let frequencyDataLeft: Float32Array;
+      this.analyserLeftRef.getFloatFrequencyData(this.audioDataLeftRef as Float32Array<ArrayBuffer>);
+      frequencyDataLeft = this.audioDataLeftRef;
       const nyquist = this.analyserLeftRef.context.sampleRate / 2;
       const minIndex = Math.max(0, Math.floor((this.config.minFrequency / nyquist) * frequencyDataLeft.length));
       const maxIndex = Math.min(
@@ -50,8 +51,12 @@ export class SpectrumAnalyzer extends AudioAnalyzer<SpectrumAnalyzerConfig> {
       const bandsLeft = this.processFrequencyData(frequencyDataLeft, nyquist, minIndex, maxIndex);
 
       if (this.config.stereo && this.analyserRightRef && this.audioDataRightRef) {
-        this.analyserRightRef.getByteFrequencyData(this.audioDataRightRef as Uint8Array<ArrayBuffer>);
-        const frequencyDataRight = this.audioDataRightRef;
+        let frequencyDataRight: Float32Array;
+        
+        this.analyserRightRef.getFloatFrequencyData(this.audioDataRightRef as Float32Array<ArrayBuffer>);
+        frequencyDataRight = this.audioDataRightRef;
+      
+        
         const bandsRight = this.processFrequencyData(frequencyDataRight, nyquist, minIndex, maxIndex);
         return { left: bandsLeft, right: bandsRight };
       } else {
@@ -62,16 +67,24 @@ export class SpectrumAnalyzer extends AudioAnalyzer<SpectrumAnalyzerConfig> {
   }
 
   private processFrequencyData(
-    frequencyData: Uint8Array,
+    frequencyData: Uint8Array | Float32Array,
     nyquist: number,
     minIndex: number,
     maxIndex: number
-  ): Uint8Array {
-    const bands = new Uint8Array(this.config.frameSize);
+  ): Float32Array {
+    const bands = new Float32Array(this.config.frameSize);
 
     if (bands.length === 0) {
       return bands;
     }
+
+    const normalize = (value: number, index: number): number => {
+      // Float frequency data is in dB, typically -100 to 0
+      // Convert to 0-1 range
+      const minDb = -100;
+      const maxDb = 0;
+      return Math.max(0, Math.min(1, (value - minDb) / (maxDb - minDb)));
+    };
 
     if (this.config.chromaticScale) {
       // Map frequency bands logarithmically to match musical notes (chromatic scale)
@@ -89,12 +102,12 @@ export class SpectrumAnalyzer extends AudioAnalyzer<SpectrumAnalyzerConfig> {
         let sumSquares = 0;
         let count = 0;
         for (let j = clampedStart; j < clampedEnd; j++) {
-          const normalized = frequencyData[j] / 255.0;
+          const normalized = normalize(frequencyData[j], j);
           sumSquares += normalized * normalized;
           count++;
         }
 
-        bands[i] = count > 0 ? Math.round(Math.sqrt(sumSquares / count) * 255) : 0;
+        bands[i] = count > 0 ? Math.sqrt(sumSquares / count) : 0;
       }
     } else {
       // Linear frequency bands
@@ -107,19 +120,17 @@ export class SpectrumAnalyzer extends AudioAnalyzer<SpectrumAnalyzerConfig> {
         let sum = 0;
 
         for (let j = startIdx; j < endIdx && j < slicedData.length; j++) {
-          sum += slicedData[j];
+          sum += normalize(slicedData[j], j + minIndex);
         }
 
         const count = Math.max(1, endIdx - startIdx);
-        bands[i] = Math.round(sum / count);
+        bands[i] = sum / count;
       }
     }
 
     if (this.config.spectralContrastBoost > 0) {
       for (let i = 0; i < bands.length; i++) {
-        const normalized = bands[i] / 255.0;
-        const boosted = Math.pow(normalized, 1 / (1 - this.config.spectralContrastBoost * 0.9));
-        bands[i] = Math.round(boosted * 255);
+        bands[i] = Math.pow(bands[i], 1 / (1 - this.config.spectralContrastBoost * 0.9));
       }
     }
 

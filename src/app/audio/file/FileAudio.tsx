@@ -65,6 +65,8 @@ export const FileAudio = ({ isActive, onStreamCreated }: AudioProps) => {
       setFileName(file.name);
       setIsPlaying(true);
     }
+    // Reset input value to allow selecting the same file again
+    event.target.value = '';
   };
 
   const handleToggle = () => {

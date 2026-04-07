@@ -31,7 +31,7 @@ export const Piano = ({
 }: PianoProps) => {
   const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(
     sampleProvider,
-    sp => sp?.flat(channel) ?? new Uint8Array()
+    sp => sp?.flat(channel) ?? new Float32Array()
   );
 
   const keyColors = useKeyColors(sampleProvider.frameSize, colorGradient, colorSparks);

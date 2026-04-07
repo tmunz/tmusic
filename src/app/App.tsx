@@ -22,7 +22,7 @@ export function App() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [sampleProvider, setSampleProvider] = useState<SampleProvider>(new SampleProvider(1, 60, new Uint8Array(1)));
+  const [sampleProvider, setSampleProvider] = useState<SampleProvider>(new SampleProvider(1, 60, new Float32Array(1)));
 
   useEffect(() => {
     const pathId = location.pathname.replace('/', '');

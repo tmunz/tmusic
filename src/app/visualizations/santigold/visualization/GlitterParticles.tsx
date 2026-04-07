@@ -45,7 +45,7 @@ export const GlitterParticles = ({ sampleProvider, count = 50, textureScale = 0.
       const positions = pointsRef.current.geometry.attributes.position.array as Float32Array;
       for (let i = 0; i < sampleProvider.frameSize; i++) {
         for (let j = 0; j < sampleProvider.sampleSize; j++) {
-          const sampleValue = sampleProvider.get(j)[i] / 255;
+          const sampleValue = sampleProvider.get(j)[i];
           for (let k = 0; k < count; k++) {
             const a = i / sampleProvider.frameSize;
             const b = 1 - j / sampleProvider.sampleSize;

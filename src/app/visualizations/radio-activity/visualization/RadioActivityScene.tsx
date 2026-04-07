@@ -24,7 +24,7 @@ export const RadioActivityScene = ({
     return {
       sampleData: { value: sampleTexture },
       sampleDataSize: { value: { x: sampleTexture.image.width, y: sampleTexture.image.height } },
-      volume: { value: sampleProvider.getAvg()[0] / 255 },
+      volume: { value: sampleProvider.getAvg()[0] },
       centerDataRatio: { value: centerDataRatio },
       radiationDataRatio: { value: radiationDataRatio },
     };

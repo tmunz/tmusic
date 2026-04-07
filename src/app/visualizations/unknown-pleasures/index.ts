@@ -14,7 +14,7 @@ const unknownPleasures: Visualization = {
   component: UnknownPleasures,
   color: '#000000',
   settings: {
-    samples: createSampleSettings({ frameSize: 80, sampleSize: 30, sampleRate: 24 }),
+    samples: createSampleSettings({ frameSize: 80, sampleSize: 30 }),
     visualization: {
       baseIntensity: {
         id: 'baseIntensity',

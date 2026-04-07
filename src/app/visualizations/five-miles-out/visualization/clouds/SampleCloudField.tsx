@@ -85,7 +85,7 @@ export const SampleCloudField = ({
         const frameSize = sampleProvider.frameSize;
         const sampleIndex = Math.max(0, Math.floor(normalizedZ * (sampleSize - 1)));
         const frequencyIndex = Math.max(0, Math.floor(normalizedX * (frameSize - 1)));
-        sampleValue = sampleProvider.get(sampleIndex)[frequencyIndex] / 255;
+        sampleValue = sampleProvider.get(sampleIndex)[frequencyIndex];
       }
 
       if (cloudMaterialRefs.current[index]) {

@@ -15,9 +15,11 @@ export function convertPulsarData(
     sampleWeight: 0.3,
     dominatingWeight: 0.4,
   }
-): Uint8Array {
-  if (!sampleProvider) return new Uint8Array();
-  const result = new Uint8Array(sampleProvider.sampleSize * sampleProvider.frameSize);
+): Float32Array {
+  const RELEVANCE_THRESHOLD = 8; // number of frames to reach relevance
+
+  if (!sampleProvider) return new Float32Array();
+  const result = new Float32Array(sampleProvider.sampleSize * sampleProvider.frameSize);
   for (let i = 0; i < sampleProvider.frameSize; i++) {
     const frequency: PulsarData[] = sampleProvider.samples.map((sample, sampleIndex) => ({
       value: sample[i],
@@ -27,20 +29,24 @@ export function convertPulsarData(
     const dominatingSampleRelevance = calculateRelevance(
       sortedFrequency[0].sampleIndex,
       sampleProvider.sampleSize,
-      Math.min(6, sampleProvider.sampleSize)
+      Math.min(RELEVANCE_THRESHOLD, sampleProvider.sampleSize)
     );
 
     const max = sortedFrequency[0].value;
     const min = sortedFrequency[sortedFrequency.length - 1].value;
-    const relativeOffCenter = 0.25 + 0.5 * (max / 255);
+    const relativeOffCenter = 0.25 + 0.5 * max;
     const resultFrequency = rearrange(sortedFrequency, relativeOffCenter);
     for (let j = 0; j < sampleProvider.sampleSize; j++) {
-      const normalized = (resultFrequency[j].value - min) / Math.max(max - min, 1); // increase difference by moving baseline to min
+      if (!resultFrequency[j]) {
+        result[j * sampleProvider.frameSize + i] = 0;
+        continue;
+      }
+      const normalized = (resultFrequency[j].value - min) / Math.max(max - min, 0.001); // increase difference by moving baseline to min
       const sampleWeight = getWeight(j / sampleProvider.sampleSize); // fall off towards the edges
       const sampleRelevance = calculateRelevance(
-        sortedFrequency[j].sampleIndex,
+        resultFrequency[j].sampleIndex,
         sampleProvider.sampleSize,
-        Math.min(6, sampleProvider.sampleSize)
+        Math.min(RELEVANCE_THRESHOLD, sampleProvider.sampleSize)
       );
       const frequencyWeight = (max * Math.exp(normalized * 3)) / Math.exp(3); // emphasize high values
       const intensity =
@@ -48,7 +54,7 @@ export function convertPulsarData(
         intensitySettings.sampleWeight * sampleRelevance +
         intensitySettings.dominatingWeight * dominatingSampleRelevance;
       const raw = normalized * sampleWeight * frequencyWeight * intensity;
-      const clamped = Math.min(255, Math.max(0, Math.round(raw)));
+      const clamped = Math.min(1, Math.max(0, raw));
       result[j * sampleProvider.frameSize + i] = clamped;
     }
   }

@@ -13,16 +13,16 @@ export class SampleProvider {
   private _activeListeners: ActiveListener[] = [];
   private _stereo = false;
   private _referenceNoteIndex = -1; // only used for chromatic scale to determine which note is the closest to reference A4 (440Hz)
-  private _queues: Uint8Array[][] = [[], []]; // [Left/Mono channel, Right channel]
+  private _queues: Float32Array[][] = [[], []]; // [Left/Mono channel, Right channel]
   private _sampleRate: number;
   private _size: number;
 
-  constructor(size: number, sampleRate: number, defaultValue: Uint8Array) {
+  constructor(size: number, sampleRate: number, defaultValue: Float32Array) {
     if (size <= 0) {
       throw new Error('Queue size must be greater than 0.');
     }
     if (!defaultValue || defaultValue.length === 0) {
-      throw new Error('defaultValue must be a non-empty Uint8Array.');
+      throw new Error('defaultValue must be a non-empty Float32Array.');
     }
     this._size = size;
     this._sampleRate = sampleRate;
@@ -89,16 +89,16 @@ export class SampleProvider {
     return this._queues[Channel.RIGHT];
   }
 
-  push = (left?: Uint8Array, right?: Uint8Array) => {
+  push = (left?: Float32Array, right?: Float32Array) => {
     const prevActive = this._active;
     if (left === undefined) {
       this._active = false;
       for (let i = 0; i < this._size; i++) {
-        this._queues[Channel.LEFT].unshift(new Uint8Array(this._frameSize).fill(this._defaultValue));
+        this._queues[Channel.LEFT].unshift(new Float32Array(this._frameSize).fill(this._defaultValue));
         if (this._queues[Channel.LEFT].length > this._size) {
           this._queues[Channel.LEFT].pop();
         }
-        this._queues[Channel.RIGHT].unshift(new Uint8Array(this._frameSize).fill(this._defaultValue));
+        this._queues[Channel.RIGHT].unshift(new Float32Array(this._frameSize).fill(this._defaultValue));
         if (this._queues[Channel.RIGHT].length > this._size) {
           this._queues[Channel.RIGHT].pop();
         }
@@ -116,7 +116,7 @@ export class SampleProvider {
         }
       } else {
         // Mono: right channel is zeros
-        this._queues[Channel.RIGHT].unshift(new Uint8Array(this._frameSize).fill(this._defaultValue));
+        this._queues[Channel.RIGHT].unshift(new Float32Array(this._frameSize).fill(this._defaultValue));
         if (this._queues[Channel.RIGHT].length > this._size) {
           this._queues[Channel.RIGHT].pop();
         }
@@ -127,15 +127,15 @@ export class SampleProvider {
     }
   };
 
-  get = (i: number, channel: Channel = Channel.MONO): Uint8Array => {
-    return this._queues[channel][i] || new Uint8Array(this._frameSize).fill(this._defaultValue);
+  get = (i: number, channel: Channel = Channel.MONO): Float32Array => {
+    return this._queues[channel][i] || new Float32Array(this._frameSize).fill(this._defaultValue);
   };
 
   flat = (channel: Channel = Channel.MONO) => {
-    return this._queues[channel].reduce((acc: Uint8Array, value: Uint8Array, i: number) => {
+    return this._queues[channel].reduce((acc: Float32Array, value: Float32Array, i: number) => {
       acc.set(value, i * this.frameSize);
       return acc;
-    }, new Uint8Array(this.sampleSize * this.frameSize));
+    }, new Float32Array(this.sampleSize * this.frameSize));
   };
 
   getAvg = (channel: Channel = Channel.MONO): number[] => {
@@ -164,14 +164,14 @@ export class SampleProvider {
   };
 }
 
-export function createDummySampleProvider(size: number, sampleRate: number = 60, frameSize: number = 1, max: number = 255): SampleProvider {
-  const provider = new SampleProvider(size, sampleRate, new Uint8Array(frameSize));
+export function createDummySampleProvider(size: number, sampleRate: number = 60, frameSize: number = 1, max: number = 1.0): SampleProvider {
+  const provider = new SampleProvider(size, sampleRate, new Float32Array(frameSize));
   for (let i = 0; i < size; i++) {
-    const sample = new Uint8Array(frameSize);
+    const sample = new Float32Array(frameSize);
     for (let j = 0; j < frameSize; j++) {
       const linearIndex = i * frameSize + j;
       const totalValues = size * frameSize;
-      const value = Math.round((linearIndex / (totalValues - 1)) * max);
+      const value = (linearIndex / (totalValues - 1)) * max;
       sample[j] = value;
     }
     provider.push(sample);
@@ -179,10 +179,10 @@ export function createDummySampleProvider(size: number, sampleRate: number = 60,
   return provider;
 }
 
-export function createMaxSampleProvider(size: number, sampleRate: number = 60, frameSize: number = 1, max: number = 255): SampleProvider {
-  const provider = new SampleProvider(size, sampleRate, new Uint8Array(frameSize));
+export function createMaxSampleProvider(size: number, sampleRate: number = 60, frameSize: number = 1, max: number = 1.0): SampleProvider {
+  const provider = new SampleProvider(size, sampleRate, new Float32Array(frameSize));
   for (let i = 0; i < size; i++) {
-    const sample = new Uint8Array(frameSize);
+    const sample = new Float32Array(frameSize);
     for (let j = 0; j < frameSize; j++) {
       sample[j] = max;
     }

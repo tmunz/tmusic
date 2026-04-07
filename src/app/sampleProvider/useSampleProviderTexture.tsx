@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 import { SampleProvider } from './SampleProvider';
-import { DataTexture, RedFormat, UnsignedByteType } from 'three';
+import { DataTexture, RedFormat, FloatType } from 'three';
 
 export const useSampleProviderTexture = (
   sampleProvider?: SampleProvider,
-  getData: (sampleProvider?: SampleProvider) => Uint8Array = sp => sp?.flat() ?? new Uint8Array(),
+  getData: (sampleProvider?: SampleProvider) => Float32Array = sp => sp?.flat() ?? new Float32Array(),
   getWidth: (sampleProvider?: SampleProvider) => number = sp => sp?.frameSize ?? 0,
   getHeight: (sampleProvider?: SampleProvider) => number = sp => sp?.sampleSize ?? 0
 ): [DataTexture, () => void] => {
   const [sampleTexture, setSampleTexture] = useState<DataTexture>(
-    new DataTexture(new Uint8Array(1), 1, 1, RedFormat, UnsignedByteType)
+    new DataTexture(new Float32Array(1), 1, 1, RedFormat, FloatType)
   );
 
   useEffect(() => {
@@ -21,7 +21,7 @@ export const useSampleProviderTexture = (
       height > 0 &&
       (width !== sampleTexture.image.width || height !== sampleTexture.image.height)
     ) {
-      setSampleTexture(new DataTexture(getData(sampleProvider), width, height, RedFormat, UnsignedByteType));
+      setSampleTexture(new DataTexture(getData(sampleProvider), width, height, RedFormat, FloatType));
     }
   }, [sampleProvider?.frameSize, sampleProvider?.sampleSize]);
 
