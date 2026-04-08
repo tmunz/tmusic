@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../sampleProvider/SampleSettings';
+import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { PushTheSkyAway } from './visualization/PushTheSkyAway';
@@ -14,7 +14,7 @@ const pushTheSkyAway: Visualization = {
   component: PushTheSkyAway,
   color: '#cccccc',
   settings: {
-    samples: createSampleSettings({ frameSize: 32, sampleSize: 16 }),
+    samples: new SpectrumAnalyzerSettings({ frameSize: 32, sampleSize: 16 }).build(),
     visualization: {
       pointerSensitivity: {
         id: 'pointerSensitivity',

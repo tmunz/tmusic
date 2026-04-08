@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../sampleProvider/SampleSettings';
+import { WaveformAnalyzerSettings } from '../../audio/analyzer/waveform/WaveformAnalyzerSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { ArcticMonkeysAM } from './visualization/ArcticMonkeysAM';
@@ -14,7 +14,7 @@ const arcticMonkeysAM: Visualization = {
   component: ArcticMonkeysAM,
   color: '#000000',
   settings: {
-    samples: createSampleSettings({ sampleSize: 1, sampleRate: 30, waveform: true }),
+    samples: new WaveformAnalyzerSettings({ sampleSize: 1, sampleRate: 30 }).build(),
     visualization: {
       strokeWidth: {
         id: 'strokeWidth',

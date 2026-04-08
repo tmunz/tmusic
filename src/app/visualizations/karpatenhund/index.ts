@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../sampleProvider/SampleSettings';
+import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
 import { Visualization } from '../Visualization';
 import { Karpatenhund } from './visualization/Karpatenhund';
 
@@ -13,7 +13,7 @@ const karpatenhund: Visualization = {
   component: Karpatenhund,
   color: '#fda600',
   settings: {
-    samples: createSampleSettings({ frameSize: 32, sampleSize: 1 }),
+    samples: new SpectrumAnalyzerSettings({ frameSize: 32, sampleSize: 1 }).build(),
   },
   spotifyUri: 'spotify:album:7MSnJiBuHQMTckW9K3L6bu',
 };

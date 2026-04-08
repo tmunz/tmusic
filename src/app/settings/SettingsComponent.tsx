@@ -4,6 +4,7 @@ import { NumberSettingsComponent } from './NumberSettingsComponent';
 import { Settings, Setting, SettingType } from './Setting';
 import { ExternalSettingsComponent } from './ExternalSettingsComponent';
 import { BooleanSettingsComponent } from './BooleanSettingsComponent';
+import { OptionSettingsComponent } from './OptionSettingsComponent';
 
 export const SettingsComponent = () => {
   const { appState, dispatch } = useAppState();
@@ -42,26 +43,49 @@ export const SettingsComponent = () => {
     );
   };
 
+  const getOptionSettingComponent = (sectionKey: string, key: string, setting: Setting<string>) => {
+    return (
+      <OptionSettingsComponent
+        key={key}
+        setting={setting as Setting<string>}
+        onChange={(value: string) =>
+          dispatch({
+            type: VisualizationAction.UPDATE_VISUALIZATION_SETTINGS_VALUE,
+            section: sectionKey,
+            key,
+            value,
+          })
+        }
+      />
+    );
+  };
+
   const sectionCount = Object.keys(appState.visualization?.settings ?? {}).length;
   const hasVisualizationSettings = sectionCount > 0;
 
   return (
-    <div className={`settings ${hasVisualizationSettings ? 'settings--with-visualization' : ''}`}>
+    <div className={`settings ${hasVisualizationSettings ? 'settings-with-visualization' : ''}`}>
       {Object.entries(appState.visualization?.settings ?? {}).map(([sectionKey, section]) => (
         <section key={sectionKey}>
           <h2>{sectionKey}</h2>
-          {Object.entries(section as Settings).map(([key, setting]) => {
-            switch (setting.type) {
-              case SettingType.BOOLEAN:
-                return getBooleanSettingComponent(sectionKey, key, setting);
-              case SettingType.NUMBER:
-                return getNumberSettingComponent(sectionKey, key, setting);
-              case SettingType.EXTERNAL:
-                return <ExternalSettingsComponent key={key} setting={setting} />;
-              default:
-                return null;
-            }
-          })}
+          {Object.entries(section as Settings)
+            .filter(([key, setting]) => {
+              return setting.isVisible ? setting.isVisible(section as Settings) : true;
+            })
+            .map(([key, setting]) => {
+              switch (setting.type) {
+                case SettingType.BOOLEAN:
+                  return getBooleanSettingComponent(sectionKey, key, setting);
+                case SettingType.NUMBER:
+                  return getNumberSettingComponent(sectionKey, key, setting);
+                case SettingType.OPTION:
+                  return getOptionSettingComponent(sectionKey, key, setting);
+                case SettingType.EXTERNAL:
+                  return <ExternalSettingsComponent key={key} setting={setting} />;
+                default:
+                  return null;
+              }
+            })}
         </section>
       ))}
     </div>

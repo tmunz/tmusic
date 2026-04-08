@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../sampleProvider/SampleSettings';
+import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
 import { Visualization } from '../Visualization';
 import { Crises } from './visualization/Crises';
 
@@ -13,7 +13,7 @@ const crises: Visualization = {
   component: Crises,
   color: '#12745f',
   settings: {
-    samples: createSampleSettings({ frameSize: 64, sampleSize: 192 }),
+    samples: new SpectrumAnalyzerSettings({ frameSize: 64, sampleSize: 192 }).build(),
   },
   spotifyUri: 'spotify:album:56irNmW0iq9Flh41YbAv55',
 };

@@ -14,7 +14,7 @@ interface SampleProviderProps {
   frameSize?: number;
   sampleRate?: number;
   stereo?: boolean;
-  waveform?: boolean;
+  audioAnalyser?: 'waveform' | 'spectrum';
   
   // Spectrum-specific settings
   minFrequency?: number;
@@ -29,7 +29,7 @@ export const SampleProviderComponent = ({
   frameSize = 32,
   sampleRate = 60,
   stereo = false,
-  waveform = false,
+  audioAnalyser = 'spectrum',
   minFrequency = 10,
   maxFrequency = 10000,
   chromaticScale = false,
@@ -38,7 +38,7 @@ export const SampleProviderComponent = ({
   const [streamProvider, setStreamProvider] = useState<Promise<MediaStream | null>>(Promise.resolve(null));
 
   const { analyzerConfig, createAnalyzer } = useMemo(() => {
-    if (waveform) {
+    if (audioAnalyser === 'waveform') {
       const config: WaveformAnalyzerConfig = {
         sampleSize,
         frameSize,
@@ -65,7 +65,7 @@ export const SampleProviderComponent = ({
         createAnalyzer: (cfg: SpectrumAnalyzerConfig) => new SpectrumAnalyzer(cfg),
       };
     }
-  }, [sampleSize, frameSize, sampleRate, stereo, waveform, minFrequency, maxFrequency, chromaticScale, spectralContrastBoost]);
+  }, [sampleSize, frameSize, sampleRate, stereo, audioAnalyser, minFrequency, maxFrequency, chromaticScale, spectralContrastBoost]);
   
   const sampleProvider = useAudioAnalysis(
     streamProvider,

@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../sampleProvider/SampleSettings';
+import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { ChvrchesEveryOpenEye } from './visualization/ChvrchesEveryOpenEye';
@@ -14,7 +14,7 @@ const chvrchesEveryOpenEye: Visualization = {
   component: ChvrchesEveryOpenEye,
   color: '#ded6d4',
   settings: {
-    samples: createSampleSettings({ frameSize: 64, sampleSize: 64 }),
+    samples: new SpectrumAnalyzerSettings({ frameSize: 64, sampleSize: 64 }).build(),
     visualization: {
       visibilityThreshold: {
         id: 'visibilityThreshold',

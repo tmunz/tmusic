@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../sampleProvider/SampleSettings';
+import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
 import { Visualization } from '../Visualization';
 import { ParallelLines } from './visualization/ParallelLines';
 
@@ -13,7 +13,7 @@ const parallelLines: Visualization = {
   component: ParallelLines,
   color: '#000000',
   settings: {
-    samples: createSampleSettings({ frameSize: 11, sampleSize: 64 }),
+    samples: new SpectrumAnalyzerSettings({ frameSize: 11, sampleSize: 64 }).build(),
   },
   spotifyUri: 'spotify:album:4M6s2jbhKWEcOdXZ8WiHts',
 };

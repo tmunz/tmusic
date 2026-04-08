@@ -1,5 +1,5 @@
 import { PiPen } from 'react-icons/pi';
-import { createSampleSettings } from '../../sampleProvider/SampleSettings';
+import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { VivaLaVida } from './visualization/VivaLaVida';
@@ -17,7 +17,7 @@ const vivaLaVida: Visualization = {
   component: VivaLaVida,
   color: '#342b1c',
   settings: {
-    samples: createSampleSettings({ frameSize: 32, sampleSize: 32 }),
+    samples: new SpectrumAnalyzerSettings({ frameSize: 32, sampleSize: 32 }).build(),
     visualization: {
       speed: {
         id: 'speed',

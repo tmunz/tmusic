@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../sampleProvider/SampleSettings';
+import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { TheRiddle, DEFAULT_SAMPLE_SIZE } from './visualization/TheRiddle';
@@ -14,7 +14,7 @@ const theRiddle: Visualization = {
   component: TheRiddle,
   color: '#01A101',
   settings: {
-    samples: createSampleSettings({ frameSize: 32, sampleSize: DEFAULT_SAMPLE_SIZE }),
+    samples: new SpectrumAnalyzerSettings({ frameSize: 32, sampleSize: DEFAULT_SAMPLE_SIZE }).build(),
     visualization: {
       strokeNoise: {
         id: 'strokeNoise',

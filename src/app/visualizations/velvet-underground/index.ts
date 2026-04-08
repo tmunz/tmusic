@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../sampleProvider/SampleSettings';
+import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
 import { Visualization } from '../Visualization';
 import { VelvetUnderground } from './visualization/VelvetUnderground';
 
@@ -13,7 +13,7 @@ const velvetUnderground: Visualization = {
   component: VelvetUnderground,
   color: '#fafafa',
   settings: {
-    samples: createSampleSettings({ frameSize: 32, sampleSize: 16 }),
+    samples: new SpectrumAnalyzerSettings({ frameSize: 32, sampleSize: 16 }).build(),
   },
   spotifyUri: 'spotify:album:4xwx0x7k6c5VuThz5qVqmV',
 };

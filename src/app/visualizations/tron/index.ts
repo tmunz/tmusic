@@ -1,5 +1,5 @@
 import { PiGameController } from 'react-icons/pi';
-import { createSampleSettings } from '../../sampleProvider/SampleSettings';
+import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
 import { Visualization } from '../Visualization';
 import { TronInstructions } from './TronInstructions';
 import { Tron } from './visualization/Tron';
@@ -15,7 +15,7 @@ const tron: Visualization = {
   component: Tron,
   color: '#000000',
   settings: {
-    samples: createSampleSettings({ frameSize: 64, sampleSize: 64 }),
+    samples: new SpectrumAnalyzerSettings({ frameSize: 64, sampleSize: 64 }).build(),
   },
   spotifyUri: 'spotify:album:3AMXFnwHWXCvNr5NCCpLZI',
   menuItems: [{ icon: PiGameController, component: TronInstructions }],

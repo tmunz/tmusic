@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../sampleProvider/SampleSettings';
+import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { RadioActivity } from './visualization/RadioActivity';
@@ -14,7 +14,7 @@ const radioActivity: Visualization = {
   component: RadioActivity,
   color: '#fbff36',
   settings: {
-    samples: createSampleSettings({ frameSize: 30, sampleSize: 60 }),
+    samples: new SpectrumAnalyzerSettings({ frameSize: 30, sampleSize: 60 }).build(),
     visualization: {
       centerDataRatio: {
         id: 'centerDataRatio',

@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../sampleProvider/SampleSettings';
+import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
 import { Visualization } from '../Visualization';
 import { Santigold } from './visualization/Santigold';
 
@@ -13,7 +13,7 @@ const santigold: Visualization = {
   component: Santigold,
   color: '#dfe0f3',
   settings: {
-    samples: createSampleSettings({ frameSize: 32, sampleSize: 64 }),
+    samples: new SpectrumAnalyzerSettings({ frameSize: 32, sampleSize: 64 }).build(),
   },
   spotifyUri: 'spotify:album:4TGvBVWFdYgARvdajEfAkU',
 };

@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../sampleProvider/SampleSettings';
+import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { UnknownPleasures } from './visualization/UnknownPleasures';
@@ -14,7 +14,7 @@ const unknownPleasures: Visualization = {
   component: UnknownPleasures,
   color: '#000000',
   settings: {
-    samples: createSampleSettings({ frameSize: 80, sampleSize: 30 }),
+    samples: new SpectrumAnalyzerSettings({ frameSize: 80, sampleSize: 30 }).build(),
     visualization: {
       baseIntensity: {
         id: 'baseIntensity',

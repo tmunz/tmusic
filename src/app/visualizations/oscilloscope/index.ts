@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../sampleProvider/SampleSettings';
+import { WaveformAnalyzerSettings } from '../../audio/analyzer/waveform/WaveformAnalyzerSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { Oscilloscope } from './visualization/Oscilloscope';
@@ -10,11 +10,11 @@ const oscilloscope: Visualization = {
   design: 'Jerobeam Fenderson',
   imgSrc: require('./oscilloscope-music.jpg'),
   description:
-    'Oscilloscope Music is a unique album by artist Jerobeam Fenderson, where the music is generated from the visual patterns of an oscilloscope. The album features a series of tracks that are created by manipulating the waveforms displayed on an oscilloscope, resulting in a mesmerizing blend of electronic sounds and visual art. Each track corresponds to a specific waveform pattern, making it a truly immersive audiovisual experience.',
+    "'Oscilloscope Music' is a unique album by artist Jerobeam Fenderson, where the music is generated from the visual patterns of an oscilloscope. The album features a series of tracks that are created by manipulating the waveforms displayed on an oscilloscope, resulting in a mesmerizing blend of electronic sounds and visual art. Each track corresponds to a specific waveform pattern, making it a truly immersive audiovisual experience.",
   component: Oscilloscope,
   color: '#040404',
   settings: {
-    samples: createSampleSettings({ waveform: true, stereo: true }),
+    samples: new WaveformAnalyzerSettings({ stereo: true }).build(),
     visualization: {
       strokeWidth: {
         id: 'strokeWidth',

@@ -1,5 +1,5 @@
 import { PiKeyboard } from 'react-icons/pi';
-import { createSampleSettings } from '../../sampleProvider/SampleSettings';
+import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
 import { Visualization } from '../Visualization';
 import { FiveMilesOut } from './visualization/FiveMilesOut';
 import { FiveMilesOutInstructions } from './FiveMilesOutInstructions';
@@ -15,7 +15,7 @@ const fiveMilesOut: Visualization = {
   component: FiveMilesOut,
   color: '#1a1a1a',
   settings: {
-    samples: createSampleSettings({ frameSize: 32, sampleSize: 100 }),
+    samples: new SpectrumAnalyzerSettings({ frameSize: 32, sampleSize: 100 }).build(),
     visualization: {
       intensity: {
         id: 'intensity',

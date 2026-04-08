@@ -40,14 +40,12 @@ export const useAudioAnalysis = <Config extends AudioAnalyzerConfig>(
     };
   }, [streamProvider, createAnalyzer, config]);
 
-  // Recreate sample provider when config changes
   useEffect(() => {
     const analyzer = createAnalyzer(config);
     const provider = analyzer.createSampleProvider(config.frameSize);
     setAudioFrames(provider);
   }, [config, createAnalyzer]);
 
-  // Extract audio data at specified sample rate
   useEffect(() => {
     const interval = 1000 / config.sampleRate;
     const intervalId = setInterval(() => {
