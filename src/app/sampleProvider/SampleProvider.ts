@@ -17,12 +17,9 @@ export class SampleProvider {
   private _sampleRate: number;
   private _size: number;
 
-  constructor(size: number, sampleRate: number, defaultValue: Float32Array) {
+  constructor(size: number, sampleRate: number, defaultValue: Float32Array = new Float32Array(1)) {
     if (size <= 0) {
       throw new Error('Queue size must be greater than 0.');
-    }
-    if (!defaultValue || defaultValue.length === 0) {
-      throw new Error('defaultValue must be a non-empty Float32Array.');
     }
     this._size = size;
     this._sampleRate = sampleRate;
@@ -140,7 +137,7 @@ export class SampleProvider {
 
   getAvg = (channel: Channel = Channel.MONO): number[] => {
     return this._queues[channel].map(sample => {
-      return sample.reduce((acc, val) => acc + val, 0) / sample.length;
+      return sample.reduce((acc, val) => acc + Math.abs(val), 0) / sample.length;
     });
   };
 
@@ -153,8 +150,8 @@ export class SampleProvider {
       let sampleIndex = 0;
 
       this._queues[channel].forEach((sample, i) => {
-        if (sample[index] > max) {
-          max = sample[index];
+        if (Math.abs(sample[index]) > max) {
+          max = Math.abs(sample[index]);
           sampleIndex = i;
         }
       });
@@ -164,7 +161,12 @@ export class SampleProvider {
   };
 }
 
-export function createDummySampleProvider(size: number, sampleRate: number = 60, frameSize: number = 1, max: number = 1.0): SampleProvider {
+export function createDummySampleProvider(
+  size: number,
+  sampleRate: number = 60,
+  frameSize: number = 1,
+  max: number = 1.0
+): SampleProvider {
   const provider = new SampleProvider(size, sampleRate, new Float32Array(frameSize));
   for (let i = 0; i < size; i++) {
     const sample = new Float32Array(frameSize);
@@ -179,7 +181,12 @@ export function createDummySampleProvider(size: number, sampleRate: number = 60,
   return provider;
 }
 
-export function createMaxSampleProvider(size: number, sampleRate: number = 60, frameSize: number = 1, max: number = 1.0): SampleProvider {
+export function createMaxSampleProvider(
+  size: number,
+  sampleRate: number = 60,
+  frameSize: number = 1,
+  max: number = 1.0
+): SampleProvider {
   const provider = new SampleProvider(size, sampleRate, new Float32Array(frameSize));
   for (let i = 0; i < size; i++) {
     const sample = new Float32Array(frameSize);

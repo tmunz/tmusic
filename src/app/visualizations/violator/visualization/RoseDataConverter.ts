@@ -15,8 +15,7 @@ export function getBassValue(sampleProvider?: SampleProvider): number {
     new Array(bassRange)
       .fill(0)
       .map((_, frequencyIndex) => sampleProvider?.samples[0][frequencyIndex] ?? 0)
-      .reduce((acc, val) => acc + val, 0) /
-    bassRange;
+      .reduce((acc, val) => acc + val, 0) / bassRange;
   return v ** 3;
 }
 

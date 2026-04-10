@@ -1,5 +1,6 @@
 import { useRef, useMemo, useEffect } from 'react';
 import { SampleProvider } from '../../../sampleProvider/SampleProvider';
+import { useSampleProviderTexture } from '../../../sampleProvider/useSampleProviderTexture';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useFBO } from '@react-three/drei';
 import { getBufferAFragmentShader } from './shaders/BufferA.gsgl';
@@ -7,10 +8,13 @@ import { imageFragmentShader } from './shaders/Image.gsgl';
 import { useNoise3D } from '../../../utils/noise/useNoise3D';
 import { useBlueNoise } from '../../../utils/noise/useBlueNoise';
 import {
+  DataTexture,
   LinearFilter,
   Mesh,
   PlaneGeometry,
+  RedFormat,
   RGBAFormat,
+  FloatType,
   Scene,
   ShaderMaterial,
   TextureLoader,
@@ -31,6 +35,7 @@ export interface DelacroixLibertyLeadingThePeoplePaintingProps {
   pouringSize?: number;
   pouringAmount?: number;
   falloff?: number;
+  splashesThreshold?: number;
 }
 
 export const DelacroixLibertyLeadingThePeoplePainting = ({
@@ -46,6 +51,7 @@ export const DelacroixLibertyLeadingThePeoplePainting = ({
   pouringSize = 0.2,
   pouringAmount = 3.0,
   falloff = 1.4,
+  splashesThreshold = 0.5,
 }: DelacroixLibertyLeadingThePeoplePaintingProps) => {
   return (
     <Canvas
@@ -68,6 +74,7 @@ export const DelacroixLibertyLeadingThePeoplePainting = ({
         pouringSize={pouringSize}
         pouringAmount={pouringAmount}
         falloff={falloff}
+        splashesThreshold={splashesThreshold}
       />
     </Canvas>
   );
@@ -87,6 +94,7 @@ const BrushPainting = ({
   pouringSize = 0.2,
   pouringAmount = 1.0,
   falloff = 1.4,
+  splashesThreshold = 0.5,
 }: {
   sampleProvider: SampleProvider;
   width: number;
@@ -100,10 +108,12 @@ const BrushPainting = ({
   pouringSize?: number;
   pouringAmount?: number;
   falloff?: number;
+  splashesThreshold?: number;
 }) => {
   const { gl, size, pointer, camera } = useThree();
   const noise3D = useNoise3D(42);
   const blueNoise = useBlueNoise();
+  const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider);
 
   const backgroundTexture = useMemo(() => {
     const loader = new TextureLoader();
@@ -133,6 +143,7 @@ const BrushPainting = ({
   const meshRef = useRef<Mesh>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const progressRef = useRef(0);
+  const significancyTextureRef = useRef<DataTexture | null>(null);
 
   const bufferScene = useMemo(() => {
     const scene = new Scene();
@@ -149,6 +160,8 @@ const BrushPainting = ({
         channel0: { value: noise3D },
         channel1: { value: null }, // Will be set to previous frame
         channel2: { value: blueNoise },
+        sampleData: { value: null }, // Will be set each frame
+        sampleDataSize: { value: new Vector2(1, 1) },
         resolution: { value: new Vector2(width, height) },
         progress: { value: 0 },
         timeDelta: { value: 0 },
@@ -160,6 +173,8 @@ const BrushPainting = ({
         pouringSize: { value: pouringSize },
         pouringAmount: { value: pouringAmount },
         falloff: { value: falloff },
+        splashesThreshold: { value: splashesThreshold },
+        significancyData: { value: null },
       },
       vertexShader: `
         out vec2 vUv;
@@ -223,6 +238,37 @@ const BrushPainting = ({
   }, [gl]);
 
   useFrame((state, delta) => {
+    updateSampleTexture();
+    bufferAMaterial.uniforms.sampleData.value = sampleTexture;
+    bufferAMaterial.uniforms.sampleDataSize.value.set(sampleTexture.image.width, sampleTexture.image.height);
+
+    // Calculate significancy values for each frame/row directly from sampleProvider
+    const sampleHeight = sampleProvider.sampleSize;
+    
+    // Create or reuse texture
+    if (!significancyTextureRef.current || significancyTextureRef.current.image.height !== sampleHeight) {
+      const data = new Float32Array(sampleHeight);
+      significancyTextureRef.current = new DataTexture(data, 1, sampleHeight, RedFormat, FloatType);
+      significancyTextureRef.current.minFilter = LinearFilter;
+      significancyTextureRef.current.magFilter = LinearFilter;
+      significancyTextureRef.current.needsUpdate = true;
+    }
+    
+    const significancyData = significancyTextureRef.current.image.data as Float32Array;
+    
+    // Calculate max absolute value for each sample directly from sampleProvider
+    for (let i = 0; i < sampleHeight; i++) {
+      const sample = sampleProvider.get(i);
+      let maxAbs = 0;
+      for (let j = 0; j < sample.length; j++) {
+        maxAbs = Math.max(maxAbs, Math.abs(sample[j]));
+      }
+      significancyData[i] = maxAbs;
+    }
+    
+    significancyTextureRef.current.needsUpdate = true;
+    bufferAMaterial.uniforms.significancyData.value = significancyTextureRef.current;
+
     bufferAMaterial.uniforms.resolution.value.set(width, height);
     imageMaterial.uniforms.resolution.value.set(width, height);
 
@@ -231,7 +277,7 @@ const BrushPainting = ({
     }
 
     const volume = sampleProvider.getAvg()[0];
-    const volumeValue = 0.4 + Math.pow(volume, 2) * 1.8;
+    const volumeValue = volume * 4;
 
     const pointerActive = isMouseDown.current ? 1 : 0;
     const pointerX = ((pointer.x + 1) / 2) * width;
@@ -248,6 +294,7 @@ const BrushPainting = ({
     bufferAMaterial.uniforms.pouringSize.value = pouringSize;
     bufferAMaterial.uniforms.pouringAmount.value = pouringAmount;
     bufferAMaterial.uniforms.falloff.value = falloff;
+    bufferAMaterial.uniforms.splashesThreshold.value = splashesThreshold;
     bufferAMaterial.uniforms.mouse.value.set(pointerX, pointerY, pointerActive, 0);
 
     bufferScene.mesh.material = bufferAMaterial;

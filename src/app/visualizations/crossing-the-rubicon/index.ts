@@ -1,4 +1,4 @@
-import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
+import { SpectrumAnalyzerConfig } from '../../audio/analyzer/spectrum/SpectrumAnalyzerConfigs';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { CrossingTheRubicon } from './visualization/CrossingTheRubicon';
@@ -14,7 +14,7 @@ const crossingTheRubicon: Visualization = {
   component: CrossingTheRubicon,
   color: '#f9f1ed',
   settings: {
-    samples: new SpectrumAnalyzerSettings({ frameSize: 18, sampleSize: 1 }).build(),
+    samples: new SpectrumAnalyzerConfig({ frequencyBands: 18 }).settings(),
     visualization: {
       intensity: {
         id: 'intensity',

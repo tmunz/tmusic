@@ -1,6 +1,6 @@
-import { Setting, Settings, SettingType } from "../../settings/Setting";
-import { SpectrumAnalyzerSettings } from "./spectrum/SpectrumAnalyzerSettings";
-import { WaveformAnalyzerSettings } from "./waveform/WaveformAnalyzerSettings";
+import { Setting, Settings, SettingType } from '../../settings/Setting';
+import { SpectrumAnalyzerConfig } from './spectrum/SpectrumAnalyzerConfigs';
+import { WaveformAnalyzerConfig } from './waveform/WaveformAnalyzerConfig';
 
 export const getAnalyzerModeSetting = (id: string): Record<'audioAnalyser', Setting<string>> => ({
   audioAnalyser: {
@@ -9,30 +9,30 @@ export const getAnalyzerModeSetting = (id: string): Record<'audioAnalyser', Sett
     description: 'Select the type of analysis to perform',
     type: SettingType.OPTION,
     params: {
-      options: ['spectrum', 'waveform']
+      options: ['spectrum', 'waveform'],
     },
     value: id,
-    onChange: (newValue: string, allSettings: Settings) => {
+    onApply: (newValue: string, allSettings: Settings) => {
       const getDefaults = (analyzerType: string): Partial<Settings> => {
         if (analyzerType === 'spectrum') {
-          return new SpectrumAnalyzerSettings().build();
+          return new SpectrumAnalyzerConfig().settings();
         } else if (analyzerType === 'waveform') {
-          return new WaveformAnalyzerSettings().build();
+          return new WaveformAnalyzerConfig().settings();
         }
         return {};
       };
 
-      const defaults = getDefaults(newValue);
+      const settings = getDefaults(newValue);
       const settingsToAdd: Partial<Settings> = {};
 
-      Object.keys(defaults).forEach(key => {
+      Object.keys(settings).forEach(key => {
         if (!(key in allSettings) || key === 'frameSize') {
-          const setting = defaults[key];
+          const setting = settings[key];
           settingsToAdd[key] = setting;
         }
       });
 
       return settingsToAdd;
     },
-  }
+  },
 });

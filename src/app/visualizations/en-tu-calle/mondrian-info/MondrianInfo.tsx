@@ -1,4 +1,5 @@
 import './MondrianInfo.css';
+import { Button } from '../../../ui/button/Button';
 
 const theRedTree = require('./assets/the-red-tree.jpg');
 const grayTree = require('./assets/gray-tree.jpg');
@@ -14,7 +15,7 @@ export const MondrianInfo = () => {
         <p>
           Piet Mondrian (1872-1944) is renowned for his pure geometric compositions of rectangles in primary colors,
           black lines, and white backgrounds. However, his iconic abstract style was the culmination of a decades-long
-          artistic evolution that can be traced through his progressive abstraction of natural forms—most notably,
+          artistic evolution that can be traced through his progressive abstraction of natural forms — most notably,
           trees.
         </p>
         <p>
@@ -48,7 +49,7 @@ export const MondrianInfo = () => {
         </p>
         <p>
           This process of abstraction eventually led Mondrian to completely eliminate curved lines and representational
-          elements, arriving at his signature Neo-Plastic style by 1920—a pure visual language of perpendicular lines
+          elements, arriving at his signature Neo-Plastic style by 1920 — a pure visual language of perpendicular lines
           and primary colors. The tree series thus serves as a bridge between traditional representation and pure
           abstraction, revealing how Mondrian distilled the essence of natural forms into fundamental geometric
           principles.
@@ -66,14 +67,9 @@ export const MondrianInfo = () => {
         </div>
 
         <div className="mondrian-action">
-          <a
-            href="https://tmunz.github.io/Mondrian/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mondrian-button"
-          >
+          <Button onClick={() => window.open('https://tmunz.github.io/Mondrian/', '_blank', 'noopener,noreferrer')}>
             Create Your Own Mondrian
-          </a>
+          </Button>
         </div>
       </div>
     </div>

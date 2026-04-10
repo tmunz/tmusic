@@ -2,76 +2,36 @@ import { useEffect, useState, useMemo } from 'react';
 import { useAudioAnalysis } from '../audio/analyzer/useAudioAnalysis';
 import { WaveformAnalyzer } from '../audio/analyzer/waveform/WaveformAnalyzer';
 import { SpectrumAnalyzer } from '../audio/analyzer/spectrum/SpectrumAnalyzer';
-import { WaveformAnalyzerConfig } from '../audio/analyzer/waveform/WaveformAnalyzerConfig';
-import { SpectrumAnalyzerConfig } from '../audio/analyzer/spectrum/SpectrumAnalyzerConfig';
 import { Audio } from '../audio/Audio';
 import { SampleProvider } from './SampleProvider';
+import { WaveformAnalyzerConfig } from '../audio/analyzer/waveform/WaveformAnalyzerConfig';
+import { SpectrumAnalyzerConfig } from '../audio/analyzer/spectrum/SpectrumAnalyzerConfigs';
 
 interface SampleProviderProps {
   onSampleProviderChange: (sampleProvider: SampleProvider) => void;
-  // Common settings
-  sampleSize?: number;
-  frameSize?: number;
-  sampleRate?: number;
-  stereo?: boolean;
-  audioAnalyser?: 'waveform' | 'spectrum';
-  
-  // Spectrum-specific settings
-  minFrequency?: number;
-  maxFrequency?: number;
-  chromaticScale?: boolean;
-  spectralContrastBoost?: number;
+  config: Record<string, any>;
 }
 
-export const SampleProviderComponent = ({
-  onSampleProviderChange,
-  sampleSize = 1,
-  frameSize = 32,
-  sampleRate = 60,
-  stereo = false,
-  audioAnalyser = 'spectrum',
-  minFrequency = 10,
-  maxFrequency = 10000,
-  chromaticScale = false,
-  spectralContrastBoost = 0,
-}: SampleProviderProps) => {
+export const SampleProviderComponent = ({ onSampleProviderChange, config }: SampleProviderProps) => {
   const [streamProvider, setStreamProvider] = useState<Promise<MediaStream | null>>(Promise.resolve(null));
 
-  const { analyzerConfig, createAnalyzer } = useMemo(() => {
-    if (audioAnalyser === 'waveform') {
-      const config: WaveformAnalyzerConfig = {
-        sampleSize,
-        frameSize,
-        sampleRate,
-        stereo,
-      };
+  const { analyzerConfig, analyzer } = useMemo(() => {
+    if (config.audioAnalyser === 'waveform') {
+      const analyzerConfig = new WaveformAnalyzerConfig(config);
       return {
-        analyzerConfig: config,
-        createAnalyzer: (cfg: WaveformAnalyzerConfig) => new WaveformAnalyzer(cfg),
+        analyzerConfig,
+        analyzer: new WaveformAnalyzer(analyzerConfig),
       };
     } else {
-      const config: SpectrumAnalyzerConfig = {
-        sampleSize,
-        frameSize,
-        sampleRate,
-        stereo,
-        minFrequency,
-        maxFrequency,
-        chromaticScale,
-        spectralContrastBoost,
-      };
+      const analyzerConfig = new SpectrumAnalyzerConfig(config);
       return {
-        analyzerConfig: config,
-        createAnalyzer: (cfg: SpectrumAnalyzerConfig) => new SpectrumAnalyzer(cfg),
+        analyzerConfig,
+        analyzer: new SpectrumAnalyzer(analyzerConfig),
       };
     }
-  }, [sampleSize, frameSize, sampleRate, stereo, audioAnalyser, minFrequency, maxFrequency, chromaticScale, spectralContrastBoost]);
-  
-  const sampleProvider = useAudioAnalysis(
-    streamProvider,
-    createAnalyzer as any,
-    analyzerConfig as any
-  );
+  }, [config]);
+
+  const sampleProvider = useAudioAnalysis(streamProvider, analyzer, analyzerConfig);
 
   useEffect(() => {
     onSampleProviderChange(sampleProvider);

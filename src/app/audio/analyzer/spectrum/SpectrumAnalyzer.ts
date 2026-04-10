@@ -1,5 +1,5 @@
 import { AudioAnalyzer } from '../AudioAnalyzer';
-import { SpectrumAnalyzerConfig } from './SpectrumAnalyzerConfig';
+import { SpectrumAnalyzerConfig } from './SpectrumAnalyzerConfigs';
 
 export class SpectrumAnalyzer extends AudioAnalyzer<SpectrumAnalyzerConfig> {
   private readonly REFERENCE_FREQUENCY = 440; // 440 hz => A4
@@ -52,11 +52,10 @@ export class SpectrumAnalyzer extends AudioAnalyzer<SpectrumAnalyzerConfig> {
 
       if (this.config.stereo && this.analyserRightRef && this.audioDataRightRef) {
         let frequencyDataRight: Float32Array;
-        
+
         this.analyserRightRef.getFloatFrequencyData(this.audioDataRightRef as Float32Array<ArrayBuffer>);
         frequencyDataRight = this.audioDataRightRef;
-      
-        
+
         const bandsRight = this.processFrequencyData(frequencyDataRight, nyquist, minIndex, maxIndex);
         return { left: bandsLeft, right: bandsRight };
       } else {

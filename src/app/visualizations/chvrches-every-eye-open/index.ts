@@ -1,4 +1,4 @@
-import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
+import { SpectrumAnalyzerConfig } from '../../audio/analyzer/spectrum/SpectrumAnalyzerConfigs';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { ChvrchesEveryOpenEye } from './visualization/ChvrchesEveryOpenEye';
@@ -10,11 +10,11 @@ const chvrchesEveryOpenEye: Visualization = {
   design: 'Amy Burrows',
   imgSrc: require('./chvrches-every-open-eye.jpg'),
   description:
-    "The cover art for Every Open Eye by CHVRCHES (2015), designed by Amy Burrows, features a mosaic of iridescent, pastel-colored floral patterns. Created using a layered, cut-paper technique, the design has a textured, handcrafted quality that mirrors the band's shimmering synth-pop sound. The artwork draws a notable parallel to Power, Corruption & Lies by New Order, which also juxtaposes vibrant floral imagery with electronic music. Both covers use organic visuals to contrast and complement their synthetic soundscapes, reinforcing the emotional depth within their respective albums.",
+    "The cover art for 'Every Open Eye' by CHVRCHES (2015), designed by Amy Burrows, features a mosaic of iridescent, pastel-colored floral patterns. Created using a layered, cut-paper technique, the design has a textured, handcrafted quality that mirrors the band's shimmering synth-pop sound. The artwork draws a notable parallel to 'Power, Corruption & Lies' by New Order, which also juxtaposes vibrant floral imagery with electronic music. Both covers use organic visuals to contrast and complement their synthetic soundscapes, reinforcing the emotional depth within their respective albums.",
   component: ChvrchesEveryOpenEye,
   color: '#ded6d4',
   settings: {
-    samples: new SpectrumAnalyzerSettings({ frameSize: 64, sampleSize: 64 }).build(),
+    samples: new SpectrumAnalyzerConfig({ frequencyBands: 64, sampleSize: 64 }).settings(),
     visualization: {
       visibilityThreshold: {
         id: 'visibilityThreshold',

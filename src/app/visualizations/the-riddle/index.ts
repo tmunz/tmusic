@@ -1,4 +1,4 @@
-import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
+import { SpectrumAnalyzerConfig } from '../../audio/analyzer/spectrum/SpectrumAnalyzerConfigs';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { TheRiddle, DEFAULT_SAMPLE_SIZE } from './visualization/TheRiddle';
@@ -10,11 +10,11 @@ const theRiddle: Visualization = {
   design: 'Ged Haney, Andreas Hykade',
   imgSrc: require('./the-riddle.png'),
   description:
-    "This visualization is actually not based on the album cover art, it is inspired by the iconic animated music videos of Gigi D'Agostino's 1999 masterpiece L'Amour Toujours. The distinctive stick-figure aesthetic from videos like 'The Riddle' and 'Bla Bla Bla' captured the essence of late 90s electronic music culture. This visualization reimagines that minimalist charm with a dynamic audio-reactive landscape where hills and valleys pulse and morph in perfect sync with the music, creating a mesmerizing journey through sound and motion.",
+    "This visualization is actually not based on the album cover art, it is inspired by the iconic animated music videos of Gigi D'Agostino's 1999 album 'L'Amour Toujours'. The distinctive stick-figure aesthetic from videos like 'The Riddle' and 'Bla Bla Bla' captured the essence of late 90s electronic music culture. This visualization reimagines that minimalist charm with a dynamic audio-reactive landscape where hills and valleys pulse and morph in perfect sync with the music, creating a mesmerizing journey through a soundscape.",
   component: TheRiddle,
   color: '#01A101',
   settings: {
-    samples: new SpectrumAnalyzerSettings({ frameSize: 32, sampleSize: DEFAULT_SAMPLE_SIZE }).build(),
+    samples: new SpectrumAnalyzerConfig({ frequencyBands: 32, sampleSize: DEFAULT_SAMPLE_SIZE }).settings(),
     visualization: {
       strokeNoise: {
         id: 'strokeNoise',

@@ -13,6 +13,7 @@ export interface VivaLaVidaProps {
   pouringSize?: number;
   pouringAmount?: number;
   falloff?: number;
+  splashesThreshold?: number;
 }
 
 export const VivaLaVida = (props: VivaLaVidaProps) => {

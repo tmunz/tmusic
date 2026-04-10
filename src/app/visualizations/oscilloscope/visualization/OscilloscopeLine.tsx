@@ -1,8 +1,19 @@
-import { useEffect, useRef } from "react";
-import { Channel, SampleProvider } from "../../../sampleProvider/SampleProvider";
-import { AdditiveBlending, BufferAttribute, BufferGeometry, DataTexture, FloatType, RGBAFormat, ShaderMaterial, Mesh, DoubleSide, Vector3 } from "three";
-import { useFrame } from "@react-three/fiber";
-import { LanczosFilter } from "./LanczosFilter";
+import { useEffect, useRef } from 'react';
+import { Channel, SampleProvider } from '../../../sampleProvider/SampleProvider';
+import {
+  AdditiveBlending,
+  BufferAttribute,
+  BufferGeometry,
+  DataTexture,
+  FloatType,
+  RGBAFormat,
+  ShaderMaterial,
+  Mesh,
+  DoubleSide,
+  Vector3,
+} from 'three';
+import { useFrame } from '@react-three/fiber';
+import { LanczosFilter } from './LanczosFilter';
 
 const vertexShader = `
 #define EPS 1E-6
@@ -117,13 +128,28 @@ const getColorFromHue = (hueValue: number) => {
   const c = (1 - Math.abs(2 * l - 1)) * s;
   const x = c * (1 - Math.abs(((h * 6) % 2) - 1));
   const m = l - c / 2;
-  let r = 0, g = 0, b = 0;
-  if (h < 1 / 6) { r = c; g = x; }
-  else if (h < 2 / 6) { r = x; g = c; }
-  else if (h < 3 / 6) { g = c; b = x; }
-  else if (h < 4 / 6) { g = x; b = c; }
-  else if (h < 5 / 6) { r = x; b = c; }
-  else { r = c; b = x; }
+  let r = 0,
+    g = 0,
+    b = 0;
+  if (h < 1 / 6) {
+    r = c;
+    g = x;
+  } else if (h < 2 / 6) {
+    r = x;
+    g = c;
+  } else if (h < 3 / 6) {
+    g = c;
+    b = x;
+  } else if (h < 4 / 6) {
+    g = x;
+    b = c;
+  } else if (h < 5 / 6) {
+    r = x;
+    b = c;
+  } else {
+    r = c;
+    b = x;
+  }
   return [r + m, g + m, b + m];
 };
 
@@ -175,7 +201,7 @@ export const OscilloscopeLine = ({
     // Create simple black texture for screen uniform
     const data = new Float32Array(4 * 4 * 4); // 4x4 RGBA
     for (let i = 0; i < data.length; i += 4) {
-      data[i] = 0;     // R
+      data[i] = 0; // R
       data[i + 1] = 0; // G
       data[i + 2] = 0; // B
       data[i + 3] = 1; // A
@@ -212,7 +238,7 @@ export const OscilloscopeLine = ({
       console.log('Missing refs:', {
         geometry: !!geometryRef.current,
         sampleProvider: !!sampleProvider,
-        mesh: !!meshRef.current
+        mesh: !!meshRef.current,
       });
       return;
     }
@@ -251,7 +277,7 @@ export const OscilloscopeLine = ({
         leftFirst: leftSamples[0],
         rightFirst: rightSamples[0],
         leftRange: [Math.min(...leftSamples), Math.max(...leftSamples)],
-        rightRange: [Math.min(...rightSamples), Math.max(...rightSamples)]
+        rightRange: [Math.min(...rightSamples), Math.max(...rightSamples)],
       });
       lanczosFilterRef.current = {} as LanczosFilter; // Dummy object to prevent re-logging
     }
@@ -259,20 +285,17 @@ export const OscilloscopeLine = ({
     let finalXSamples: Float32Array;
     let finalYSamples: Float32Array;
 
-    if (useFilter && oldXSamplesRef.current && oldYSamplesRef.current &&
-      smoothedXSamplesRef.current && smoothedYSamplesRef.current) {
+    if (
+      useFilter &&
+      oldXSamplesRef.current &&
+      oldYSamplesRef.current &&
+      smoothedXSamplesRef.current &&
+      smoothedYSamplesRef.current
+    ) {
       // Use Lanczos filtering for smooth interpolation
       const filter = lanczosFilterRef.current as LanczosFilter;
-      filter.generateSmoothedSamples(
-        oldXSamplesRef.current,
-        leftSamples,
-        smoothedXSamplesRef.current
-      );
-      filter.generateSmoothedSamples(
-        oldYSamplesRef.current,
-        rightSamples,
-        smoothedYSamplesRef.current
-      );
+      filter.generateSmoothedSamples(oldXSamplesRef.current, leftSamples, smoothedXSamplesRef.current);
+      filter.generateSmoothedSamples(oldYSamplesRef.current, rightSamples, smoothedYSamplesRef.current);
 
       finalXSamples = smoothedXSamplesRef.current;
       finalYSamples = smoothedYSamplesRef.current;

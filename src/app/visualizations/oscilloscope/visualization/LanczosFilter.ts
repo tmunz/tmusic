@@ -41,11 +41,7 @@ export class LanczosFilter {
    * Generates smoothed samples using Lanczos interpolation
    * Original from Filter.generateSmoothedSamples
    */
-  generateSmoothedSamples(
-    oldSamples: Float32Array,
-    samples: Float32Array,
-    smoothedSamples: Float32Array
-  ): void {
+  generateSmoothedSamples(oldSamples: Float32Array, samples: Float32Array, smoothedSamples: Float32Array): void {
     const bufferSize = this.bufferSize;
     const allSamples = this.allSamples;
     const nSmoothedSamples = this.nSmoothedSamples;

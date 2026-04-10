@@ -1,4 +1,4 @@
-import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
+import { SpectrumAnalyzerConfig } from '../../audio/analyzer/spectrum/SpectrumAnalyzerConfigs';
 import { Visualization } from '../Visualization';
 import { TransEuropeExpress } from './visualization/TransEuropeExpress';
 
@@ -13,7 +13,7 @@ const transEuropeExpress: Visualization = {
   component: TransEuropeExpress,
   color: '#0a0a0a',
   settings: {
-    samples: new SpectrumAnalyzerSettings({ frameSize: 32, sampleSize: 32 }).build(),
+    samples: new SpectrumAnalyzerConfig({ frequencyBands: 32, sampleSize: 32 }).settings(),
   },
   spotifyUri: 'spotify:album:0HHRIVjvBcnTepfeRVgS2f',
 };

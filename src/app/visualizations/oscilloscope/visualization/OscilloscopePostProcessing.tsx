@@ -7,10 +7,7 @@ export interface OscilloscopePostProcessingProps {
   glow?: number;
 }
 
-export const OscilloscopePostProcessing = ({
-  exposure = 1.0,
-  glow = 1.0,
-}: OscilloscopePostProcessingProps) => {
+export const OscilloscopePostProcessing = ({ exposure = 1.0, glow = 1.0 }: OscilloscopePostProcessingProps) => {
   const brightness = useMemo(() => {
     return Math.pow(2, exposure - 2.0);
   }, [exposure]);
@@ -24,7 +21,7 @@ export const OscilloscopePostProcessing = ({
         kernelSize={KernelSize.LARGE}
         blendFunction={BlendFunction.ADD}
       />
-      
+
       <Bloom
         intensity={glow * brightness * 0.5}
         luminanceThreshold={0.05}

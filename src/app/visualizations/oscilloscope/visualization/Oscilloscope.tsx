@@ -27,7 +27,15 @@ export const Oscilloscope = ({
   glow = 0.8,
 }: OscilloscopeProps) => {
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', flexDirection: 'column' }}>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100%',
+        flexDirection: 'column',
+      }}
+    >
       <OscilloscopeScene
         width={canvas.width}
         height={canvas.height}

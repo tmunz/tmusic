@@ -1,4 +1,4 @@
-import { WaveformAnalyzerSettings } from '../../audio/analyzer/waveform/WaveformAnalyzerSettings';
+import { WaveformAnalyzerConfig } from '../../audio/analyzer/waveform/WaveformAnalyzerConfig';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { Oscilloscope } from './visualization/Oscilloscope';
@@ -10,11 +10,11 @@ const oscilloscope: Visualization = {
   design: 'Jerobeam Fenderson',
   imgSrc: require('./oscilloscope-music.jpg'),
   description:
-    "'Oscilloscope Music' is a unique album by artist Jerobeam Fenderson, where the music is generated from the visual patterns of an oscilloscope. The album features a series of tracks that are created by manipulating the waveforms displayed on an oscilloscope, resulting in a mesmerizing blend of electronic sounds and visual art. Each track corresponds to a specific waveform pattern, making it a truly immersive audiovisual experience.",
+    "'Oscilloscope Music' is a very special album by artist Jerobeam Fenderson, where the music is generated both for the sound and its visual representation on an oscilloscope. The album features a series of tracks that are created by manipulating the waveforms displayed on an oscilloscope, resulting in a mesmerizing blend of electronic sounds and visual art. Each track revolves around a specific theme, making it a truly immersive audiovisual experience.",
   component: Oscilloscope,
   color: '#040404',
   settings: {
-    samples: new WaveformAnalyzerSettings({ stereo: true }).build(),
+    samples: new WaveformAnalyzerConfig({ stereo: true, waveformSamples: 2048 }).settings(),
     visualization: {
       strokeWidth: {
         id: 'strokeWidth',
@@ -66,7 +66,7 @@ const oscilloscope: Visualization = {
         name: 'Intensity',
         description: 'Line brightness/intensity',
         type: SettingType.NUMBER,
-        value: 1.0,
+        value: 0.5,
         params: {
           min: 0.0,
           max: 2.0,
@@ -99,7 +99,7 @@ const oscilloscope: Visualization = {
       },
     },
   },
-  spotifyUri: 'spotify:album:2SzcGpzp4bhoyBHgJqV53r'
+  spotifyUri: 'spotify:album:2SzcGpzp4bhoyBHgJqV53r',
 };
 
 export default oscilloscope;

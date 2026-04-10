@@ -1,7 +1,7 @@
 import { SampleProvider } from '../../sampleProvider/SampleProvider';
-import { AudioAnalyzerConfig } from './AudioAnalyzerConfig';
+import { BaseAnalyzerConfig } from './AnalyzerConfig';
 
-export abstract class AudioAnalyzer<Config extends AudioAnalyzerConfig> {
+export abstract class AudioAnalyzer<Config extends BaseAnalyzerConfig> {
   protected audioDataLeftRef: Float32Array | null = null;
   protected audioDataRightRef: Float32Array | null = null;
   protected analyserLeftRef: AnalyserNode | null = null;

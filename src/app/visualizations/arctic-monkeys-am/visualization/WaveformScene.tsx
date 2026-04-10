@@ -11,13 +11,7 @@ export interface WaveformSceneProps {
   strokeWidth?: number;
 }
 
-export const WaveformScene = ({
-  width,
-  height,
-  sampleProvider,
-  channel,
-  strokeWidth = 2.5,
-}: WaveformSceneProps) => {
+export const WaveformScene = ({ width, height, sampleProvider, channel, strokeWidth = 2.5 }: WaveformSceneProps) => {
   const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(
     sampleProvider,
     sp => sp?.flat(channel) ?? new Float32Array()
@@ -33,7 +27,8 @@ export const WaveformScene = ({
     };
   };
 
-  return <ShaderImage
+  return (
+    <ShaderImage
       width={width}
       height={height}
       getUniforms={getUniforms}
@@ -84,5 +79,6 @@ export const WaveformScene = ({
           gl_FragColor = vec4(vec3(1.), a);
         }
       `}
-    />;
+    />
+  );
 };

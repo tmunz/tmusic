@@ -1,3 +1,5 @@
+import { InputProps } from '../ui/input/InputProps';
+
 export enum SettingType {
   BOOLEAN = 'boolean',
   NUMBER = 'number',
@@ -5,15 +7,10 @@ export enum SettingType {
   EXTERNAL = 'external',
 }
 
-export interface Setting<T> {
-  id: string;
-  name: string;
-  description: string;
+export interface Setting<T> extends InputProps<T> {
   type: SettingType;
-  params?: Record<string, any>;
-  value: T;
   isVisible?: (allSettings: Settings) => boolean;
-  onChange?: (newValue: T, allSettings: Settings) => Partial<Settings> | void;
+  onApply?: (newValue: T, allSettings: Settings) => Partial<Settings> | void;
 }
 
 export type Settings = Record<string, Setting<any>>;

@@ -39,11 +39,7 @@ export const OscilloscopeScene = ({
 
   return (
     <div style={{ width, height }}>
-      <Canvas 
-        key={`${width}-${height}`}
-        gl={{ alpha: true, antialias: true }} 
-        style={{ background: 'transparent' }}
-      >
+      <Canvas key={`${width}-${height}`} gl={{ alpha: true, antialias: true }} style={{ background: 'transparent' }}>
         <OrthographicCamera
           makeDefault
           position={[0, 0, 1]}
@@ -68,10 +64,7 @@ export const OscilloscopeScene = ({
           <OscilloscopeGrid intensity={grid} />
         </group>
         <OscilloscopeNoise />
-        <OscilloscopePostProcessing
-          exposure={1.0}
-          glow={glow}
-        />
+        <OscilloscopePostProcessing exposure={1.0} glow={glow} />
       </Canvas>
     </div>
   );

@@ -35,13 +35,7 @@ export const Noise = () => {
   return (
     <mesh renderOrder={999} position={[0, 0, 4]}>
       <planeGeometry args={[30, 30]} />
-      <meshBasicMaterial
-        map={noiseTexture}
-        transparent={true}
-        opacity={0.002}
-        depthWrite={true}
-        depthTest={true}
-      />
+      <meshBasicMaterial map={noiseTexture} transparent={true} opacity={0.002} depthWrite={true} depthTest={true} />
     </mesh>
   );
 };

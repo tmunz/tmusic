@@ -1,11 +1,11 @@
 import './Audio.css';
 import { useState } from 'react';
-import { MediaStreamType } from './MediaStreamType';
-import { MicrophoneAudio } from './microphone/MicrophoneAudio';
-import { FileAudio } from './file/FileAudio';
-import { SpotifyAudio } from './spotify/SpotifyAudio';
-import { UrlStreamAudio } from './url-stream/UrlStreamAudio';
-import { BrowserTabAudio } from './browser-tab/BrowserTabAudio';
+import { AudioSourceType } from './audio-source/AudioSourceType';
+import { MicrophoneAudio } from './audio-source/microphone/MicrophoneAudio';
+import { FileAudio } from './audio-source/file/FileAudio';
+import { SpotifyAudio } from './audio-source/spotify/SpotifyAudio';
+import { UrlStreamAudio } from './audio-source/url-stream/UrlStreamAudio';
+import { BrowserTabAudio } from './audio-source/browser-tab/BrowserTabAudio';
 
 interface AudioProviderProps {
   onChange: (stream: Promise<MediaStream | null>) => void;
@@ -14,11 +14,11 @@ interface AudioProviderProps {
 export const Audio = ({ onChange }: AudioProviderProps) => {
   const [currentStream, setCurrentStream] = useState<{
     stream: MediaStream;
-    type: MediaStreamType;
+    type: AudioSourceType;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleStreamCreated = (type: MediaStreamType) => (stream: MediaStream | null) => {
+  const handleStreamCreated = (type: AudioSourceType) => (stream: MediaStream | null) => {
     if (stream) {
       if (currentStream?.stream && currentStream.type !== type) {
         currentStream.stream.getTracks().forEach(track => track.stop());
@@ -37,61 +37,36 @@ export const Audio = ({ onChange }: AudioProviderProps) => {
   return (
     <div className="audio">
       {error && (
-        <div
-          className="audio-error"
-          style={{
-            background: '#ff4444',
-            color: 'white',
-            padding: '8px 12px',
-            borderRadius: '4px',
-            marginBottom: '12px',
-            fontSize: '0.9em',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
+        <div className="audio-error">
           <span>{error}</span>
-          <button
-            onClick={() => setError(null)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'white',
-              cursor: 'pointer',
-              padding: '0 4px',
-              fontSize: '16px',
-            }}
-          >
-            ×
-          </button>
+          <button onClick={() => setError(null)}>×</button>
         </div>
       )}
 
       <BrowserTabAudio
-        isActive={currentStream?.type === MediaStreamType.BROWSER_TAB}
-        onStreamCreated={handleStreamCreated(MediaStreamType.BROWSER_TAB)}
+        isActive={currentStream?.type === AudioSourceType.BROWSER_TAB}
+        onStreamCreated={handleStreamCreated(AudioSourceType.BROWSER_TAB)}
       />
 
       <MicrophoneAudio
-        isActive={currentStream?.type === MediaStreamType.MICROPHONE}
-        onStreamCreated={handleStreamCreated(MediaStreamType.MICROPHONE)}
+        isActive={currentStream?.type === AudioSourceType.MICROPHONE}
+        onStreamCreated={handleStreamCreated(AudioSourceType.MICROPHONE)}
       />
 
       <FileAudio
-        isActive={currentStream?.type === MediaStreamType.FILE}
-        onStreamCreated={handleStreamCreated(MediaStreamType.FILE)}
+        isActive={currentStream?.type === AudioSourceType.FILE}
+        onStreamCreated={handleStreamCreated(AudioSourceType.FILE)}
       />
 
       <SpotifyAudio
-        isActive={currentStream?.type === MediaStreamType.SPOTIFY}
-        onStreamCreated={handleStreamCreated(MediaStreamType.SPOTIFY)}
+        isActive={currentStream?.type === AudioSourceType.SPOTIFY}
+        onStreamCreated={handleStreamCreated(AudioSourceType.SPOTIFY)}
         onError={setError}
       />
 
       <UrlStreamAudio
-        isActive={currentStream?.type === MediaStreamType.URI}
-        onStreamCreated={handleStreamCreated(MediaStreamType.URI)}
+        isActive={currentStream?.type === AudioSourceType.URI}
+        onStreamCreated={handleStreamCreated(AudioSourceType.URI)}
       />
     </div>
   );

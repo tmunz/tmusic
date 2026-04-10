@@ -1,19 +1,19 @@
 import './SettingsComponent.css';
 import { useAppState, VisualizationAction } from '../AppContext';
-import { NumberSettingsComponent } from './NumberSettingsComponent';
+import { NumberInputComponent } from '../ui/input/NumberInputComponent';
 import { Settings, Setting, SettingType } from './Setting';
 import { ExternalSettingsComponent } from './ExternalSettingsComponent';
-import { BooleanSettingsComponent } from './BooleanSettingsComponent';
-import { OptionSettingsComponent } from './OptionSettingsComponent';
+import { BooleanInputComponent } from '../ui/input/BooleanInputComponent';
+import { OptionInputComponent } from '../ui/input/OptionInputComponent';
 
 export const SettingsComponent = () => {
   const { appState, dispatch } = useAppState();
 
   const getNumberSettingComponent = (sectionKey: string, key: string, setting: Setting<number>) => {
     return (
-      <NumberSettingsComponent
+      <NumberInputComponent
         key={key}
-        setting={setting as Setting<number>}
+        {...setting}
         onChange={(value: number) =>
           dispatch({
             type: VisualizationAction.UPDATE_VISUALIZATION_SETTINGS_VALUE,
@@ -28,9 +28,9 @@ export const SettingsComponent = () => {
 
   const getBooleanSettingComponent = (sectionKey: string, key: string, setting: Setting<boolean>) => {
     return (
-      <BooleanSettingsComponent
+      <BooleanInputComponent
         key={key}
-        setting={setting as Setting<boolean>}
+        {...setting}
         onChange={(value: boolean) =>
           dispatch({
             type: VisualizationAction.UPDATE_VISUALIZATION_SETTINGS_VALUE,
@@ -45,9 +45,9 @@ export const SettingsComponent = () => {
 
   const getOptionSettingComponent = (sectionKey: string, key: string, setting: Setting<string>) => {
     return (
-      <OptionSettingsComponent
+      <OptionInputComponent
         key={key}
-        setting={setting as Setting<string>}
+        {...setting}
         onChange={(value: string) =>
           dispatch({
             type: VisualizationAction.UPDATE_VISUALIZATION_SETTINGS_VALUE,

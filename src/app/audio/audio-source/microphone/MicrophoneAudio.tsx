@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PiRecordDuotone, PiRecordFill } from 'react-icons/pi';
-import { IconToggleButton } from '../../ui/icon-button/IconToggleButton';
-import { AudioProps } from '../AudioProps';
+import { IconToggleButton } from '../../../ui/icon-button/IconToggleButton';
+import { AudioProps } from '../../AudioProps';
 
 export const MicrophoneAudio = ({ isActive, onStreamCreated }: AudioProps) => {
   const [isRecording, setIsRecording] = useState<boolean>(false);

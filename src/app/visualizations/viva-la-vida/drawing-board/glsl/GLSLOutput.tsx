@@ -1,3 +1,4 @@
+import { Button } from '../../../../ui/button/Button';
 import './GLSLOutput.css';
 
 interface GLSLOutputProps {
@@ -34,9 +35,9 @@ export const GLSLOutput = ({
           )}
         </div>
         {code && (
-          <button onClick={copyToClipboard} className="copy-button">
+          <Button onClick={copyToClipboard} className="copy-button">
             Copy GLSL Code
-          </button>
+          </Button>
         )}
       </div>
 

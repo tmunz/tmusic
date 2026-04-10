@@ -1,10 +1,10 @@
 import './UrlStreamAudio.css';
 import { useState, useEffect } from 'react';
 import { PiPlay, PiStop } from 'react-icons/pi';
-import { IconToggleButton } from '../../ui/icon-button/IconToggleButton';
-import { AudioProps } from '../AudioProps';
-import { createAudioStream, cleanupAudioStream } from '../AudioStream';
-import { Input } from '../../ui/input/Input';
+import { IconToggleButton } from '../../../ui/icon-button/IconToggleButton';
+import { AudioProps } from '../../AudioProps';
+import { createAudioStream, cleanupAudioStream } from '../../AudioStream';
+import { Input } from '../../../ui/input/TextInput';
 
 export const UrlStreamAudio = ({ isActive, onStreamCreated }: AudioProps) => {
   const [audioPlayer, setAudioPlayer] = useState<HTMLAudioElement | null>(null);

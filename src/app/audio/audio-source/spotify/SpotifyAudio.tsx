@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { SpotifyService, SpotifyState } from './SpotifyService';
-import { IconToggleButton } from '../../ui/icon-button/IconToggleButton';
+import { IconToggleButton } from '../../../ui/icon-button/IconToggleButton';
 import { FaSpotify } from 'react-icons/fa';
 import { PiStop } from 'react-icons/pi';
 import { SpotifyPermissionDialog } from './SpotifyPermissionDialog';
-import { AudioProps } from '../AudioProps';
-import { useAppState } from '../../AppContext';
+import { AudioProps } from '../../AudioProps';
+import { useAppState } from '../../../AppContext';
 
 interface SpotifyAudioProps extends AudioProps {
   onError: (error: string) => void;

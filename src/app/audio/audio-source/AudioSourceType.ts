@@ -1,4 +1,4 @@
-export enum MediaStreamType {
+export enum AudioSourceType {
   MICROPHONE = 'Microphone',
   URI = 'URI',
   FILE = 'File',

@@ -1,4 +1,4 @@
-import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
+import { SpectrumAnalyzerConfig } from '../../audio/analyzer/spectrum/SpectrumAnalyzerConfigs';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { UnknownPleasures } from './visualization/UnknownPleasures';
@@ -10,11 +10,11 @@ const unknownPleasures: Visualization = {
   design: 'Peter Saville (Factory Records)',
   imgSrc: require('./unknown-pleasures.png'),
   description:
-    'Unknown Pleasures is the debut studio album by English rock band Joy Division, released on 15 June 1979 by Factory Records. The artwork shows waveforms representing data from the first recorded pulsar, PSR B1919+21, which Saville took from an astronomy encyclopedia and inverted it. Stripped of context, the minimalist yet striking design conveys a sense of mystery and introspection, mirroring the haunting and atmospheric music of the album.',
+    "'Unknown Pleasures' is the debut studio album by English rock band Joy Division, released on 15 June 1979 by Factory Records. The artwork shows waveforms representing data from the first recorded pulsar, PSR B1919+21, which Saville took from an astronomy encyclopedia and inverted it. Stripped of context, the minimalist yet striking design conveys a sense of mystery and introspection, mirroring the haunting and atmospheric music of the album.",
   component: UnknownPleasures,
   color: '#000000',
   settings: {
-    samples: new SpectrumAnalyzerSettings({ frameSize: 80, sampleSize: 30 }).build(),
+    samples: new SpectrumAnalyzerConfig({ frequencyBands: 80, sampleSize: 30 }).settings(),
     visualization: {
       baseIntensity: {
         id: 'baseIntensity',

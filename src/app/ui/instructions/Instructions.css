@@ -1,4 +1,5 @@
 .instructions {
+  min-width: 250px;
   --instructions-color: #5cc9ff;
 
   h2 {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PiBrowser, PiStop } from 'react-icons/pi';
-import { IconToggleButton } from '../../ui/icon-button/IconToggleButton';
-import { AudioProps } from '../AudioProps';
+import { IconToggleButton } from '../../../ui/icon-button/IconToggleButton';
+import { AudioProps } from '../../AudioProps';
 
 export const BrowserTabAudio = ({ isActive, onStreamCreated }: AudioProps) => {
   const [isAvailable, setIsAvailable] = useState(false);

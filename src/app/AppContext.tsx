@@ -33,18 +33,18 @@ const appStateReducer = (state: AppState, action: Action): AppState => {
       if (!state.visualization) {
         return state;
       }
-      
+
       const currentSection = state.visualization.settings[action.section];
       const setting = currentSection[action.key];
-      
+
       let additionalSettings = {};
-      if (setting?.onChange) {
-        const result = setting.onChange(action.value, currentSection);
+      if (setting?.onApply) {
+        const result = setting.onApply(action.value, currentSection);
         if (result) {
           additionalSettings = result;
         }
       }
-      
+
       return {
         ...state,
         visualization: {

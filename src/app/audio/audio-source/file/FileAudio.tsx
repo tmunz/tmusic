@@ -1,8 +1,8 @@
 import { useRef, useState, useEffect } from 'react';
 import { PiStop, PiUpload } from 'react-icons/pi';
-import { IconToggleButton } from '../../ui/icon-button/IconToggleButton';
-import { createAudioStream, cleanupAudioStream } from '../AudioStream';
-import { AudioProps } from '../AudioProps';
+import { IconToggleButton } from '../../../ui/icon-button/IconToggleButton';
+import { createAudioStream, cleanupAudioStream } from '../../AudioStream';
+import { AudioProps } from '../../AudioProps';
 
 export const FileAudio = ({ isActive, onStreamCreated }: AudioProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);

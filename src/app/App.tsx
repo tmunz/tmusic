@@ -73,6 +73,14 @@ export function App() {
     [appState.visualization, sampleProvider, width, height]
   );
 
+  const sampleProviderConfig = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(appState.visualization?.settings?.samples || {}).map(([key, setting]) => [key, setting.value])
+      ),
+    [appState.visualization?.settings?.samples]
+  );
+
   return (
     <div className="tmusic" ref={elementRef} style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
       <Carousel items={items} selectedId={appState.visualization?.id} onSelect={selectVisualization} defaultFocus />
@@ -94,15 +102,7 @@ export function App() {
             </CollapsibleMenubarItem>
           );
         })}
-        <SampleProviderComponent
-          onSampleProviderChange={setSampleProvider}
-          {...Object.fromEntries(
-            Object.entries(appState.visualization?.settings?.samples || {}).map(([key, setting]) => [
-              key,
-              setting.value,
-            ])
-          )}
-        />
+        <SampleProviderComponent onSampleProviderChange={setSampleProvider} config={sampleProviderConfig} />
       </Menubar>
     </div>
   );

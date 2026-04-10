@@ -1,4 +1,4 @@
-import { SpectrumAnalyzerSettings } from '../../audio/analyzer/spectrum/SpectrumAnalyzerSettings';
+import { SpectrumAnalyzerConfig } from '../../audio/analyzer/spectrum/SpectrumAnalyzerConfigs';
 import { Visualization } from '../Visualization';
 import { Crises } from './visualization/Crises';
 
@@ -13,7 +13,7 @@ const crises: Visualization = {
   component: Crises,
   color: '#12745f',
   settings: {
-    samples: new SpectrumAnalyzerSettings({ frameSize: 64, sampleSize: 192 }).build(),
+    samples: new SpectrumAnalyzerConfig({ frequencyBands: 64, sampleSize: 192 }).settings(),
   },
   spotifyUri: 'spotify:album:56irNmW0iq9Flh41YbAv55',
 };

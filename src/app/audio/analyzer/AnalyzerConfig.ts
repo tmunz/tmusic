@@ -6,22 +6,35 @@ export interface BaseAnalyzerSettingTypes {
   stereo?: boolean;
 }
 
-const DEFAULT_ANALYZER_SETTINGS: BaseAnalyzerSettingTypes = {
+const DEFAULT_ANALYZER_CONFIG: BaseAnalyzerSettingTypes = {
   sampleSize: 1,
   sampleRate: 60,
   stereo: false,
 };
 
-export abstract class BaseAnalyzerSettings {
-  protected settings: Record<string, any>;
+export abstract class BaseAnalyzerConfig {
+  protected config: Record<string, any>;
 
-  constructor(settings: Partial<BaseAnalyzerSettingTypes> = {}) {
-    this.settings = { ...DEFAULT_ANALYZER_SETTINGS, ...settings };
+  constructor(config: Partial<BaseAnalyzerSettingTypes> = {}) {
+    this.config = { ...DEFAULT_ANALYZER_CONFIG, ...config };
   }
 
-  protected abstract getId(): string;
+  get sampleSize(): number {
+    return this.config.sampleSize;
+  }
 
-  protected createCommonSettings(): Settings {
+  get sampleRate(): number {
+    return this.config.sampleRate;
+  }
+
+  get stereo(): boolean {
+    return this.config.stereo;
+  }
+
+  abstract get frameSize(): number;
+  abstract get audioAnalyser(): string;
+
+  protected get commonSettings(): Settings {
     return {
       sampleSize: {
         id: 'sampleSize',
@@ -33,7 +46,7 @@ export abstract class BaseAnalyzerSettings {
           max: 500,
           step: 1,
         },
-        value: this.settings.sampleSize,
+        value: this.config.sampleSize,
       },
       sampleRate: {
         id: 'sampleRate',
@@ -45,17 +58,17 @@ export abstract class BaseAnalyzerSettings {
           max: 60,
           step: 1,
         },
-        value: this.settings.sampleRate,
+        value: this.config.sampleRate,
       },
       stereo: {
         id: 'stereo',
         name: 'Stereo',
         description: 'Analyze left and right channels separately.',
         type: SettingType.BOOLEAN,
-        value: this.settings.stereo,
+        value: this.config.stereo,
       },
     };
   }
 
-  abstract build(): Settings;
+  abstract settings(): Settings;
 }

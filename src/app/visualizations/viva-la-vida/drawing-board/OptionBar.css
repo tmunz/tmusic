@@ -1,7 +1,7 @@
-.drawing-board-control-bar {
+.option-bar {
   display: flex;
-  gap: 20px;
-  padding: 15px;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
   background: #2a2a2a;
   border-bottom: 1px solid #444;
   flex-wrap: wrap;

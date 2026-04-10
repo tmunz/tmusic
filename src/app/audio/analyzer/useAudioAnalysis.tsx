@@ -1,17 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { SampleProvider } from '../../sampleProvider/SampleProvider';
 import { AudioAnalyzer } from './AudioAnalyzer';
-import { AudioAnalyzerConfig } from './AudioAnalyzerConfig';
+import { BaseAnalyzerConfig } from './AnalyzerConfig';
 
-export const useAudioAnalysis = <Config extends AudioAnalyzerConfig>(
+export const useAudioAnalysis = <Config extends BaseAnalyzerConfig>(
   streamProvider: Promise<MediaStream | null>,
-  createAnalyzer: (config: Config) => AudioAnalyzer<Config>,
+  audioAnalyzer: AudioAnalyzer<Config>,
   config: Config
 ) => {
   const analyzerRef = useRef<AudioAnalyzer<Config> | null>(null);
   const [audioFrames, setAudioFrames] = useState<SampleProvider>(() => {
-    const analyzer = createAnalyzer(config);
-    return analyzer.createSampleProvider(config.frameSize);
+    return audioAnalyzer.createSampleProvider(config.frameSize);
   });
 
   // Initialize analyzer when stream becomes available
@@ -24,7 +23,7 @@ export const useAudioAnalysis = <Config extends AudioAnalyzerConfig>(
 
       const streamSource = await streamProvider;
       if (streamSource) {
-        const analyzer = createAnalyzer(config);
+        const analyzer = audioAnalyzer;
         await analyzer.initialize(streamSource);
         analyzerRef.current = analyzer;
       }
@@ -38,13 +37,12 @@ export const useAudioAnalysis = <Config extends AudioAnalyzerConfig>(
         analyzerRef.current = null;
       }
     };
-  }, [streamProvider, createAnalyzer, config]);
+  }, [streamProvider, audioAnalyzer, config]);
 
   useEffect(() => {
-    const analyzer = createAnalyzer(config);
-    const provider = analyzer.createSampleProvider(config.frameSize);
+    const provider = audioAnalyzer.createSampleProvider(config.frameSize);
     setAudioFrames(provider);
-  }, [config, createAnalyzer]);
+  }, [config, audioAnalyzer]);
 
   useEffect(() => {
     const interval = 1000 / config.sampleRate;

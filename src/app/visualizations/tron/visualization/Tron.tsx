@@ -145,11 +145,7 @@ const TronScene = ({ sampleProvider, debugMode }: TronSceneProps) => {
 
   return (
     <>
-      <Canvas
-        camera={{ position: [0, 1, 3], fov: 60 }}
-        gl={{ antialias: true }}
-        frameloop={isWindowActive ? 'always' : 'never'}
-      >
+      <Canvas camera={{ position: [0, 1, 3], fov: 60 }} gl={{ antialias: true }}>
         {debugMode >= DebugMode.STATS && <Stats />}
         <TronCamera userRef={userRef} companionRef={companionRef} />
         <TronEnvironment tileSize={tileSize} viewDistance={3} />

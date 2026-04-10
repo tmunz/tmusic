@@ -1,5 +1,5 @@
 import React from 'react';
-import './Input.css';
+import './TextInput.css';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   className?: string;
@@ -7,7 +7,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 export const Input: React.FC<InputProps> = ({ className = '', ...props }) => {
   return (
-    <div className={`input ${className}`}>
+    <div className={`text-input ${className}`}>
       <input {...props} />
     </div>
   );
