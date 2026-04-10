@@ -1,4 +1,4 @@
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 import { DelacroixLibertyLeadingThePeoplePainting } from './DelacroixLibertyLeadingThePeoplePainting';
 
 export interface VivaLaVidaProps {
@@ -13,6 +13,7 @@ export interface VivaLaVidaProps {
   pouringSize?: number;
   pouringAmount?: number;
   falloff?: number;
+  splashesThreshold?: number;
 }
 
 export const VivaLaVida = (props: VivaLaVidaProps) => {

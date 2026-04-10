@@ -1,4 +1,7 @@
-import './DrawingBoardControlBar.css';
+import './OptionBar.css';
+import { NumberInputComponent } from '../../../ui/input/NumberInputComponent';
+import { BooleanInputComponent } from '../../../ui/input/BooleanInputComponent';
+import { Button } from '../../../ui/button/Button';
 
 interface DrawingBoardControlBarProps {
   onApplyToVisualization: () => void;
@@ -26,43 +29,43 @@ export const DrawingBoardControlBar = ({
   onBackgroundOpacityChange,
 }: DrawingBoardControlBarProps) => {
   return (
-    <div className="drawing-boardcontrol-bar">
-      <label>
-        Background:
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.1"
-          value={backgroundOpacity}
-          onChange={e => onBackgroundOpacityChange(parseFloat(e.target.value))}
-        />
-      </label>
-      <label>
-        Speed: {animationSpeed.toFixed(1)}x
-        <input
-          type="range"
-          min="0.1"
-          max="5"
-          step="0.1"
-          value={animationSpeed}
-          onChange={e => onSpeedChange(parseFloat(e.target.value))}
-        />
-      </label>
-      <label>
-        <input type="checkbox" checked={showTrail} onChange={e => onTrailToggle(e.target.checked)} />
-        Show Trail
-      </label>
-      <label>
-        <input type="checkbox" checked={showAnimation} onChange={e => onAnimationToggle(e.target.checked)} />
-        Show Animation
-      </label>
-      <button onClick={onClear} className="secondary-button">
+    <div className="drawing-board-control-bar option-bar">
+      <NumberInputComponent
+        id="background-opacity"
+        name="Background"
+        description="Background opacity"
+        value={backgroundOpacity}
+        onChange={onBackgroundOpacityChange}
+        params={{ min: 0, max: 1, step: 0.1 }}
+      />
+      <NumberInputComponent
+        id="animation-speed"
+        name="Speed"
+        description="Animation speed"
+        value={animationSpeed}
+        onChange={onSpeedChange}
+        params={{ min: 0.1, max: 5, step: 0.1 }}
+      />
+      <BooleanInputComponent
+        id="show-trail"
+        name="Show Trail"
+        description="Show trail"
+        value={showTrail}
+        onChange={onTrailToggle}
+      />
+      <BooleanInputComponent
+        id="show-animation"
+        name="Show Animation"
+        description="Show animation"
+        value={showAnimation}
+        onChange={onAnimationToggle}
+      />
+      <Button onClick={onClear}>
         Clear
-      </button>
-      <button onClick={onApplyToVisualization} className="primary-button">
+      </Button>
+      <Button onClick={onApplyToVisualization}>
         Apply to Visualization
-      </button>
+      </Button>
     </div>
   );
 };

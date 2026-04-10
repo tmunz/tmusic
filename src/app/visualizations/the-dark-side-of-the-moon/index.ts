@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { SpectrumAnalyzerConfig } from '../../audio/analyzer/spectrum/SpectrumAnalyzerConfigs';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { TheDarkSideOfTheMoon } from './TheDarkSideOfTheMoon';
@@ -11,11 +11,11 @@ const theDarkSideOfTheMoon: Visualization = {
   design: 'Storm Thorgerson (Hipgnosis)',
   imgSrc: require('./the-dark-side-of-the-moon.png'),
   description:
-    "'The Dark Side of the Moon' is the eighth studio album by the English rock band Pink Floyd, released on March 1, 1973, by Harvest Records. It topped the US Billboard 200 and remained on the chart for an astonishing 741 weeks, from 1973 to 1988. This album's iconic cover is just one of the countless masterpieces created by the design group Hipgnosis, whose work is brilliantly documented in Anton Corbijn's film 'Squaring the Circle'.",
+    "'The Dark Side of the Moon' is the eighth studio album by the English rock band Pink Floyd, released on March 1, 1973, by Harvest Records. It topped the US Billboard 200 and remained on the chart for an astonishing 741 weeks, from 1973 to 1988. This album's iconic cover is just one of the countless masterpieces created by the design group Hipgnosis, whose work is brilliantly captured in Anton Corbijn's documentary 'Squaring the Circle'.",
   component: TheDarkSideOfTheMoon,
   color: '#060606',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 36, sampleSize: 64 }),
+    samples: new SpectrumAnalyzerConfig({ frequencyBands: 36, sampleSize: 64 }).settings(),
     visualization: {
       volumeAmountIndicator: {
         id: 'volumeAmountIndicator',

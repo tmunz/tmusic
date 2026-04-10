@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
-import { SampleProvider } from '../../../audio/SampleProvider';
-import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
+import { useSampleProviderTexture } from '../../../sampleProvider/useSampleProviderTexture';
 import { interpolation } from '../../../utils/ShaderUtils';
 
 export interface CatProps {
@@ -22,7 +22,7 @@ export const Cat = ({ width, height, sampleProvider }: CatProps) => {
     return {
       sampleData: { value: sampleTexture },
       sampleDataSize: { value: { x: sampleTexture.image.width, y: sampleTexture.image.height } },
-      sampleDataAvg: { value: sampleProvider.getAvg()[0] / 255 },
+      sampleDataAvg: { value: sampleProvider.getAvg()[0] },
       samplesActive: { value: sampleProvider.active ? 1 : 0 },
     };
   };

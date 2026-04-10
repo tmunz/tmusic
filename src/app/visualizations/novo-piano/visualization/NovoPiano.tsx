@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { Channel, SampleProvider } from '../../../sampleProvider/SampleProvider';
 import { Piano } from './Piano';
 
 export interface NovoPianoProps {
@@ -32,18 +32,29 @@ export const NovoPiano = ({
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
+  const createPiano = (channel: Channel, width: number) => (
+    <Piano
+      width={width}
+      height={canvas.height}
+      sampleProvider={sampleProvider}
+      channel={channel}
+      intensity={intensity}
+      colorGradient={colorGradient}
+      colorSparks={colorSparks}
+      perspective={perspective}
+      debug={debugMode}
+    />
+  );
+
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-      <Piano
-        width={canvas.width}
-        height={canvas.height}
-        sampleProvider={sampleProvider}
-        intensity={intensity}
-        colorGradient={colorGradient}
-        colorSparks={colorSparks}
-        perspective={perspective}
-        debug={debugMode}
-      />
+      {sampleProvider.stereo ? (
+        <>
+          {createPiano(Channel.LEFT, canvas.width / 2)} {createPiano(Channel.RIGHT, canvas.width / 2)}
+        </>
+      ) : (
+        createPiano(Channel.MONO, canvas.width)
+      )}
     </div>
   );
 };

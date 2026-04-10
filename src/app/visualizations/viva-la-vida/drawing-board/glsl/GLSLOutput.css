@@ -1,7 +1,6 @@
 .glsl-output {
   background: #2a2a2a;
   border-top: 1px solid #444;
-  max-width: 800px;
 
   .output-header {
     display: flex;
@@ -22,22 +21,6 @@
   .output-info span {
     display: flex;
     align-items: center;
-  }
-
-  .copy-button {
-    padding: 6px 12px;
-    background: #4fc3f7;
-    color: #000;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-    font-weight: 500;
-    font-size: 13px;
-    transition: all 0.2s;
-  }
-
-  .copy-button:hover {
-    background: #6dd5f9;
   }
 
   .code-container {

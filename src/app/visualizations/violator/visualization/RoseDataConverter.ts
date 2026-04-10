@@ -1,8 +1,8 @@
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 
-export function convertWeightedMaxData(sampleProvider?: SampleProvider): Uint8Array {
-  if (!sampleProvider) return new Uint8Array();
-  const result = new Uint8Array(sampleProvider.frequencyBands);
+export function convertWeightedMaxData(sampleProvider?: SampleProvider): Float32Array {
+  if (!sampleProvider) return new Float32Array();
+  const result = new Float32Array(sampleProvider.frameSize);
   result.set(
     sampleProvider.getMax().map(d => (d.max * (sampleProvider.sampleSize - d.sampleIndex)) / sampleProvider.sampleSize)
   );
@@ -10,23 +10,21 @@ export function convertWeightedMaxData(sampleProvider?: SampleProvider): Uint8Ar
 }
 
 export function getBassValue(sampleProvider?: SampleProvider): number {
-  const bassRange = Math.min(10, sampleProvider?.frequencyBands ?? 0);
+  const bassRange = Math.min(10, sampleProvider?.frameSize ?? 0);
   const v =
     new Array(bassRange)
       .fill(0)
       .map((_, frequencyIndex) => sampleProvider?.samples[0][frequencyIndex] ?? 0)
-      .reduce((acc, val) => acc + val, 0) /
-    bassRange /
-    255;
+      .reduce((acc, val) => acc + val, 0) / bassRange;
   return v ** 3;
 }
 
 type LeafData = { value: number; sampleIndex: number };
 
 export function convertLeafData(sampleProvider?: SampleProvider) {
-  if (!sampleProvider) return new Uint8Array();
-  const result = new Uint8Array(sampleProvider.sampleSize * sampleProvider.frequencyBands);
-  for (let i = 0; i < sampleProvider.frequencyBands; i++) {
+  if (!sampleProvider) return new Float32Array();
+  const result = new Float32Array(sampleProvider.sampleSize * sampleProvider.frameSize);
+  for (let i = 0; i < sampleProvider.frameSize; i++) {
     const frequency: LeafData[] = sampleProvider.samples.map((sample, sampleIndex) => ({
       value: sample[i],
       sampleIndex,
@@ -36,7 +34,7 @@ export function convertLeafData(sampleProvider?: SampleProvider) {
     const minValue = sortedFrequency[sortedFrequency.length - 1].value;
     const range = maxValue - minValue;
     for (let j = 0; j < sampleProvider.sampleSize; j++) {
-      result[j * sampleProvider.frequencyBands + i] = ((sortedFrequency[j].value - minValue) * 255) / range;
+      result[j * sampleProvider.frameSize + i] = (sortedFrequency[j].value - minValue) / range;
     }
   }
   return result;

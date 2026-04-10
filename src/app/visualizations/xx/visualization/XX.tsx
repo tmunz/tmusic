@@ -1,4 +1,4 @@
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 import { CrossingScene } from './CrossingScene';
 
 export interface XXProps {

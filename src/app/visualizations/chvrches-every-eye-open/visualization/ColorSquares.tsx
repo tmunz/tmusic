@@ -1,6 +1,6 @@
 import { useRef } from 'react';
-import { SampleProvider } from '../../../audio/SampleProvider';
-import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
+import { useSampleProviderTexture } from '../../../sampleProvider/useSampleProviderTexture';
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
 import { NearestFilter } from 'three';
 
@@ -25,7 +25,7 @@ export const ColorSquares = ({ sampleProvider, size, visibilityThreshold, backgr
     return {
       sampleData: { value: sampleTexture },
       sampleDataSize: { value: { x: sampleTexture.image.width, y: sampleTexture.image.height } },
-      sampleDataAvg: { value: sampleProvider.getAvg()[0] / 255 },
+      sampleDataAvg: { value: sampleProvider.getAvg()[0] },
       samplesActive: { value: sampleProvider.active ? 1 : 0 },
       visibilityThreshold: { value: visibilityThreshold ?? 0.5 },
       backgroundImage: { value: backgroundImage },

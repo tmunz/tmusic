@@ -1,6 +1,6 @@
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
-import { SampleProvider } from '../../../audio/SampleProvider';
-import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
+import { useSampleProviderTexture } from '../../../sampleProvider/useSampleProviderTexture';
 
 export interface RadioActivitySceneProps {
   width: number;
@@ -24,7 +24,7 @@ export const RadioActivityScene = ({
     return {
       sampleData: { value: sampleTexture },
       sampleDataSize: { value: { x: sampleTexture.image.width, y: sampleTexture.image.height } },
-      volume: { value: sampleProvider.getAvg()[0] / 255 },
+      volume: { value: sampleProvider.getAvg()[0] },
       centerDataRatio: { value: centerDataRatio },
       radiationDataRatio: { value: radiationDataRatio },
     };

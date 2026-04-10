@@ -1,7 +1,7 @@
 import './App.css';
 import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { SampleProviderComponent } from './audio/SampleProviderComponent';
+import { SampleProviderComponent } from './sampleProvider/SampleProviderComponent';
 import { useDimension } from './utils/useDimension';
 import visualizations from './visualizations';
 import { Menubar } from './ui/menubar/Menubar';
@@ -12,7 +12,7 @@ import { VisualizationComponent } from './visualizations/VisualizationComponent'
 import { CollapsibleMenubarItem } from './ui/menubar/CollapsibleMenubarItem';
 import { PiInfo, PiSlidersHorizontalDuotone, PiVinylRecord } from 'react-icons/pi';
 import { VisualizationInfo } from './visualizations/VisualizationInfo';
-import { SampleProvider } from './audio/SampleProvider';
+import { SampleProvider } from './sampleProvider/SampleProvider';
 import { AboutComponent } from './AboutComponent';
 
 export function App() {
@@ -22,7 +22,7 @@ export function App() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [sampleProvider, setSampleProvider] = useState<SampleProvider>(new SampleProvider(1, new Uint8Array()));
+  const [sampleProvider, setSampleProvider] = useState<SampleProvider>(new SampleProvider(1, 60, new Float32Array(1)));
 
   useEffect(() => {
     const pathId = location.pathname.replace('/', '');
@@ -32,7 +32,7 @@ export function App() {
       localStorage.setItem('visualizationId', visualization.id);
     } else {
       const visualizationId = localStorage.getItem('visualizationId');
-      const defaultVisualization = visualizationId 
+      const defaultVisualization = visualizationId
         ? visualizations.find(v => v.id === visualizationId) || visualizations[0]
         : visualizations[0];
       navigate(`/${defaultVisualization.id}`, { replace: false });
@@ -73,6 +73,14 @@ export function App() {
     [appState.visualization, sampleProvider, width, height]
   );
 
+  const sampleProviderConfig = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(appState.visualization?.settings?.samples || {}).map(([key, setting]) => [key, setting.value])
+      ),
+    [appState.visualization?.settings?.samples]
+  );
+
   return (
     <div className="tmusic" ref={elementRef} style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
       <Carousel items={items} selectedId={appState.visualization?.id} onSelect={selectVisualization} defaultFocus />
@@ -94,15 +102,7 @@ export function App() {
             </CollapsibleMenubarItem>
           );
         })}
-        <SampleProviderComponent
-          onSampleProviderChange={setSampleProvider}
-          {...Object.fromEntries(
-            Object.entries(appState.visualization?.settings?.samples || {}).map(([key, setting]) => [
-              key,
-              setting.value,
-            ])
-          )}
-        />
+        <SampleProviderComponent onSampleProviderChange={setSampleProvider} config={sampleProviderConfig} />
       </Menubar>
     </div>
   );

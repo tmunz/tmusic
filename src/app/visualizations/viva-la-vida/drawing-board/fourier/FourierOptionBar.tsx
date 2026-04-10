@@ -1,3 +1,7 @@
+import '../OptionBar.css';
+import { NumberInputComponent } from '../../../../ui/input/NumberInputComponent';
+import { BooleanInputComponent } from '../../../../ui/input/BooleanInputComponent';
+
 export interface FourierOptionBarProps {
   harmonics: number;
   onHarmonicsChange: (value: number) => void;
@@ -12,21 +16,22 @@ export const FourierOptionBar = ({
   onReverseDirectionToggle,
 }: FourierOptionBarProps) => {
   return (
-    <div className="fourier-option-bar">
-      <label>
-        Harmonics:
-        <input
-          type="number"
-          min="3"
-          max="100"
-          value={harmonics}
-          onChange={e => onHarmonicsChange(parseInt(e.target.value))}
-        />
-      </label>
-      <label>
-        <input type="checkbox" checked={reverseDirection} onChange={e => onReverseDirectionToggle(e.target.checked)} />
-        Reverse direction
-      </label>
+    <div className="fourier-option-bar option-bar">
+      <NumberInputComponent
+        id="harmonics"
+        name="Harmonics"
+        description="Number of harmonics"
+        value={harmonics}
+        onChange={onHarmonicsChange}
+        params={{ min: 3, max: 100, step: 1 }}
+      />
+      <BooleanInputComponent
+        id="reverse-direction"
+        name="Reverse direction"
+        description="Reverse direction"
+        value={reverseDirection}
+        onChange={onReverseDirectionToggle}
+      />
     </div>
   );
 };

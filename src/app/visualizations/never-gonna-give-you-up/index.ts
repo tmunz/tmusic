@@ -1,5 +1,5 @@
 import { PiInfoBold } from 'react-icons/pi';
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { SpectrumAnalyzerConfig } from '../../audio/analyzer/spectrum/SpectrumAnalyzerConfigs';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { NeverGonnaGiveYouUp } from './visualization/NeverGonnaGiveYouUp';
@@ -16,7 +16,7 @@ const neverGonnaGiveYouUp: Visualization = {
   component: NeverGonnaGiveYouUp,
   color: '#eae9e5',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 336, sampleSize: 107, spectralContrastBoost: 0.5 }),
+    samples: new SpectrumAnalyzerConfig({ frequencyBands: 336, sampleSize: 107, spectralContrastBoost: 0.5 }).settings(),
     visualization: {
       record: {
         id: 'record',
@@ -34,13 +34,8 @@ const neverGonnaGiveYouUp: Visualization = {
         id: 'recordAutochange',
         name: 'Record Autochange',
         description: 'Changes the record after finishing Record Player Arm reaches the end.',
-        type: SettingType.NUMBER, // TODO boolean
-        value: 1,
-        params: {
-          min: 0.0,
-          max: 1.0,
-          step: 1.0,
-        },
+        type: SettingType.BOOLEAN,
+        value: true,
       },
       recordPlayerArmSpeed: {
         id: 'recordPlayerArmSpeed',

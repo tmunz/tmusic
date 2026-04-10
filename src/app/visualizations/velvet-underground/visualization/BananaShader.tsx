@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { SampleProvider } from '../../../audio/SampleProvider';
-import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
+import { useSampleProviderTexture } from '../../../sampleProvider/useSampleProviderTexture';
 import { Mesh, ShaderMaterial, Vector2, DoubleSide, Box3 } from 'three';
 import { useFrame } from '@react-three/fiber';
 

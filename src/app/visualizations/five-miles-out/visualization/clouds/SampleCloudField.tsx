@@ -3,9 +3,9 @@ import { useFrame } from '@react-three/fiber';
 import { Cloud, Clouds } from '@react-three/drei';
 import { Vector3 } from 'three';
 import { useReferenceObject } from '../../../../utils/ReferenceObjectContext';
-import { createDummySampleProvider, SampleProvider } from '../../../../audio/SampleProvider';
+import { createDummySampleProvider, SampleProvider } from '../../../../sampleProvider/SampleProvider';
 import { random } from '../../../../utils/Random';
-import { useSampleProviderActive } from '../../../../audio/useSampleProviderActive';
+import { useSampleProviderActive } from '../../../../sampleProvider/useSampleProviderActive';
 
 export interface SampleCloudFieldProps {
   position?: [number, number, number];
@@ -82,10 +82,10 @@ export const SampleCloudField = ({
 
       if (sampleProvider) {
         const sampleSize = sampleProvider.sampleSize;
-        const frequencyBands = sampleProvider.frequencyBands;
+        const frameSize = sampleProvider.frameSize;
         const sampleIndex = Math.max(0, Math.floor(normalizedZ * (sampleSize - 1)));
-        const frequencyIndex = Math.max(0, Math.floor(normalizedX * (frequencyBands - 1)));
-        sampleValue = sampleProvider.get(sampleIndex)[frequencyIndex] / 255;
+        const frequencyIndex = Math.max(0, Math.floor(normalizedX * (frameSize - 1)));
+        sampleValue = sampleProvider.get(sampleIndex)[frequencyIndex];
       }
 
       if (cloudMaterialRefs.current[index]) {

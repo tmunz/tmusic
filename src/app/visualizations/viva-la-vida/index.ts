@@ -1,10 +1,10 @@
 import { PiPen } from 'react-icons/pi';
-import { createSampleSettings } from '../../audio/SampleSettings';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { VivaLaVida } from './visualization/VivaLaVida';
 import { VivaLaVidaDrawing } from './drawing-board/VivaLaVidaDrawing';
 import path from './visualization/VivaLaVidaPath';
+import { WaveformAnalyzerConfig } from '../../audio/analyzer/waveform/WaveformAnalyzerConfig';
 
 const vivaLaVida: Visualization = {
   id: 'viva-la-vida',
@@ -13,11 +13,11 @@ const vivaLaVida: Visualization = {
   design: 'Coldplay & Eugène Delacroix',
   imgSrc: require('./viva-la-vida.jpg'),
   description:
-    "WIP 'Viva la Vida or Death and All His Friends' is the fourth studio album by the British rock band Coldplay, released on June 12, 2008. The album's artwork is a painting by French artist Eugène Delacroix, titled 'Liberty Leading the People', which was modified by Coldplay's drummer Will Champion. The painting depicts the July Revolution of 1830 in France, and the album's title translates to 'Long Live Life'.",
+    "'Viva la Vida or Death and All His Friends' is the fourth studio album by the British rock band Coldplay, released on June 12, 2008. The album's artwork is a painting by French artist Eugène Delacroix, titled 'Liberty Leading the People', which was modified by Coldplay's drummer Will Champion. The painting depicts the July Revolution of 1830 in France, and the album's title translates to 'Long Live Life'.",
   component: VivaLaVida,
   color: '#342b1c',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 32, sampleSize: 32 }),
+    samples: new WaveformAnalyzerConfig({ }).settings(),
     visualization: {
       speed: {
         id: 'speed',
@@ -93,6 +93,14 @@ const vivaLaVida: Visualization = {
         type: SettingType.NUMBER,
         value: 1.4,
         params: { min: 0.1, max: 2.0, step: 0.1 },
+      },
+      splashesThreshold: {
+        id: 'splashesThreshold',
+        name: 'Splashes Threshold',
+        description: 'Threshold for detecting significant audio values',
+        type: SettingType.NUMBER,
+        value: 0.7,
+        params: { min: 0.0, max: 1.0, step: 0.05 },
       },
     },
   },

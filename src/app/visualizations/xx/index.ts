@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { SpectrumAnalyzerConfig } from '../../audio/analyzer/spectrum/SpectrumAnalyzerConfigs';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { XX } from './visualization/XX';
@@ -14,7 +14,7 @@ const xx: Visualization = {
   component: XX,
   color: '#000000',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 80, sampleSize: 40 }),
+    samples: new SpectrumAnalyzerConfig({ frequencyBands: 80, sampleSize: 40 }).settings(),
     visualization: {
       numberOfSections: {
         id: 'numberOfSections',

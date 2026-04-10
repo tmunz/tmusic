@@ -1,4 +1,4 @@
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 import { RisingHorse } from './RisingHorse';
 
 export interface CrossingTheRubiconProps {

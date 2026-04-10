@@ -23,6 +23,8 @@ import neverGonnaGiveYouUp from './never-gonna-give-you-up';
 import xx from './xx';
 import crossingTheRubicon from './crossing-the-rubicon';
 import enTuCalle from './en-tu-calle';
+import arcticMonkeysAM from './arctic-monkeys-am';
+import oscilloscope from './oscilloscope';
 
 export default [
   unknownPleasures,
@@ -48,11 +50,12 @@ export default [
   fiveMilesOut,
   minorEarthMajorSky,
   theRiddle,
+  oscilloscope,
+  arcticMonkeysAM,
   parallelLines,
   tameImpalaCurrents,
 ];
 
-// Arctic Monkeys - AM
 // Kraftwerk - Mensch-Maschine / Computerwelt
 // The Sounds - Crossing the Rubicon / Something to Die For
 // Brockdorff Klang Labor

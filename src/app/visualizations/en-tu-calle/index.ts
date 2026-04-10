@@ -1,5 +1,5 @@
 import { PiInfoBold } from 'react-icons/pi';
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { SpectrumAnalyzerConfig } from '../../audio/analyzer/spectrum/SpectrumAnalyzerConfigs';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { EnTuCalle } from './visualization/EnTuCalle';
@@ -16,10 +16,7 @@ const enTuCalle: Visualization = {
   component: EnTuCalle,
   color: '#f9f9f9',
   settings: {
-    samples: createSampleSettings({
-      frequencyBands: 6,
-      sampleSize: 60,
-    }),
+    samples: new SpectrumAnalyzerConfig({ frequencyBands: 6, sampleSize: 60 }).settings(),
     visualization: {
       borderWidth: {
         id: 'borderWidth',

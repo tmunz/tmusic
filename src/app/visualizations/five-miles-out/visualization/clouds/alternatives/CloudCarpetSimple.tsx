@@ -2,7 +2,7 @@ import { useRef, useMemo } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
 import { ShaderMaterial, TextureLoader, RepeatWrapping, Vector3, DoubleSide } from 'three';
 import { useReferenceObject } from '../../../../../utils/ReferenceObjectContext';
-import { SampleProvider } from '../../../../../audio/SampleProvider';
+import { SampleProvider } from '../../../../../sampleProvider/SampleProvider';
 import { createLodGeometry } from './LodGeometryHex';
 
 export interface CloudCarpetProps {

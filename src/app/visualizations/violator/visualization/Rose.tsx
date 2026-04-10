@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
-import { SampleProvider } from '../../../audio/SampleProvider';
-import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
+import { useSampleProviderTexture } from '../../../sampleProvider/useSampleProviderTexture';
 import { RootState } from '@react-three/fiber';
 import { convertLeafData, convertWeightedMaxData, getBassValue } from './RoseDataConverter';
 import { interpolation } from '../../../utils/ShaderUtils';

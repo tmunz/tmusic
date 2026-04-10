@@ -1,5 +1,5 @@
 import { Pulsar } from './Pulsar';
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 
 export interface UnknownPleasuresProps {
   sampleProvider: SampleProvider;

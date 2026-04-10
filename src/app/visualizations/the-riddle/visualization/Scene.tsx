@@ -1,12 +1,12 @@
 import { IUniform } from 'three';
 import { RootState } from '@react-three/fiber';
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
 import { drawActor } from './Actor';
 import { drawGround, getGroundY } from './Ground';
-import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
+import { useSampleProviderTexture } from '../../../sampleProvider/useSampleProviderTexture';
 import { useElapsed } from '../../../utils/useElapsed';
-import { useSampleProviderActive } from '../../../audio/useSampleProviderActive';
+import { useSampleProviderActive } from '../../../sampleProvider/useSampleProviderActive';
 
 export interface SceneProps {
   sampleProvider: SampleProvider;
@@ -21,7 +21,7 @@ export const Scene = ({ sampleProvider, width, height, volumeFactor = 0.5, strok
   const [volumeTexture, updateVolumeTexture] = useSampleProviderTexture(
     sampleProvider,
     sp => {
-      return new Uint8Array(sp ? sp.getAvg().reverse() : []);
+      return new Float32Array(sp ? sp.getAvg().reverse() : []);
     },
     sp => sp?.samples.length ?? 0,
     () => 1
@@ -34,15 +34,15 @@ export const Scene = ({ sampleProvider, width, height, volumeFactor = 0.5, strok
     updateVolumeTexture();
 
     // Fix min/max calculation and groundTexture assignment
-    const volumeArray = volumeTexture?.image?.data ? Array.from(volumeTexture.image.data as Uint8Array) : [];
+    const volumeArray = volumeTexture?.image?.data ? Array.from(volumeTexture.image.data as Float32Array) : [];
     const minVolume = volumeArray.length > 0 ? Math.min(...volumeArray) : 0;
     const maxVolume = volumeArray.length > 0 ? Math.max(...volumeArray) : 0;
 
     const groundFactor = volumeFactor ?? 1.0;
     let groundTexture = volumeTexture;
     if (volumeTexture?.image?.data) {
-      const mappedData = Array.from(volumeTexture.image.data as Uint8Array).map(v => v * groundFactor);
-      (volumeTexture.image.data as Uint8Array).set(mappedData);
+      const mappedData = Array.from(volumeTexture.image.data as Float32Array).map(v => v * groundFactor);
+      (volumeTexture.image.data as Float32Array).set(mappedData);
       if ('needsUpdate' in volumeTexture) {
         (volumeTexture as any).needsUpdate = true;
       }
@@ -55,10 +55,10 @@ export const Scene = ({ sampleProvider, width, height, volumeFactor = 0.5, strok
       volumeFactor: { value: volumeFactor },
       groundData: { value: groundTexture },
       groundDataSize: { value: { x: groundTexture.image.width, y: groundTexture.image.height } },
-      minVolume: { value: minVolume / 255.0 },
-      maxVolume: { value: maxVolume / 255.0 },
+      minVolume: { value: minVolume },
+      maxVolume: { value: maxVolume },
       currentVolume: {
-        value: volumeArray.length > 0 ? volumeArray[volumeArray.length - 1] / 255.0 : 0,
+        value: volumeArray.length > 0 ? volumeArray[volumeArray.length - 1] : 0,
       },
       strokeNoise: { value: strokeNoise },
     };

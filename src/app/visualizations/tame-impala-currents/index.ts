@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { SpectrumAnalyzerConfig } from '../../audio/analyzer/spectrum/SpectrumAnalyzerConfigs';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { TameImpalaCurrents } from './visualization/TameImpalaCurrents';
@@ -10,11 +10,11 @@ const tameImpalaCurrents: Visualization = {
   design: 'Robert Beatty',
   imgSrc: require('./tame-impala-currents.jpg'),
   description:
-    "Currents is the third studio album by Tame Impala, released on 17 July 2015. The cover art, created by Robert Beatty, is based on a diagram of vortex shedding—visualizing turbulent flow and the way liquid or air flows around objects. These vibrant, psychedelic swirls perfectly capture the album's themes of transformation and change.",
+    "Currents is the third studio album by Tame Impala, released on 17 July 2015. The cover art, created by Robert Beatty, is based on a diagram of vortex shedding — visualizing turbulent flow and the way liquid or air flows around objects. These vibrant, psychedelic swirls perfectly capture the album's themes of transformation and change.",
   component: TameImpalaCurrents,
   color: '#f42a3e',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 64, sampleSize: 128 }),
+    samples: new SpectrumAnalyzerConfig({ frequencyBands: 64, sampleSize: 128 }).settings(),
     visualization: {
       intensity: {
         id: 'intensity',

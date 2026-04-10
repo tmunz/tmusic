@@ -12,7 +12,7 @@
   }
 }
 
-.settings--with-visualization {
+.settings-with-visualization {
   display: flex;
   flex-direction: row;
 }

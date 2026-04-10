@@ -1,5 +1,5 @@
-import { PiKeyboard } from 'react-icons/pi';
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { PiGameController } from 'react-icons/pi';
+import { SpectrumAnalyzerConfig } from '../../audio/analyzer/spectrum/SpectrumAnalyzerConfigs';
 import { Visualization } from '../Visualization';
 import { TronInstructions } from './TronInstructions';
 import { Tron } from './visualization/Tron';
@@ -11,14 +11,14 @@ const tron: Visualization = {
   design: 'Disney',
   imgSrc: require('./tron-legacy.png'),
   description:
-    "TRON: Legacy is a 2010 science fiction film soundtrack and the only soundtrack album by French electronic music duo Daft Punk. The album features a blend of orchestral and electronic elements, creating a futuristic soundscape that complements the film's digital world. The iconic grid patterns and neon aesthetic of TRON inspire this visualization.",
+    "'TRON: Legacy' is a 2010 science fiction film soundtrack and the only soundtrack album by French electronic music duo Daft Punk. The album features a blend of orchestral and electronic elements, creating a futuristic soundscape that complements the film's digital world. The iconic grid patterns and neon aesthetic of TRON inspire this visualization.",
   component: Tron,
   color: '#000000',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 64, sampleSize: 64 }),
+    samples: new SpectrumAnalyzerConfig({ frequencyBands: 64, sampleSize: 64 }).settings(),
   },
   spotifyUri: 'spotify:album:3AMXFnwHWXCvNr5NCCpLZI',
-  menuItems: [{ icon: PiKeyboard, component: TronInstructions }],
+  menuItems: [{ icon: PiGameController, component: TronInstructions }],
 };
 
 export default tron;

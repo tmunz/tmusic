@@ -107,7 +107,7 @@ export const useFourierVisualization = ({
     ctx.fill();
 
     currentPointRef.current = { x: prevX, y: prevY };
-    timeRef.current += 0.01 * speed;
+    timeRef.current += 0.001 * speed;
   }, [ctx, canvas, enabled, fourierData, speed]);
 
   const getCurrentPoint = useCallback(() => {

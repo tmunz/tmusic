@@ -70,5 +70,4 @@ void main() {
   }
   
   fragColor = color;
-}
-`;
+}`;

@@ -1,8 +1,8 @@
 import { useRef } from 'react';
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 import { interpolation } from '../../../utils/ShaderUtils';
-import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
+import { useSampleProviderTexture } from '../../../sampleProvider/useSampleProviderTexture';
 
 export interface RisingHorseProps {
   width: number;

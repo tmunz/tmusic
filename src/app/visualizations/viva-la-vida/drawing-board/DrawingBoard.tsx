@@ -1,3 +1,4 @@
+import './DrawingBoard.css';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { DrawingCanvas, Point, Stroke, DrawingCanvasHandle } from './DrawingCanvas';
 import { DrawingBoardControlBar } from './DrawingBoardControlBar';
@@ -10,7 +11,7 @@ import { convertFourierToGlsl } from './fourier/FourierToGlsl';
 import { convertVectorToGlsl } from './vector/VectorToGlsl';
 import { useFourierVisualization } from './fourier/useFourierVisualization';
 import { useVectorVisualization } from './vector/useVectorVisualization';
-import './DrawingBoard.css';
+
 
 export interface DrawingBoardProps {
   backgroundImageUrl?: string;
@@ -23,7 +24,7 @@ export const DrawingBoard = ({
   backgroundImageUrl,
   onPathGenerated,
   speed = 1,
-  onSpeedChange = () => {},
+  onSpeedChange = () => { },
 }: DrawingBoardProps) => {
   const [mode, setMode] = useState<'fourier' | 'vector'>('vector');
   const [strokes, setStrokes] = useState<Stroke[]>([]);
@@ -35,7 +36,7 @@ export const DrawingBoard = ({
   const [canvasWidth, setCanvasWidth] = useState(800);
   const [canvasHeight, setCanvasHeight] = useState(600);
   const [showTrail, setShowTrail] = useState(true);
-  const [showAnimation, setShowAnimation] = useState(false);
+  const [showAnimation, setShowAnimation] = useState(true);
 
   // Fourier-specific state
   const [harmonics, setHarmonics] = useState(12);
@@ -239,44 +240,46 @@ export const DrawingBoard = ({
         onBackgroundOpacityChange={setBackgroundOpacity}
       />
 
-      <CodeGenerationMode mode={mode} onModeChange={setMode} />
+      <CodeGenerationMode mode={mode} onModeChange={setMode}>
+        {mode === 'fourier' && (
+          <FourierOptionBar
+            harmonics={harmonics}
+            onHarmonicsChange={setHarmonics}
+            reverseDirection={reverseDirection}
+            onReverseDirectionToggle={setReverseDirection}
+          />
+        )}
 
-      {mode === 'fourier' && (
-        <FourierOptionBar
-          harmonics={harmonics}
-          onHarmonicsChange={setHarmonics}
-          reverseDirection={reverseDirection}
-          onReverseDirectionToggle={setReverseDirection}
+        {mode === 'vector' && (
+          <VectorOptionBar angleThreshold={angleThreshold} onAngleThresholdChange={setAngleThreshold} />
+        )}
+
+        <div className="canvas-wrapper">
+          <DrawingCanvas
+            ref={drawingCanvasRef}
+            strokes={strokes}
+            currentStroke={currentStroke}
+            backgroundOpacity={backgroundOpacity}
+            backgroundImageUrl={backgroundImageUrl}
+            onStrokeStart={handleStrokeStart}
+            onStrokeUpdate={handleStrokeUpdate}
+            onStrokeComplete={handleStrokeComplete}
+            onCanvasDimensionsChange={handleCanvasDimensionsChange}
+            onAfterRender={handleAfterRender}
+          />
+        </div>
+
+        <GLSLOutput
+          code={glslCode}
+          strokeCount={strokes.length}
+          totalPoints={strokes.reduce((sum, s) => sum + s.points.length, 0)}
+          currentTime={showAnimation ? currentTime : undefined}
+          totalDuration={showAnimation ? totalDuration : undefined}
+          currentStrokeIndex={showAnimation ? currentStrokeIndex : undefined}
         />
-      )}
 
-      {mode === 'vector' && (
-        <VectorOptionBar angleThreshold={angleThreshold} onAngleThresholdChange={setAngleThreshold} />
-      )}
+      </CodeGenerationMode>
 
-      <div className="canvas-wrapper">
-        <DrawingCanvas
-          ref={drawingCanvasRef}
-          strokes={strokes}
-          currentStroke={currentStroke}
-          backgroundOpacity={backgroundOpacity}
-          backgroundImageUrl={backgroundImageUrl}
-          onStrokeStart={handleStrokeStart}
-          onStrokeUpdate={handleStrokeUpdate}
-          onStrokeComplete={handleStrokeComplete}
-          onCanvasDimensionsChange={handleCanvasDimensionsChange}
-          onAfterRender={handleAfterRender}
-        />
-      </div>
-
-      <GLSLOutput
-        code={glslCode}
-        strokeCount={strokes.length}
-        totalPoints={strokes.reduce((sum, s) => sum + s.points.length, 0)}
-        currentTime={showAnimation ? currentTime : undefined}
-        totalDuration={showAnimation ? totalDuration : undefined}
-        currentStrokeIndex={showAnimation ? currentStrokeIndex : undefined}
-      />
     </div>
   );
 };

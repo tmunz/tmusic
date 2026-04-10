@@ -2,7 +2,7 @@ import React, { useRef, useImperativeHandle, forwardRef, createRef } from 'react
 import { Vector3, Raycaster, Intersection, Object3D } from 'three';
 import { BeamSection, BeamSectionApi, BeamSectionProps } from './BeamSection';
 import { useFrame, useThree } from '@react-three/fiber';
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 
 export interface BeamApi {
   setBeam: (start: Vector3, direction: Vector3) => void;

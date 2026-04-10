@@ -1,4 +1,4 @@
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { SpectrumAnalyzerConfig } from '../../audio/analyzer/spectrum/SpectrumAnalyzerConfigs';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { AbbeyRoad } from './visualization/AbbeyRoad';
@@ -14,7 +14,7 @@ const abbeyRoad: Visualization = {
   component: AbbeyRoad,
   color: '#475152',
   settings: {
-    samples: createSampleSettings({ frequencyBands: 36, sampleSize: 128 }),
+    samples: new SpectrumAnalyzerConfig({ frequencyBands: 36, sampleSize: 128 }).settings(),
     visualization: {
       direction: {
         id: 'direction',

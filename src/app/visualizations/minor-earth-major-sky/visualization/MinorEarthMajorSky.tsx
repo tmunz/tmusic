@@ -1,4 +1,4 @@
-import { SampleProvider } from '../../../audio/SampleProvider';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
 import { PlaneInDesert } from './PlaneInDesert';
 
 export interface MinorEarthMajorSkyProps {

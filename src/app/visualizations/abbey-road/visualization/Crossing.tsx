@@ -1,10 +1,10 @@
 import { useRef } from 'react';
-import { SampleProvider } from '../../../audio/SampleProvider';
-import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
+import { useSampleProviderTexture } from '../../../sampleProvider/useSampleProviderTexture';
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
 import { RootState } from '@react-three/fiber';
 import { interpolation } from '../../../utils/ShaderUtils';
-import { useSampleProviderActive } from '../../../audio/useSampleProviderActive';
+import { useSampleProviderActive } from '../../../sampleProvider/useSampleProviderActive';
 
 export interface CrossingProps {
   width: number;

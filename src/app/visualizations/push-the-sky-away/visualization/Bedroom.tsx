@@ -1,6 +1,6 @@
 import { useRef } from 'react';
-import { SampleProvider } from '../../../audio/SampleProvider';
-import { useSampleProviderTexture } from '../../../audio/useSampleProviderTexture';
+import { SampleProvider } from '../../../sampleProvider/SampleProvider';
+import { useSampleProviderTexture } from '../../../sampleProvider/useSampleProviderTexture';
 import { ShaderImage } from '../../../ui/shader-image/ShaderImage';
 import { RootState } from '@react-three/fiber';
 import { convertLightData } from './LightDataConverter';

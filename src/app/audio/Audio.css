@@ -4,12 +4,33 @@
   align-items: end;
   pointer-events: none !important;
 
-  & > * {
+  &>* {
     pointer-events: auto;
     cursor: pointer;
   }
 
-  .icon-toggle-active > *:first-child {
+  .icon-toggle-active>*:first-child {
     color: red;
+  }
+
+  .audio-error {
+    background: #ff4444;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    font-size: 0.9em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .audio-error button {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0 4px;
+    font-size: 16px;
   }
 }

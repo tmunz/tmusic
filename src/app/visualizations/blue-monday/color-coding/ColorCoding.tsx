@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Input } from '../../../ui/input/Input';
+import { Input } from '../../../ui/input/TextInput';
 import './ColorCoding.css';
 
 const START_CHAR_CODE = 64; // 65: 'A' = 1

@@ -4,7 +4,8 @@ import { Bloom, EffectComposer } from '@react-three/postprocessing';
 import { Vector2, Vector3 } from 'three';
 import { Beam, BeamApi } from './components/Beam';
 import { Prism } from './components/Prism';
-import { SampleProvider } from '../../audio/SampleProvider';
+import { SampleProvider } from '../../sampleProvider/SampleProvider';
+import { useBlueNoise } from '../../utils/noise/useBlueNoise';
 
 export interface TheDarkSideOfTheMoonProps {
   sampleProvider?: SampleProvider;
@@ -20,10 +21,22 @@ export const TheDarkSideOfTheMoon = (props: TheDarkSideOfTheMoonProps) => {
     <Canvas orthographic gl={{ antialias: false }} camera={{ position: [0, 0, 100], zoom: 70 }}>
       <color attach="background" args={['#000000']} />
       <Scene {...props} />
+      <Noise />
       <EffectComposer>
         <Bloom mipmapBlur intensity={0.5} />
       </EffectComposer>
     </Canvas>
+  );
+};
+
+export const Noise = () => {
+  const noiseTexture = useBlueNoise();
+
+  return (
+    <mesh renderOrder={999} position={[0, 0, 4]}>
+      <planeGeometry args={[30, 30]} />
+      <meshBasicMaterial map={noiseTexture} transparent={true} opacity={0.002} depthWrite={true} depthTest={true} />
+    </mesh>
   );
 };
 
@@ -50,7 +63,7 @@ const Scene = ({
 
     if (sampleProvider) {
       if (sampleProvider.active) {
-        const indicatorValue = (sampleProvider.getAvg()[0] / 255) * volumeAmountIndicator + 1 - volumeAmountIndicator;
+        const indicatorValue = sampleProvider.getAvg()[0] * volumeAmountIndicator + 1 - volumeAmountIndicator;
         const pointerX = (pointer.x * viewport.width) / 2;
         const pointerY = (pointer.y * viewport.height) / 2;
         const adjustedPointerPosition = calculateAdjustedPosition(pointerX, pointerY, indicatorValue);

@@ -1,5 +1,5 @@
 import { PiMusicNotesFill } from 'react-icons/pi';
-import { createSampleSettings } from '../../audio/SampleSettings';
+import { SpectrumAnalyzerConfig } from '../../audio/analyzer/spectrum/SpectrumAnalyzerConfigs';
 import { SettingType } from '../../settings/Setting';
 import { Visualization } from '../Visualization';
 import { ChromaticScale } from './chromatic-scale/ChromaticScale';
@@ -16,14 +16,14 @@ const novoPiano: Visualization = {
   component: NovoPiano,
   color: '#b2b3b5',
   settings: {
-    samples: createSampleSettings({
+    samples: new SpectrumAnalyzerConfig({
       frequencyBands: 88,
       sampleSize: 1,
       minFrequency: 27.5,
       maxFrequency: 4186,
       chromaticScale: true,
       spectralContrastBoost: 0.8,
-    }),
+    }).settings(),
     visualization: {
       intensity: {
         id: 'intensity',
