@@ -10,7 +10,7 @@ const crossingTheRubicon: Visualization = {
   design: 'Celine Oberle',
   imgSrc: require('./crossing-the-rubicon.jpg'),
   description:
-    "This is the Vinyl edition of Crossing the Rubicon by 'The Sounds', which is mirrored in comparison to the other media releases, what makes it more elegant, but loses nothing of the thrill and power of the imagery. A similar split of colors as in the visualization is also used on the cover's inside. Blue represents the lower frequencies, red mid tones, yellow the heigher ones.",
+    "This is the Vinyl edition of 'Crossing the Rubicon' by 'The Sounds', which is mirrored in comparison to the other media releases, what makes it more elegant, but loses nothing of the thrill and power of the imagery. A similar split of colors as in the visualization is also used on the cover's inside. Blue represents the lower frequencies, red mid tones, yellow the heigher ones.",
   component: CrossingTheRubicon,
   color: '#f9f1ed',
   settings: {
