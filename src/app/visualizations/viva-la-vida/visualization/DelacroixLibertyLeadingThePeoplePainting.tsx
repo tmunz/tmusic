@@ -244,7 +244,7 @@ const BrushPainting = ({
 
     // Calculate significancy values for each frame/row directly from sampleProvider
     const sampleHeight = sampleProvider.sampleSize;
-    
+
     // Create or reuse texture
     if (!significancyTextureRef.current || significancyTextureRef.current.image.height !== sampleHeight) {
       const data = new Float32Array(sampleHeight);
@@ -253,9 +253,9 @@ const BrushPainting = ({
       significancyTextureRef.current.magFilter = LinearFilter;
       significancyTextureRef.current.needsUpdate = true;
     }
-    
+
     const significancyData = significancyTextureRef.current.image.data as Float32Array;
-    
+
     // Calculate max absolute value for each sample directly from sampleProvider
     for (let i = 0; i < sampleHeight; i++) {
       const sample = sampleProvider.get(i);
@@ -265,7 +265,7 @@ const BrushPainting = ({
       }
       significancyData[i] = maxAbs;
     }
-    
+
     significancyTextureRef.current.needsUpdate = true;
     bufferAMaterial.uniforms.significancyData.value = significancyTextureRef.current;
 

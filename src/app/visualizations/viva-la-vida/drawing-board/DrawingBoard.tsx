@@ -12,7 +12,6 @@ import { convertVectorToGlsl } from './vector/VectorToGlsl';
 import { useFourierVisualization } from './fourier/useFourierVisualization';
 import { useVectorVisualization } from './vector/useVectorVisualization';
 
-
 export interface DrawingBoardProps {
   backgroundImageUrl?: string;
   onPathGenerated?: (path: string) => void;
@@ -24,7 +23,7 @@ export const DrawingBoard = ({
   backgroundImageUrl,
   onPathGenerated,
   speed = 1,
-  onSpeedChange = () => { },
+  onSpeedChange = () => {},
 }: DrawingBoardProps) => {
   const [mode, setMode] = useState<'fourier' | 'vector'>('vector');
   const [strokes, setStrokes] = useState<Stroke[]>([]);
@@ -277,9 +276,7 @@ export const DrawingBoard = ({
           totalDuration={showAnimation ? totalDuration : undefined}
           currentStrokeIndex={showAnimation ? currentStrokeIndex : undefined}
         />
-
       </CodeGenerationMode>
-
     </div>
   );
 };

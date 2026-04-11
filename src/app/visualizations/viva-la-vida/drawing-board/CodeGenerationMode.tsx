@@ -17,9 +17,7 @@ export const CodeGenerationMode = ({ mode, onModeChange, children }: CodeGenerat
           Fourier
         </button>
       </div>
-      <div className="content">
-        {children}
-      </div>
+      <div className="content">{children}</div>
     </div>
   );
 };

@@ -229,7 +229,7 @@ export class SpotifyService {
         const accessToken = this.auth.getAccessToken();
         cb(accessToken!);
       },
-      volume: 0.8,
+      volume: 1.0,
       enableMediaSession: true,
     });
 

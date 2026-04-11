@@ -19,5 +19,11 @@ export const AboutComponent = () => (
         tmunz.art
       </a>
     </div>
+    <p className="about-copyright">
+      All album cover artwork and related imagery are the property of their respective copyright holders. Their
+      inclusion in this project is intended to fall under fair use, as the images are presented in a non-commercial
+      context for educational and transformative purposes. They are accompanied by commentary and analysis, and their
+      use does not aim to compete with or reduce the market value of the original works.
+    </p>
   </div>
 );

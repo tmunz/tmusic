@@ -4,12 +4,12 @@
   align-items: end;
   pointer-events: none !important;
 
-  &>* {
+  & > * {
     pointer-events: auto;
     cursor: pointer;
   }
 
-  .icon-toggle-active>*:first-child {
+  .icon-toggle-active > *:first-child {
     color: red;
   }
 

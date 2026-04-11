@@ -44,7 +44,7 @@ export const DrawingBoardControlBar = ({
         description="Animation speed"
         value={animationSpeed}
         onChange={onSpeedChange}
-        params={{ min: 0.1, max: 5, step: 0.1 }}
+        params={{ min: 0.1, max: 10, step: 0.1 }}
       />
       <BooleanInputComponent
         id="show-trail"
@@ -60,12 +60,8 @@ export const DrawingBoardControlBar = ({
         value={showAnimation}
         onChange={onAnimationToggle}
       />
-      <Button onClick={onClear}>
-        Clear
-      </Button>
-      <Button onClick={onApplyToVisualization}>
-        Apply to Visualization
-      </Button>
+      <Button onClick={onClear}>Clear</Button>
+      <Button onClick={onApplyToVisualization}>Apply to Visualization</Button>
     </div>
   );
 };

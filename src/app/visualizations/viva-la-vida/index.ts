@@ -17,7 +17,7 @@ const vivaLaVida: Visualization = {
   component: VivaLaVida,
   color: '#342b1c',
   settings: {
-    samples: new WaveformAnalyzerConfig({ }).settings(),
+    samples: new WaveformAnalyzerConfig({}).settings(),
     visualization: {
       speed: {
         id: 'speed',

@@ -16,7 +16,11 @@ const neverGonnaGiveYouUp: Visualization = {
   component: NeverGonnaGiveYouUp,
   color: '#eae9e5',
   settings: {
-    samples: new SpectrumAnalyzerConfig({ frequencyBands: 336, sampleSize: 107, spectralContrastBoost: 0.5 }).settings(),
+    samples: new SpectrumAnalyzerConfig({
+      frequencyBands: 336,
+      sampleSize: 107,
+      spectralContrastBoost: 0.5,
+    }).settings(),
     visualization: {
       record: {
         id: 'record',
