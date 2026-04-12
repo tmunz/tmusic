@@ -1,4 +1,4 @@
-import { FaGithub, FaGlobe } from 'react-icons/fa';
+import { FaGithub, FaGlobe, FaShieldAlt } from 'react-icons/fa';
 import './AboutComponent.css';
 
 export const AboutComponent = () => (
@@ -17,6 +17,10 @@ export const AboutComponent = () => (
       <a href="https://tmunz.art" target="_blank" rel="noopener noreferrer">
         <FaGlobe className="about-icon" />
         tmunz.art
+      </a>
+      <a href="privacy.html" target="_blank" rel="noopener noreferrer">
+        <FaShieldAlt className="about-icon" />
+        privacy
       </a>
     </div>
     <p className="about-copyright">

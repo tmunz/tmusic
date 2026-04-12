@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - tmusic</title>
+    <style>
+        :root {
+          --color-accent: #ffbf71;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #e0e0e0;
+            background-color: #000000;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #1a1a1a;
+            padding: 3rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h2 {
+            color: var(--color-accent);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        .summary {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background-color: #2a2a2a;
+            border-left: 4px solid var(--color-accent);
+        }
+
+        ul {
+            margin: 1rem 0 1rem 2rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        a {
+            color: var(--color-accent);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: var(--color-accent);
+            text-decoration: underline;
+        }
+
+        .footer {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #333;
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        strong {
+            color: #ffffff;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            padding: 0.5rem 1rem;
+            background-color: #2a2a2a;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            background-color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Back to tmusic</a>
+        
+        <h1>🛡️ Privacy Policy</h1>
+        
+        <p class="summary">
+            Your privacy is important to us. This application is designed with privacy in mind.
+        </p>
+
+        <h2>Data Collection</h2>
+        <p>
+            <strong>We do not collect any personal data.</strong> This application does not track, collect, or transmit any 
+            information about you or your usage to any external servers or third parties.
+        </p>
+
+        <h2>Local Storage</h2>
+        <p>
+            The application uses your browser's local storage to save your preferences (such as your selected 
+            visualization and Spotify authentication tokens) locally on your device. This data:
+        </p>
+        <ul>
+            <li>Remains entirely on your device</li>
+            <li>Is never transmitted to our servers</li>
+            <li>Can be cleared at any time through your browser settings</li>
+        </ul>
+
+        <h2>Audio Processing</h2>
+        <p>
+            When you use audio input features (microphone or file upload), all audio processing happens locally in your 
+            browser. Audio data is:
+        </p>
+        <ul>
+            <li>Processed in real-time on your device</li>
+            <li>Never recorded or stored</li>
+            <li>Never transmitted to any server</li>
+        </ul>
+
+        <h2>Third-Party Services</h2>
+        <p>
+            This application does not use any third-party analytics, tracking, or advertising services. There are no 
+            cookies, no tracking pixels, and no external data collection of any kind.
+        </p>
+        <p>
+            <strong>Spotify Integration (Optional):</strong> If you choose to use the Spotify playback feature, the application 
+            will interact with Spotify's services. In this case:
+        </p>
+        <ul>
+            <li>You will be redirected to Spotify's official authentication service to log in with your Spotify account</li>
+            <li>Authentication is handled by an open-source authorization server deployed on Vercel (you can review the code on 
+                <a href="https://github.com/tmunz/tmusic" target="_blank" rel="noopener noreferrer">GitHub</a>)</li>
+            <li>Spotify authentication tokens are stored locally in your browser's storage</li>
+            <li>The application uses these tokens to communicate directly with Spotify's API to control playback</li>
+            <li>No personal data or listening activity is sent to our servers</li>
+            <li>Spotify's own privacy policy applies to data collected by Spotify</li>
+            <li>You can revoke access at any time through your Spotify account settings</li>
+        </ul>
+        <p>
+            The Spotify integration is entirely optional. You can use all visualization features with microphone input, 
+            file upload, or browser tab audio without connecting to Spotify.
+        </p>
+
+        <h2>Open Source</h2>
+        <p>
+            This is an open-source project. You can verify our privacy practices by reviewing the source code on 
+            <a href="https://github.com/tmunz/tmusic" target="_blank" rel="noopener noreferrer">GitHub</a>.
+        </p>
+
+        <div class="footer">
+            <p><strong>Last updated:</strong> April 12, 2026</p>
+            <p>
+                For questions or concerns about this privacy policy, please visit our 
+                <a href="https://github.com/tmunz/tmusic" target="_blank" rel="noopener noreferrer">GitHub repository</a>.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
