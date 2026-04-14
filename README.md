@@ -1,4 +1,6 @@
-# TMusic (Musicbox-GUI)
+# TMusic
+(formerly known as Musicbox-GUI)
+
 **[Try it yourself](https://tmunz.github.io/tmusic/)**
 
 ## Description
@@ -6,14 +8,14 @@ tmusic is an interactive music visualization web application that transforms aud
 
 Experience your favorite music like never before with dynamic, real-time visualizations based on legendary album covers. Whether you're listening to Spotify, playing audio from a browser tab, uploading your own files, or using your microphone, tmusic brings your audio to life with animated graphics that react to the sound.
 
-Audio Sources
+### Audio Sources
 - Browser Tab Audio - Captures audio from any tab (YouTube, SoundCloud, Spotify Web, etc.), only available via Browser Extension: [Chrome Web Store](https://chromewebstore.google.com/detail/tmusic/aceajmhnmghpmiiaddlcoamibkgabbch)
 - Spotify - Connect your Spotify account for seamless playback and visualization (Spotify Premium Account required)
 - File Upload - Upload MP3, WAV, or other audio files from your device
 - Microphone - needs Browser permission
 - Web Audio Streams
 
-Visualizations
+### Visualizations
 - Unknown Pleasures - Inspired by Joy Division's iconic pulsar wave artwork
 - The Dark Side of the Moon - Based on Pink Floyd's legendary prism design
 - Abbey Road - Featuring The Beatles' classic zebra crossing aesthetic
