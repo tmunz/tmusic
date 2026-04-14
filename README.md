@@ -24,6 +24,7 @@ Visualizations
 - Trans-Europe Express - Kraftwerk
 - AM - Arctic Monkeys
 - Currents - Tame Impala
+
 ...an oscilloscope and many more!
 
 Each visualization is fully interactive and responds in real-time to the audio's characteristics, creating a unique experience every time you play.
