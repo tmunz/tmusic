@@ -1,7 +1,7 @@
 {
     "name": "tmusic",
     "version": "0.0.1",
-    "description": "Music visualization for browser tab audio",
+    "description": "Interactive music visualizations inspired by iconic album covers and more - supports Spotify, browser tab audio, file uploads & microphone",
     "manifest_version": 3,
     "background": {
         "service_worker": "extension.js"
@@ -30,13 +30,10 @@
         "512": "icon-512x512.png"
     },
     "content_security_policy": {
-        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+        "extension_pages": "script-src 'self' 'wasm-unsafe-eval' https://sdk.scdn.co; object-src 'self'; connect-src 'self' https://api.spotify.com https://spotify-auth-tmusic.vercel.app https://accounts.spotify.com;"
     },
-    "commands": {
-        "_execute_action": {
-            "suggested_key": {
-                "default": "Ctrl+Shift+M"
-            }
-        }
-    }
+    "web_accessible_resources": [{
+        "resources": ["index.html"],
+        "matches": ["<all_urls>"]
+    }]
 }
