@@ -1,7 +1,7 @@
 {
     "name": "tmusic",
-    "version": "0.0.1",
-    "description": "Interactive music visualizations inspired by iconic album covers and more - supports Spotify, browser tab audio, file uploads & microphone",
+    "version": "0.0.2",
+    "description": "Music visualizations inspired by iconic album covers and more - supports Spotify, browser tab audio, file uploads & microphone",
     "manifest_version": 3,
     "background": {
         "service_worker": "extension.js"
