@@ -30,10 +30,10 @@
         "512": "icon-512x512.png"
     },
     "content_security_policy": {
-        "extension_pages": "script-src 'self' 'wasm-unsafe-eval' https://sdk.scdn.co; object-src 'self'; connect-src 'self' https://api.spotify.com https://spotify-auth-tmusic.vercel.app https://accounts.spotify.com;"
+        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' https://api.spotify.com https://spotify-auth-tmusic.vercel.app https://accounts.spotify.com;"
     },
     "web_accessible_resources": [{
-        "resources": ["index.html"],
+        "resources": ["index.html", "spotify-player.js"],
         "matches": ["<all_urls>"]
     }]
 }

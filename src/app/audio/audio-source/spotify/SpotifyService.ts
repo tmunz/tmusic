@@ -200,7 +200,7 @@ export class SpotifyService {
     return new Promise((resolve, reject) => {
       if (!(window as any).Spotify) {
         const script = document.createElement('script');
-        script.src = 'https://sdk.scdn.co/spotify-player.js';
+        script.src = `${process.env.PUBLIC_PATH}spotify-player.js`;
         script.async = true;
         document.head.appendChild(script);
 
