@@ -100,6 +100,8 @@ export class SampleProvider {
           this._queues[Channel.RIGHT].pop();
         }
       }
+    } else if (left.length !== this._frameSize) {
+      console.warn(`Pushed sample frame size (${left.length}) does not match expected frame size (${this._frameSize}). Ignoring this sample.`);
     } else {
       this._active = true;
       this._queues[Channel.LEFT].unshift(left);
@@ -130,7 +132,12 @@ export class SampleProvider {
 
   flat = (channel: Channel = Channel.MONO) => {
     return this._queues[channel].reduce((acc: Float32Array, value: Float32Array, i: number) => {
-      acc.set(value, i * this.frameSize);
+      // If the incoming value has more frames than expected, we take only the first ones to prevent overflow.
+      const offset = i * this._frameSize;
+      const safeValue = value.length > this._frameSize ? value.subarray(0, this._frameSize) : value;
+      if (offset + safeValue.length <= acc.length) {
+        acc.set(safeValue, offset);
+      }
       return acc;
     }, new Float32Array(this.sampleSize * this.frameSize));
   };

@@ -17,8 +17,8 @@ export class SpotifyAuth {
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
   private tokenExpiresAt: number | null = null;
-  private refreshTimer: NodeJS.Timeout | null = null;
-  private periodicCheckTimer: NodeJS.Timeout | null = null;
+  private refreshTimer: number | null = null;
+  private periodicCheckTimer: number | null = null;
 
   private authServerUrl = 'https://spotify-auth-tmusic.vercel.app';
   private onStateChange?: (state: SpotifyAuthState) => void;
@@ -467,7 +467,9 @@ export class SpotifyAuth {
       localStorage.setItem(SpotifyAuth.STORAGE_KEYS.PRE_AUTH_PATH, currentPath);
     }
 
-    const redirectUrl = window.location.origin + basePath;
+    const redirectUrl = process.env.IS_EXTENSION
+      ? window.location.origin + '/index.html'
+      : window.location.href.split('#')[0].replace(/\/$/, '');
     let authUrl = `${this.authServerUrl}/login?origin=${encodeURIComponent(redirectUrl)}`;
     authUrl += `&scopes=user-read-playback-state,user-modify-playback-state,streaming`;
 

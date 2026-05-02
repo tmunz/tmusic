@@ -1,6 +1,6 @@
 {
     "name": "tmusic",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "Music visualizations inspired by iconic album covers and more - supports Spotify, browser tab audio, file uploads & microphone",
     "manifest_version": 3,
     "background": {
