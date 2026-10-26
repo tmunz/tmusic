@@ -26,7 +26,6 @@ export const useProgramControls = ({
   const debugInfoRef = useRef<ProgramPilotDebugInfo | null>(null);
   const programPilot = useProgramPilot({ characterId, characterRef, difficulty });
   const setSpeed = useTronStore(state => state.setSpeed);
-  const actualSpeed = useTronStore(state => state.characters[characterId]?.speed.actual ?? 0);
 
   const getProgramControls = useCallback((): ControlsState => {
     const vehicle = characterRef.current?.getObject();
@@ -48,6 +47,7 @@ export const useProgramControls = ({
     }
 
     targetPositionRef.current.copy(position);
+    const actualSpeed = useTronStore.getState().characters[characterId]?.speed.actual ?? 0;
     const movementControls = calculateMovementControls(vehicle, targetPositionRef.current, actualSpeed, false);
     const targetSpeed = speed;
     const acceleration = actualSpeed < targetSpeed ? 1 : actualSpeed > targetSpeed ? -1 : 0;
@@ -57,7 +57,7 @@ export const useProgramControls = ({
       acceleration,
       camera: 0,
     };
-  }, [characterId, programPilot, characterRef, setSpeed, actualSpeed]);
+  }, [characterId, programPilot, characterRef, setSpeed]);
 
   return [getProgramControls, { targetPositionRef, debugInfo: debugInfoRef }];
 };

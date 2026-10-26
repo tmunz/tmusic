@@ -34,6 +34,7 @@ export const GridSparks = ({
 }: GridSparksProps) => {
   const pointsRef = useRef<THREE.Points>(null);
   const halfSize = gridSize / 2;
+  const sparkColor = useMemo(() => new THREE.Color(color), [color]);
 
   const sparks = useMemo<Spark[]>(() => {
     const sparksArray: Spark[] = [];
@@ -71,12 +72,12 @@ export const GridSparks = ({
 
     const positions = pointsRef.current.geometry.attributes.position;
     const colors = pointsRef.current.geometry.attributes.color;
-    const sizes = pointsRef.current.geometry.attributes.size;
+    const sizes = pointsRef.current.geometry.attributes.sparkSize;
 
     sparks.forEach((spark, i) => {
       const prevMovingCoord = spark.axis === 'x' ? spark.position.x : spark.position.z;
 
-      spark.position.add(spark.direction.clone().multiplyScalar(spark.speed * delta * 60));
+      spark.position.addScaledVector(spark.direction, spark.speed * delta * 60);
 
       const movingCoord = spark.axis === 'x' ? spark.position.x : spark.position.z;
 
@@ -130,7 +131,7 @@ export const GridSparks = ({
         }
       }
 
-      spark.lifetime += delta * 60;
+      spark.lifetime = (spark.lifetime + delta * 60) % spark.maxLifetime;
 
       const lifetimeProgress = Math.min(spark.lifetime / spark.maxLifetime, 1);
       const fadeFactor =
@@ -139,12 +140,19 @@ export const GridSparks = ({
       const xPos = spark.axis === 'x' ? spark.position.x : spark.linePosition;
       const zPos = spark.axis === 'z' ? spark.position.z : spark.linePosition;
 
-      positions.setXYZ(i, xPos + gridPosition[0], gridPosition[1], zPos + gridPosition[2]);
+      positions.setXYZ(i, xPos, 0.03, zPos);
 
-      const colorObj = new THREE.Color(color);
-      const brightness = 2.5 * fadeFactor;
-      colors.setXYZ(i, colorObj.r * brightness, colorObj.g * brightness, colorObj.b * brightness);
-      sizes.setX(i, 0.02 + fadeFactor * 0.5);
+      const twinkle = Math.pow(0.5 + 0.5 * Math.sin(state.clock.elapsedTime * (18 + (i % 5) * 3) + i * 2.4), 10);
+      const flash = crossedSectionLine ? 1 : twinkle;
+      const brightness = (3 + flash * 8) * fadeFactor;
+      const white = flash * 0.7;
+      colors.setXYZ(
+        i,
+        (sparkColor.r + (1 - sparkColor.r) * white) * brightness,
+        (sparkColor.g + (1 - sparkColor.g) * white) * brightness,
+        (sparkColor.b + (1 - sparkColor.b) * white) * brightness
+      );
+      sizes.setX(i, 0.65 + fadeFactor * 0.5 + flash * 0.9);
     });
 
     positions.needsUpdate = true;
@@ -170,28 +178,40 @@ export const GridSparks = ({
 
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    geo.setAttribute('sparkSize', new THREE.BufferAttribute(sizes, 1));
+    geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), Math.SQRT2 * halfSize + 1);
 
     return geo;
-  }, [count]);
+  }, [count, halfSize]);
 
   const material = useMemo(() => {
-    return new THREE.PointsMaterial({
-      size: 0.3,
+    const sparkMaterial = new THREE.PointsMaterial({
+      size: 0.4,
       vertexColors: true,
       transparent: true,
-      opacity: 0.2,
+      opacity: 0.75,
+      toneMapped: false,
       blending: THREE.AdditiveBlending,
       sizeAttenuation: true,
       map: createSparkTexture(),
       depthWrite: false,
     });
+    sparkMaterial.onBeforeCompile = shader => {
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nattribute float sparkSize;')
+        .replace('gl_PointSize = size;', 'gl_PointSize = size * sparkSize;');
+    };
+    sparkMaterial.customProgramCacheKey = () => 'tron-twinkling-sparks';
+    return sparkMaterial;
   }, []);
 
-  return <points ref={pointsRef} geometry={geometry} material={material} />;
+  return <points ref={pointsRef} position={gridPosition} geometry={geometry} material={material} />;
 };
 
+let sharedSparkTexture: THREE.Texture | undefined;
+
 function createSparkTexture() {
+  if (sharedSparkTexture) return sharedSparkTexture;
   const canvas = document.createElement('canvas');
   canvas.width = 64;
   canvas.height = 64;
@@ -206,9 +226,19 @@ function createSparkTexture() {
     gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 64, 64);
+    // Fine electric rays around the bright core, reused by every grid tile.
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.65)';
+    ctx.lineWidth = 1.25;
+    ctx.beginPath();
+    ctx.moveTo(8, 32);
+    ctx.lineTo(56, 32);
+    ctx.moveTo(32, 8);
+    ctx.lineTo(32, 56);
+    ctx.stroke();
   }
 
   const texture = new THREE.Texture(canvas);
   texture.needsUpdate = true;
+  sharedSparkTexture = texture;
   return texture;
 }

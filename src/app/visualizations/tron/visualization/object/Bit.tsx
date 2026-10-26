@@ -1,16 +1,32 @@
 import { useFrame } from '@react-three/fiber';
-import { useRef, useMemo } from 'react';
-import { Group, BufferGeometry, Vector3, Float32BufferAttribute } from 'three';
+import { RefObject, useLayoutEffect, useRef, useMemo } from 'react';
+import {
+  Color,
+  Group,
+  BufferGeometry,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+  Float32BufferAttribute,
+} from 'three';
 
 interface BitProps {
   position?: [number, number, number];
   scale?: number;
   activated?: boolean;
+  warningLevel?: RefObject<number>;
 }
 
-export const Bit = ({ position = [0, 0, 0], scale = 1, activated = false }: BitProps) => {
+export const Bit = ({ position = [0, 0, 0], scale = 1, activated = false, warningLevel }: BitProps) => {
   const groupRef = useRef<Group>(null);
-  const meshRef = useRef<any>(null);
+  const meshRef = useRef<Mesh<BufferGeometry, MeshStandardMaterial>>(null);
+  const extraSpikes = useRef<InstancedMesh>(null);
+  const pointer = useRef<Mesh>(null);
+  const calmColor = useMemo(() => new Color('#7864ff'), []);
+  const angryColor = useMemo(() => new Color('#ff3b08'), []);
   const activationRef = useRef(0);
   const timeRef = useRef(0);
 
@@ -98,36 +114,99 @@ export const Bit = ({ position = [0, 0, 0], scale = 1, activated = false }: BitP
     return geometry;
   }, []);
 
+  useLayoutEffect(() => {
+    if (!extraSpikes.current) return;
+    const matrix = new Matrix4();
+    const direction = new Vector3();
+    const position = new Vector3();
+    const rotation = new Quaternion();
+    const up = new Vector3(0, 1, 0);
+    const size = new Vector3(1, 1, 1);
+    // Secondary spikes are allocated once and progressively revealed as anger rises.
+    for (let i = 0; i < 20; i++) {
+      const y = 1 - (2 * (i + 0.5)) / 20;
+      const radius = Math.sqrt(1 - y * y);
+      const angle = i * Math.PI * (3 - Math.sqrt(5));
+      direction.set(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
+      position.copy(direction).multiplyScalar(0.105);
+      rotation.setFromUnitVectors(up, direction);
+      matrix.compose(position, rotation, size);
+      extraSpikes.current.setMatrixAt(i, matrix);
+    }
+    extraSpikes.current.instanceMatrix.needsUpdate = true;
+  }, []);
+
   useFrame((_, delta) => {
     if (!groupRef.current || !meshRef.current) return;
     timeRef.current += delta;
-    const frequency = activated ? 10 : 1;
-    const pulseAmount = Math.sin(timeRef.current * frequency) * 0.5;
-    const targetActivation = activated ? 2.5 + 5 * pulseAmount : pulseAmount;
-    activationRef.current += (targetActivation - activationRef.current) * delta * 5;
+    const anger = Math.max(0, Math.min(1, warningLevel?.current ?? 0));
+    const frequency = anger > 0.01 ? 5 + anger * 9 : activated ? 10 : 1;
+    const pulse = (Math.sin(timeRef.current * frequency) + 1) / 2;
+    const spikePulse = 0.35 + 0.65 * pulse * pulse;
+    const targetActivation =
+      anger > 0.01 ? 0.25 + anger * (0.5 + 3.5 * pulse * pulse) : activated ? 5 * pulse : pulse - 0.5;
+    activationRef.current += (targetActivation - activationRef.current) * (1 - Math.exp(-delta * 18));
     if (meshRef.current.morphTargetInfluences) {
       meshRef.current.morphTargetInfluences[0] = activationRef.current;
     }
-    groupRef.current.rotation.x += delta * 0.1;
-    groupRef.current.rotation.y += delta * 0.03;
+    const material = meshRef.current.material;
+    material.color.copy(calmColor).lerp(angryColor, anger);
+    material.emissive.copy(material.color);
+    material.emissiveIntensity = 0.5 + anger * (0.8 + pulse);
+    material.roughness = 0.2 - anger * 0.1;
+    groupRef.current.rotation.x += delta * (0.1 + anger * 2);
+    groupRef.current.rotation.y += delta * (0.03 + anger * 3);
+    groupRef.current.scale.setScalar(1 + anger * 0.4 + pulse * anger * 0.12);
+    if (extraSpikes.current) {
+      extraSpikes.current.count = Math.round(20 * anger);
+      extraSpikes.current.scale.setScalar(0.55 + spikePulse * (0.5 + anger * 0.7));
+      const spikeMaterial = extraSpikes.current.material as MeshStandardMaterial;
+      spikeMaterial.color.copy(material.color);
+      spikeMaterial.emissive.copy(material.emissive);
+      spikeMaterial.emissiveIntensity = material.emissiveIntensity;
+    }
+    if (pointer.current) {
+      pointer.current.visible = anger > 0.05;
+      pointer.current.scale.set(1 + anger, 0.45 + spikePulse * (0.7 + anger * 0.7), 1 + anger);
+      const pointerMaterial = pointer.current.material as MeshStandardMaterial;
+      pointerMaterial.color.copy(material.color);
+      pointerMaterial.emissive.copy(material.emissive);
+      pointerMaterial.emissiveIntensity = material.emissiveIntensity;
+    }
   });
 
-  const getColor = (t: number) => {
-    const r = Math.floor(120 + t * 135);
-    const g = Math.floor(100 - t * 100);
-    const b = Math.floor(255 - t * 155);
-    return `rgb(${r}, ${g}, ${b})`;
-  };
-
   return (
-    <group ref={groupRef} position={position} scale={scale}>
-      <mesh ref={meshRef} geometry={spikyGeometry} morphTargetInfluences={[0]}>
+    <group position={position} scale={scale}>
+      <group ref={groupRef}>
+        <mesh ref={meshRef} geometry={spikyGeometry} morphTargetInfluences={[0]}>
+          <meshStandardMaterial
+            color="#7864ff"
+            emissive="#7864ff"
+            emissiveIntensity={0.5}
+            metalness={0.8}
+            roughness={0.2}
+          />
+        </mesh>
+        <instancedMesh ref={extraSpikes} args={[undefined, undefined, 20]} count={0} frustumCulled={false}>
+          <coneGeometry args={[0.013, 0.11, 5]} />
+          <meshStandardMaterial
+            color="#7864ff"
+            emissive="#7864ff"
+            emissiveIntensity={0.5}
+            metalness={0.8}
+            roughness={0.15}
+          />
+        </instancedMesh>
+      </group>
+      {/* Keep the pointing spike outside the spinning body so it always aims toward safety. */}
+      <mesh ref={pointer} position={[0, 0, -0.21]} rotation={[-Math.PI / 2, 0, 0]} visible={false}>
+        <coneGeometry args={[0.025, 0.28, 5]} />
         <meshStandardMaterial
-          color={getColor(activationRef.current)}
-          emissive={getColor(activationRef.current)}
-          emissiveIntensity={0.5 + activationRef.current * 0.3}
-          metalness={0.8 + activationRef.current * 0.1}
-          roughness={0.2 - activationRef.current * 0.1}
+          color="#ff3b08"
+          emissive="#ff3b08"
+          emissiveIntensity={1}
+          metalness={0.8}
+          roughness={0.15}
         />
       </mesh>
     </group>

@@ -39,8 +39,13 @@ export function MinimapRenderer({ targetRef, canvasElement }: MinimapRendererPro
     };
   }, [canvasElement]);
 
-  useFrame(({ scene }) => {
+  const lastRenderTime = useRef(-Infinity);
+
+  useFrame(({ scene, clock }) => {
     if (!mapCamera.current || !targetRef.current || !minimapRenderer.current) return;
+    const now = clock.elapsedTime;
+    if (now - lastRenderTime.current < 1 / 20) return;
+    lastRenderTime.current = now;
     const position = targetRef.current.position;
     mapCamera.current.position.set(position.x, position.y + 80, position.z);
     mapCamera.current.lookAt(position.x, position.y, position.z);
@@ -68,15 +73,16 @@ export function Minimap({ targetRef, size = 256, color, onCanvasReady }: Minimap
   });
 
   useEffect(() => {
+    let animationId: number;
     const updateRotation = () => {
       if (targetRef.current && playerMarker.current) {
         const rotation = -targetRef.current.rotation.y * (180 / Math.PI);
         playerMarker.current.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
       }
-      requestAnimationFrame(updateRotation);
+      animationId = requestAnimationFrame(updateRotation);
     };
 
-    const animationId = requestAnimationFrame(updateRotation);
+    animationId = requestAnimationFrame(updateRotation);
     return () => cancelAnimationFrame(animationId);
   }, [targetRef]);
 

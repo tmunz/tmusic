@@ -1,4 +1,5 @@
-import { RefObject, useMemo } from 'react';
+import { RefObject } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { Object3D } from 'three';
 import { useTronStore } from '../state/TronStore';
 import { Mode } from '../state/TronState';
@@ -25,18 +26,16 @@ export const LightCycleBattle = ({
   const mode = useTronStore(state => state.mode);
   const gamePosition = useTronStore(state => state.game.position);
   const battlegroundSize = useTronStore(state => state.game.battlegroundSize);
-  const characters = useTronStore(state => state.characters);
-  const players = useTronStore(state => state.game.players);
-
-  const programCharacters = useMemo(() => {
-    if (mode !== Mode.LIGHTCYCLE_BATTLE) return [];
-    return Object.keys(players)
-      .filter(id => id.startsWith('program-'))
-      .map(id => ({
-        id,
-        color: characters[id]?.color,
-      }));
-  }, [mode, players, characters]);
+  // Subscribe only to the roster and colors, rather than every speed/timer update.
+  const programColors = useTronStore(
+    useShallow(state =>
+      Object.fromEntries(
+        Object.keys(state.game.players)
+          .filter(id => id.startsWith('program-'))
+          .map(id => [id, state.characters[id]?.color])
+      )
+    )
+  );
 
   if (mode !== Mode.LIGHTCYCLE_BATTLE) {
     return null;
@@ -44,7 +43,7 @@ export const LightCycleBattle = ({
 
   return (
     <>
-      {programCharacters.map((programChar, index) => {
+      {Object.entries(programColors).map(([id, color], index) => {
         const angle = (index * Math.PI * 2) / 4;
         const spawnRadius = battlegroundSize * 0.3;
         const spawnX = gamePosition.x + Math.cos(angle) * spawnRadius;
@@ -52,9 +51,9 @@ export const LightCycleBattle = ({
 
         return (
           <ProgramCharacter
-            key={programChar.id}
-            id={programChar.id}
-            color={programChar.color}
+            key={id}
+            id={id}
+            color={color}
             sampleProvider={sampleProvider}
             position={[spawnX, 0, spawnZ]}
             rotation={[0, angle + Math.PI / 2, 0]}
@@ -62,26 +61,6 @@ export const LightCycleBattle = ({
           />
         );
       })}
-
-      <TronCube
-        id="cube-0"
-        position={[gamePosition.x + battlegroundSize / 2, 0.5, gamePosition.z + battlegroundSize / 2]}
-        rotation={[0, Math.PI / 4, 0]}
-      />
-      <TronCube
-        id="cube-1"
-        position={[gamePosition.x - battlegroundSize / 2, 0.5, gamePosition.z + battlegroundSize / 2]}
-      />
-      <TronCube
-        id="cube-2"
-        position={[gamePosition.x + battlegroundSize / 2, 0.5, gamePosition.z - battlegroundSize / 2]}
-      />
-      <TronCube
-        id="cube-3"
-        position={[gamePosition.x - battlegroundSize / 2, 0.5, gamePosition.z - battlegroundSize / 2]}
-      />
-
-      {/* Minimap Renderer (inside Canvas) */}
       <MinimapRenderer targetRef={userRef} canvasElement={minimapCanvas} />
     </>
   );

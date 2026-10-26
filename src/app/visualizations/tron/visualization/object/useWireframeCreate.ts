@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Box3, Color, DoubleSide, Group, Material, Mesh, ShaderMaterial } from 'three';
+import { Box3, Color, DoubleSide, Group, Material, Mesh, ShaderMaterial, UniformsLib, UniformsUtils } from 'three';
 
 interface UseWireframeCreateParams {
   color?: string;
@@ -25,7 +25,7 @@ export const useWireframeCreate = ({
 
   const totalDuration = revealDuration + holdDuration + fadeDuration;
 
-  const startCreate = (childrenGroup: Group) => {
+  const startCreate = (childrenGroup: Group, preparedWireframe?: Group) => {
     if (!childrenGroup) return;
 
     childrenGroupRef.current = childrenGroup;
@@ -45,62 +45,31 @@ export const useWireframeCreate = ({
       }
     });
 
-    const bbox = new Box3().setFromObject(childrenGroup);
-    const minY = bbox.min.y;
-    const maxY = bbox.max.y;
+    let wireframeClone = preparedWireframe;
+    if (wireframeClone) {
+      wireframeClone.traverse(child => {
+        if (child instanceof Mesh && child.material instanceof ShaderMaterial) {
+          child.material.uniforms.revealProgress.value = 0;
+          child.material.uniforms.opacity.value = 1;
+        }
+      });
+    } else {
+      const bbox = new Box3().setFromObject(childrenGroup);
+      const minY = bbox.min.y;
+      const maxY = bbox.max.y;
 
-    const wireframeClone = childrenGroup.clone(true);
-    wireframeClone.updateMatrixWorld(true);
+      wireframeClone = childrenGroup.clone(true);
+      wireframeClone.updateMatrixWorld(true);
 
-    wireframeClone.traverse(child => {
-      if (child instanceof Mesh && child.geometry) {
-        const wireframeMaterial = new ShaderMaterial({
-          uniforms: {
-            color: { value: new Color(color) },
-            revealProgress: { value: 0.0 },
-            opacity: { value: 1.0 },
-            minY: { value: minY },
-            maxY: { value: maxY },
-          },
-          vertexShader: `
-            varying vec3 vPosition;
-            void main() {
-              vPosition = position;
-              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-            }
-          `,
-          fragmentShader: `
-            uniform vec3 color;
-            uniform float revealProgress;
-            uniform float opacity;
-            uniform float minY;
-            uniform float maxY;
-            varying vec3 vPosition;
-            
-            void main() {
-              float normalizedY = (vPosition.y - minY) / (maxY - minY);
-              
-              if (normalizedY > revealProgress) {
-                discard;
-              }
-              
-              float edgeFade = smoothstep(revealProgress - 0.05, revealProgress, normalizedY);
-              float alpha = (1.0 - edgeFade * 0.3) * opacity;
-              
-              gl_FragColor = vec4(color, alpha);
-            }
-          `,
-          transparent: true,
-          wireframe: true,
-          side: DoubleSide,
-          depthTest: true,
-          depthWrite: false,
-        });
+      wireframeClone.traverse(child => {
+        if (child instanceof Mesh && child.geometry) {
+          const wireframeMaterial = createWireframeCreateMaterial(color, minY, maxY);
 
-        child.material = wireframeMaterial;
-        child.visible = true;
-      }
-    });
+          child.material = wireframeMaterial;
+          child.visible = true;
+        }
+      });
+    }
 
     wireframeClone.visible = true;
     setWireframe(wireframeClone);
@@ -203,3 +172,59 @@ export const useWireframeCreate = ({
     animate,
   };
 };
+
+export function createWireframeCreateMaterial(color: string, minY: number, maxY: number, fog = false) {
+  return new ShaderMaterial({
+    fog,
+    toneMapped: false,
+    uniforms: UniformsUtils.merge([
+      UniformsLib.fog,
+      {
+        color: { value: new Color(color) },
+        revealProgress: { value: 0.0 },
+        opacity: { value: 1.0 },
+        minY: { value: minY },
+        maxY: { value: maxY },
+      },
+    ]),
+    vertexShader: `
+            #include <fog_pars_vertex>
+            varying vec3 vPosition;
+            void main() {
+              vPosition = position;
+              vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+              gl_Position = projectionMatrix * mvPosition;
+              #include <fog_vertex>
+            }
+          `,
+    fragmentShader: `
+            #include <fog_pars_fragment>
+            uniform vec3 color;
+            uniform float revealProgress;
+            uniform float opacity;
+            uniform float minY;
+            uniform float maxY;
+            varying vec3 vPosition;
+
+            void main() {
+              float normalizedY = (vPosition.y - minY) / (maxY - minY);
+
+              if (normalizedY > revealProgress) {
+                discard;
+              }
+
+              float edgeFade = smoothstep(revealProgress - 0.05, revealProgress, normalizedY);
+              float alpha = (1.0 - edgeFade * 0.3) * opacity;
+
+              gl_FragColor = vec4(color, alpha);
+              #include <colorspace_fragment>
+              #include <fog_fragment>
+            }
+          `,
+    transparent: true,
+    wireframe: true,
+    side: DoubleSide,
+    depthTest: true,
+    depthWrite: false,
+  });
+}

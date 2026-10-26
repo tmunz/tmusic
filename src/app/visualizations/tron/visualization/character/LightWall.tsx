@@ -1,9 +1,9 @@
 import { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { SampleProvider } from '../../../../sampleProvider/SampleProvider';
-import { useSampleProviderTexture } from '../../../../sampleProvider/useSampleProviderTexture';
 import { useLightWallSoundMaterial } from './LightWallSoundMaterial';
 import { useCollision } from '../collision/CollisionContext';
-import { Box3, BufferAttribute, BufferGeometry, Color, DoubleSide, DynamicDrawUsage, Vector3 } from 'three';
+import { LightWallPoint, updateLightWallCollisions } from './updateLightWallCollisions';
+import { BufferAttribute, BufferGeometry, Color, DoubleSide, DynamicDrawUsage, Vector3 } from 'three';
 
 interface LightWallProps {
   getSpawnPoints: () => { lower: Vector3; upper: Vector3 } | null;
@@ -37,20 +37,21 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
     },
     ref
   ) => {
-    const trailPoints = useRef<{ lower: Vector3; upper: Vector3 }[]>([]);
+    const trailPoints = useRef<LightWallPoint[]>([]);
     const lastTrailPosition = useRef(new Vector3());
     const trailGeometry = useRef<BufferGeometry>(null!);
     const positionAttribute = useRef<BufferAttribute>(null!);
     const colorAttribute = useRef<BufferAttribute>(null!);
     const { registerObject, unregisterObject } = useCollision();
     const wallId = useRef(`wall-${Math.random()}`);
+    const nextPointId = useRef(0);
+    const perpendicular = useRef(new Vector3());
+    const up = useRef(new Vector3(0, 1, 0));
     const registeredSegments = useRef<Set<string>>(new Set());
     const geometryNeedsUpdate = useRef(false);
-    const [sampleTexture, updateSampleTexture] = useSampleProviderTexture(sampleProvider);
 
     const material = useLightWallSoundMaterial({
-      sampleTexture,
-      updateSampleTexture,
+      sampleProvider,
       color,
       opacity,
       side: DoubleSide,
@@ -96,14 +97,15 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
         trailGeometry.current.setIndex(indices);
         trailGeometry.current.setDrawRange(0, 0);
         positionAttribute.current = attribute;
-        trailGeometry.current.computeVertexNormals();
         trailGeometry.current.computeBoundingSphere();
       }
     }, [maxPoints]);
 
     useEffect(() => {
+      const segments = registeredSegments.current;
       return () => {
-        unregisterObject(wallId.current);
+        segments.forEach(unregisterObject);
+        segments.clear();
       };
     }, [unregisterObject]);
 
@@ -115,13 +117,21 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
       let pointsChanged = false;
 
       if (trailPoints.current.length === 0) {
-        trailPoints.current.push({ lower: lower.clone(), upper: upper.clone() });
+        trailPoints.current.push({
+          id: `${wallId.current}-segment-${nextPointId.current++}`,
+          lower: lower.clone(),
+          upper: upper.clone(),
+        });
         lastTrailPosition.current.copy(lower);
         pointsChanged = true;
       }
 
       if (lastTrailPosition.current.distanceTo(lower) > updateDistance) {
-        trailPoints.current.push({ lower: lower.clone(), upper: upper.clone() });
+        trailPoints.current.push({
+          id: `${wallId.current}-segment-${nextPointId.current++}`,
+          lower: lower.clone(),
+          upper: upper.clone(),
+        });
         lastTrailPosition.current.copy(lower);
         if (trailPoints.current.length > maxPoints) {
           trailPoints.current.shift();
@@ -156,27 +166,27 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
               segmentsFromStart < fadeSegments ? (segmentsFromStart / fadeSegments) * opacity : opacity;
             alpha = Math.min(fadeInAlpha, fadeOutAlpha);
           }
-          const perpendicular = new Vector3();
+          const offset = perpendicular.current;
           if (i < trailPoints.current.length - 1) {
             const next = trailPoints.current[i + 1];
-            perpendicular.subVectors(next.lower, point.lower).normalize();
-            perpendicular
-              .cross(new Vector3(0, 1, 0))
+            offset.subVectors(next.lower, point.lower).normalize();
+            offset
+              .cross(up.current)
               .normalize()
               .multiplyScalar(thickness / 2);
           } else if (i > 0) {
             const prev = trailPoints.current[i - 1];
-            perpendicular.subVectors(point.lower, prev.lower).normalize();
-            perpendicular
-              .cross(new Vector3(0, 1, 0))
+            offset.subVectors(point.lower, prev.lower).normalize();
+            offset
+              .cross(up.current)
               .normalize()
               .multiplyScalar(thickness / 2);
           }
 
           // Vertex 0: Bottom-left (lower - perpendicular)
-          positions[baseIndex] = point.lower.x - perpendicular.x;
+          positions[baseIndex] = point.lower.x - offset.x;
           positions[baseIndex + 1] = point.lower.y;
-          positions[baseIndex + 2] = point.lower.z - perpendicular.z;
+          positions[baseIndex + 2] = point.lower.z - offset.z;
           colors[colorIndex] = baseColor.r;
           colors[colorIndex + 1] = baseColor.g;
           colors[colorIndex + 2] = baseColor.b;
@@ -186,9 +196,9 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
           sideMarks[i * 4] = -1.0; // Left side
 
           // Vertex 1: Bottom-right (lower + perpendicular)
-          positions[baseIndex + 3] = point.lower.x + perpendicular.x;
+          positions[baseIndex + 3] = point.lower.x + offset.x;
           positions[baseIndex + 4] = point.lower.y;
-          positions[baseIndex + 5] = point.lower.z + perpendicular.z;
+          positions[baseIndex + 5] = point.lower.z + offset.z;
           colors[colorIndex + 4] = baseColor.r;
           colors[colorIndex + 5] = baseColor.g;
           colors[colorIndex + 6] = baseColor.b;
@@ -198,9 +208,9 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
           sideMarks[i * 4 + 1] = 1.0; // Right side
 
           // Vertex 2: Top-left (upper - perpendicular)
-          positions[baseIndex + 6] = point.upper.x - perpendicular.x;
+          positions[baseIndex + 6] = point.upper.x - offset.x;
           positions[baseIndex + 7] = point.upper.y;
-          positions[baseIndex + 8] = point.upper.z - perpendicular.z;
+          positions[baseIndex + 8] = point.upper.z - offset.z;
           colors[colorIndex + 8] = baseColor.r;
           colors[colorIndex + 9] = baseColor.g;
           colors[colorIndex + 10] = baseColor.b;
@@ -210,9 +220,9 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
           sideMarks[i * 4 + 2] = -1.0; // Left side
 
           // Vertex 3: Top-right (upper + perpendicular)
-          positions[baseIndex + 9] = point.upper.x + perpendicular.x;
+          positions[baseIndex + 9] = point.upper.x + offset.x;
           positions[baseIndex + 10] = point.upper.y;
-          positions[baseIndex + 11] = point.upper.z + perpendicular.z;
+          positions[baseIndex + 11] = point.upper.z + offset.z;
           colors[colorIndex + 12] = baseColor.r;
           colors[colorIndex + 13] = baseColor.g;
           colors[colorIndex + 14] = baseColor.b;
@@ -227,91 +237,20 @@ export const LightWall = forwardRef<LightWallHandle, LightWallProps>(
         (trailGeometry.current.getAttribute('sideMark') as BufferAttribute).needsUpdate = true;
         const numQuads = trailPoints.current.length - 1;
 
-        const currentSegments = new Set<string>();
-
-        if (trailPoints.current.length > 1) {
-          const spawnPoints = getSpawnPoints();
-          if (spawnPoints) {
-            const spawnPos = spawnPoints.lower;
-            const exclusionDistance = 1;
-
-            for (let i = 0; i < trailPoints.current.length - 1; i++) {
-              const point1 = trailPoints.current[i];
-              const point2 = trailPoints.current[i + 1];
-
-              // Check if this segment is outside the exclusion zone
-              const dx1 = Math.abs(point1.lower.x - spawnPos.x);
-              const dz1 = Math.abs(point1.lower.z - spawnPos.z);
-              const dx2 = Math.abs(point2.lower.x - spawnPos.x);
-              const dz2 = Math.abs(point2.lower.z - spawnPos.z);
-
-              const isOutside =
-                (dx1 > exclusionDistance || dz1 > exclusionDistance) &&
-                (dx2 > exclusionDistance || dz2 > exclusionDistance);
-
-              if (isOutside) {
-                const segmentBounds = new Box3();
-                segmentBounds.expandByPoint(point1.lower);
-                segmentBounds.expandByPoint(point1.upper);
-                segmentBounds.expandByPoint(point2.lower);
-                segmentBounds.expandByPoint(point2.upper);
-
-                const center = new Vector3();
-                segmentBounds.getCenter(center);
-
-                // Calculate OBB corners for this segment
-                // Each segment is a quad defined by point1.lower, point1.upper, point2.lower, point2.upper
-                // Use perpendicular vector for thickness
-                const perpendicular = new Vector3();
-                perpendicular.subVectors(point2.lower, point1.lower).normalize();
-                perpendicular
-                  .cross(new Vector3(0, 1, 0))
-                  .normalize()
-                  .multiplyScalar(thickness / 2);
-
-                // 8 corners: lower/upper at both ends, offset by +/- perpendicular
-                const corners = [
-                  // Start (point1)
-                  new Vector3(point1.lower.x - perpendicular.x, point1.lower.y, point1.lower.z - perpendicular.z), // 0: bottom-left
-                  new Vector3(point1.lower.x + perpendicular.x, point1.lower.y, point1.lower.z + perpendicular.z), // 1: bottom-right
-                  new Vector3(point1.upper.x - perpendicular.x, point1.upper.y, point1.upper.z - perpendicular.z), // 2: top-left
-                  new Vector3(point1.upper.x + perpendicular.x, point1.upper.y, point1.upper.z + perpendicular.z), // 3: top-right
-                  // End (point2)
-                  new Vector3(point2.lower.x - perpendicular.x, point2.lower.y, point2.lower.z - perpendicular.z), // 4: bottom-left
-                  new Vector3(point2.lower.x + perpendicular.x, point2.lower.y, point2.lower.z + perpendicular.z), // 5: bottom-right
-                  new Vector3(point2.upper.x - perpendicular.x, point2.upper.y, point2.upper.z - perpendicular.z), // 6: top-left
-                  new Vector3(point2.upper.x + perpendicular.x, point2.upper.y, point2.upper.z + perpendicular.z), // 7: top-right
-                ];
-
-                const segmentId = `${wallId.current}-segment-${i}`;
-                currentSegments.add(segmentId);
-
-                registerObject({
-                  id: segmentId,
-                  position: center,
-                  boundingBox: segmentBounds,
-                  orientedCorners: corners,
-                  type: 'wall',
-                  playerId: playerId,
-                });
-              }
-            }
-          }
-        }
-
-        registeredSegments.current.forEach(segmentId => {
-          if (!currentSegments.has(segmentId)) {
-            unregisterObject(segmentId);
-          }
+        updateLightWallCollisions({
+          points: trailPoints.current,
+          spawnPosition: lower,
+          thickness,
+          playerId,
+          registeredSegments: registeredSegments.current,
+          registerObject,
+          unregisterObject,
         });
-
-        registeredSegments.current = currentSegments;
 
         trailGeometry.current.clearGroups();
         trailGeometry.current.addGroup(0, 6 + numQuads * 24, 0);
 
         trailGeometry.current.setDrawRange(0, 6 + numQuads * 24);
-        trailGeometry.current.computeVertexNormals();
         trailGeometry.current.computeBoundingSphere();
       } else {
         trailGeometry.current.setDrawRange(0, 0);

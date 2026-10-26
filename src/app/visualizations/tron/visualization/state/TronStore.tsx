@@ -103,7 +103,7 @@ export const useTronStore = create<TronStore>((set, get) => ({
   updateSpeed: (characterId: string, speed: number) => {
     set(state => {
       const character = state.characters[characterId];
-      if (!character) return state;
+      if (!character || character.speed.actual === speed) return state;
 
       return {
         ...state,
@@ -124,7 +124,7 @@ export const useTronStore = create<TronStore>((set, get) => ({
   setVehicleParams: (characterId: string, max: number, min: number) => {
     set(state => {
       const character = state.characters[characterId];
-      if (!character) return state;
+      if (!character || (character.speed.max === max && character.speed.min === min)) return state;
 
       return {
         ...state,
@@ -146,7 +146,11 @@ export const useTronStore = create<TronStore>((set, get) => ({
   setSpeed: (characterId: string, target: number, actual?: number) => {
     set(state => {
       const character = state.characters[characterId];
-      if (!character) return state;
+      if (
+        !character ||
+        (character.speed.target === target && (actual === undefined || character.speed.actual === actual))
+      )
+        return state;
 
       return {
         ...state,

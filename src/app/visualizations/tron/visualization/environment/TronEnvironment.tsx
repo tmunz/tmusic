@@ -1,6 +1,7 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { TronGrid } from './TronGrid';
+import { TronBuildings } from './building/TronBuildings';
 import { TronSkyBox } from './TronSkyBox';
 import { useTronStore } from '../state/TronStore';
 import { Mode } from '../state/TronState';
@@ -24,6 +25,11 @@ export const TronEnvironment = ({ tileSize, viewDistance = 0 }: TronEnvironmentP
   const gamePosition = useTronStore(state => state.game.position);
   const battlegroundSize = useTronStore(state => state.game.battlegroundSize);
   const { camera } = useThree();
+  const buildingExclusion = useMemo(
+    () =>
+      mode === Mode.LIGHTCYCLE_BATTLE ? { x: gamePosition.x, z: gamePosition.z, size: battlegroundSize } : undefined,
+    [mode, gamePosition, battlegroundSize]
+  );
   const getInitialTiles = () => {
     const initialTiles: WorldTile[] = [];
     for (let x = -viewDistance; x <= viewDistance; x++) {
@@ -40,7 +46,7 @@ export const TronEnvironment = ({ tileSize, viewDistance = 0 }: TronEnvironmentP
     return initialTiles;
   };
 
-  const [tiles, setTiles] = useState<WorldTile[]>(getInitialTiles());
+  const [tiles, setTiles] = useState<WorldTile[]>(getInitialTiles);
   const lastCameraTile = useRef({ x: 0, z: 0 });
 
   useFrame(() => {
@@ -72,6 +78,7 @@ export const TronEnvironment = ({ tileSize, viewDistance = 0 }: TronEnvironmentP
     <>
       <TronLightningEnvironment />
       <TronSkyBox />
+      <TronBuildings tiles={tiles} tileSize={tileSize} arena={buildingExclusion} />
       {tiles.map(tile => {
         const isLightcycleBattle = mode === Mode.LIGHTCYCLE_BATTLE;
         const gamePos = gamePosition;
@@ -96,10 +103,10 @@ export const TronEnvironment = ({ tileSize, viewDistance = 0 }: TronEnvironmentP
             position={[tile.worldX, 0, tile.worldZ]}
             size={tileSize}
             sectionSize={5}
-            fadeDistance={200}
+            fadeDistance={400}
             sectionColor={withinBattleGround ? '#004444' : '#440000'}
             cellColor={withinBattleGround ? '#000000' : '#330000'}
-            sparksCount={0}
+            sparksCount={3}
           />
         );
       })}

@@ -1,10 +1,10 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { SampleProvider } from '../../../../sampleProvider/SampleProvider';
 
 export interface LightWallSoundMaterialProps {
-  sampleTexture: THREE.DataTexture;
-  updateSampleTexture: () => void;
+  sampleProvider?: SampleProvider;
   color?: string;
   opacity?: number;
   side?: THREE.Side;
@@ -12,8 +12,7 @@ export interface LightWallSoundMaterialProps {
 }
 
 export const useLightWallSoundMaterial = ({
-  sampleTexture,
-  updateSampleTexture,
+  sampleProvider,
   color = '#00ffff',
   opacity = 0.6,
   side = THREE.DoubleSide,
@@ -25,18 +24,13 @@ export const useLightWallSoundMaterial = ({
   useFrame(() => {
     frameCountRef.current++;
     if (frameCountRef.current % updateInterval === 0) {
-      updateSampleTexture();
-
-      if (shaderMaterial.uniforms.sampleData) {
-        shaderMaterial.uniforms.sampleData.value = sampleTexture;
-      }
+      updateLightWallAudioTexture(shaderMaterial, sampleProvider);
     }
   });
 
   const shaderMaterial = useMemo(() => {
     const baseColor = new THREE.Color(color);
-    sampleTexture.minFilter = THREE.NearestFilter;
-    sampleTexture.magFilter = THREE.NearestFilter;
+    const sampleTexture = createAudioTexture(1, 1);
 
     return new THREE.ShaderMaterial({
       transparent: true,
@@ -75,7 +69,7 @@ export const useLightWallSoundMaterial = ({
         varying float vSideMark;
         
         void main() {
-          float audioValue = texture2D(sampleData, vec2(vUv.y, vUv.x)).r;
+          float audioValue = clamp(abs(texture2D(sampleData, vec2(vUv.y, vUv.x)).r), 0.0, 1.0);
           float intensity = 1.0 + audioValue * 2.0;
           vec3 color = baseColor * intensity;
           float alpha = audioValue * opacity * vColor.a;
@@ -83,7 +77,57 @@ export const useLightWallSoundMaterial = ({
         }
       `,
     });
-  }, [color, opacity]);
+  }, [color, opacity, side, depthWrite]);
+
+  useEffect(() => {
+    // Rebind immediately on source changes, even when movement does not rerender the wall.
+    frameCountRef.current = 0;
+    updateLightWallAudioTexture(shaderMaterial, sampleProvider);
+  }, [shaderMaterial, sampleProvider]);
+
+  useEffect(
+    () => () => {
+      (shaderMaterial.uniforms.sampleData.value as THREE.DataTexture).dispose();
+      shaderMaterial.dispose();
+    },
+    [shaderMaterial]
+  );
 
   return shaderMaterial;
 };
+
+function createAudioTexture(width: number, height: number) {
+  const texture = new THREE.DataTexture(
+    new Float32Array(width * height),
+    width,
+    height,
+    THREE.RedFormat,
+    THREE.FloatType
+  );
+  texture.minFilter = THREE.NearestFilter;
+  texture.magFilter = THREE.NearestFilter;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+export function updateLightWallAudioTexture(material: THREE.ShaderMaterial, provider?: SampleProvider) {
+  const width = provider?.frameSize ?? 1;
+  const height = provider?.sampleSize ?? 1;
+  let texture = material.uniforms.sampleData.value as THREE.DataTexture;
+  if (texture.image.width !== width || texture.image.height !== height) {
+    // WebGL texture storage cannot be resized after its first upload.
+    const previous = texture;
+    texture = createAudioTexture(width, height);
+    material.uniforms.sampleData.value = texture;
+    previous.dispose();
+  }
+  const data = texture.image.data as Float32Array;
+  data.fill(0);
+  if (provider) {
+    for (let row = 0; row < height; row++) {
+      const sample = provider.get(row);
+      data.set(sample.length > width ? sample.subarray(0, width) : sample, row * width);
+    }
+  }
+  texture.needsUpdate = true;
+}

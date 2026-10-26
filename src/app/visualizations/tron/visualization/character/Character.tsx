@@ -81,7 +81,7 @@ export const Character = forwardRef<Object3D, CharacterProps>(
       ref: vehicleRef,
       onCollision: (wallOwnerId: string) => handleDisintegration(wallOwnerId),
     });
-    const characterState = useTronStore(state => state.characters[id]);
+    const isDisintegrated = useTronStore(state => state.characters[id]?.isDisintegrated ?? false);
     const mode = useTronStore(state => state.mode);
     const setSpeed = useTronStore(state => state.setSpeed);
     const updateSpeed = useTronStore(state => state.updateSpeed);
@@ -112,6 +112,7 @@ export const Character = forwardRef<Object3D, CharacterProps>(
 
       if (!vehicle || !movementCharacteristics) return;
 
+      const characterState = useTronStore.getState().characters[id];
       const { movementControlState } = applySpeedControls(
         id,
         delta,
@@ -130,7 +131,7 @@ export const Character = forwardRef<Object3D, CharacterProps>(
         object: vehicle,
         movementCharacteristics,
         checkCollision: checkCollisionAtPosition,
-        isDisintegrated: characterState?.isDisintegrated ?? false,
+        isDisintegrated: isDisintegrated,
       });
 
       lightWallRef.current?.update();
@@ -142,7 +143,7 @@ export const Character = forwardRef<Object3D, CharacterProps>(
 
     return (
       <>
-        <Vehicle ref={vehicleRef} id={id} color={color} disintegrated={characterState?.isDisintegrated ?? false} />
+        <Vehicle ref={vehicleRef} id={id} color={color} disintegrated={isDisintegrated} />
         <LightWall
           ref={lightWallRef}
           getSpawnPoints={() => vehicleRef.current?.getLightWallSpawnPoints() ?? null}

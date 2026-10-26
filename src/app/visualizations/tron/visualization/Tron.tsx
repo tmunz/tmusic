@@ -148,9 +148,9 @@ const TronScene = ({ sampleProvider, debugMode }: TronSceneProps) => {
       <Canvas camera={{ position: [0, 1, 3], fov: 60 }} gl={{ antialias: true }}>
         {debugMode >= DebugMode.STATS && <Stats />}
         <TronCamera userRef={userRef} companionRef={companionRef} />
-        <TronEnvironment tileSize={tileSize} viewDistance={3} />
-        <Suspense fallback={null}>
-          <CollisionProvider cellSize={2.5}>
+        <CollisionProvider cellSize={2.5}>
+          <TronEnvironment tileSize={tileSize} viewDistance={6} />
+          <Suspense fallback={null}>
             {debugMode >= DebugMode.COLLISION && <CollisionDebugVisualizer />}
             <Character
               ref={userRef}
@@ -175,8 +175,8 @@ const TronScene = ({ sampleProvider, debugMode }: TronSceneProps) => {
               minimapCanvas={minimapCanvas}
               debugMode={debugMode >= DebugMode.ALL}
             />
-          </CollisionProvider>
-        </Suspense>
+          </Suspense>
+        </CollisionProvider>
       </Canvas>
       <LightCycleBattleUi
         userCharacterColor={userCharacterColor}

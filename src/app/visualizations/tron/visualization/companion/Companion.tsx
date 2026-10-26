@@ -1,6 +1,6 @@
 import { useRef, RefObject, forwardRef, useImperativeHandle, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Group, Mesh, Object3D, Vector3 } from 'three';
+import { Group, Mesh, Object3D, Quaternion, Vector3 } from 'three';
 import { Bit } from '../object/Bit';
 import { WireframeTransitionObject } from '../object/WireframeTransitionObject';
 import { useMovement } from '../movement/useMovement';
@@ -9,6 +9,7 @@ import { calculateMovementControls } from '../movement/calculateMovementControls
 import { CompanionStrategy } from './CompanionStrategy';
 import { useCompanionIdle, IDLE_MOVEMENT_CHARACTERISTICS } from './useCompanionIdle';
 import { useTronStore } from '../state/TronStore';
+import { advanceCompanionWarningMovement, getCompanionWarningLevel, getCompanionWarningPose } from './companionWarning';
 
 interface CompanionProps {
   id: string;
@@ -40,6 +41,13 @@ export const Companion = forwardRef<Object3D, CompanionProps>(
     );
 
     const directionToTargetRef = useRef(new Vector3());
+    const warningLevel = useRef(0);
+    const warningPosition = useRef(new Vector3());
+    const warningDirection = useRef(new Vector3());
+    const warningSpeed = useRef(0);
+    const warningTime = useRef(0);
+    const warningRotation = useRef(new Quaternion());
+    const wasWarning = useRef(false);
     const [activated, setActivated] = useState<boolean>(false);
 
     useImperativeHandle(ref, () => companionRef.current!);
@@ -48,10 +56,68 @@ export const Companion = forwardRef<Object3D, CompanionProps>(
       if (companionRef.current) {
         companionRef.current.position.y = verticalOffset;
       }
-    }, [companionRef.current, verticalOffset]);
+    }, [verticalOffset]);
 
     useFrame((state, delta) => {
       if (!companionRef.current || !targetRef.current) return;
+      const companion = companionRef.current;
+      const target = targetRef.current;
+      const tron = useTronStore.getState();
+      const player = tron.game.players[characterId];
+      const targetWarning = player
+        ? getCompanionWarningLevel(
+            tron.mode,
+            target.position,
+            tron.game.position,
+            tron.game.battlegroundSize,
+            player.outsideTimeRemaining,
+            tron.characters[characterId]?.isDisintegrated ?? false
+          )
+        : 0;
+      const smoothing = 1 - Math.exp(-Math.min(delta, 0.1) * 10);
+      warningLevel.current += (targetWarning - warningLevel.current) * smoothing;
+      if (targetWarning > 0) {
+        if (!wasWarning.current) {
+          movement.reset();
+          warningSpeed.current = Math.min(
+            activeStrategy.movementCharacteristics.maxSpeed,
+            tron.characters[id]?.speed.actual ?? 0
+          );
+          warningTime.current = 0;
+        }
+        wasWarning.current = true;
+        warningTime.current += Math.min(delta, 0.1);
+        getCompanionWarningPose(
+          target.position,
+          tron.game.position,
+          warningLevel.current,
+          warningTime.current,
+          verticalOffset,
+          warningPosition.current,
+          warningDirection.current
+        );
+        warningSpeed.current = advanceCompanionWarningMovement(
+          companion.position,
+          warningPosition.current,
+          warningSpeed.current,
+          delta,
+          activeStrategy.movementCharacteristics,
+          directionToTargetRef.current
+        );
+        const yaw = Math.atan2(-warningDirection.current.x, -warningDirection.current.z);
+        warningRotation.current.setFromAxisAngle(Object3D.DEFAULT_UP, yaw);
+        companion.quaternion.slerp(warningRotation.current, smoothing);
+        setActivated(true);
+        if (debugMode && targetPositionRef.current) targetPositionRef.current.position.copy(warningPosition.current);
+        return;
+      }
+      if (wasWarning.current) {
+        wasWarning.current = false;
+        movement.reset();
+        companion.rotation.x = 0;
+        companion.rotation.z = 0;
+        tron.setSpeed(id, 0, 0);
+      }
       directionToTargetRef.current.subVectors(targetRef.current.position, companionRef.current.position);
       const targetAngle = Math.atan2(-directionToTargetRef.current.x, -directionToTargetRef.current.z);
       const angleDiff = targetAngle - companionRef.current.rotation.y;
@@ -105,7 +171,7 @@ export const Companion = forwardRef<Object3D, CompanionProps>(
             </>
           ) : (
             <WireframeTransitionObject>
-              <Bit activated={activated} />
+              <Bit activated={activated} warningLevel={warningLevel} />
             </WireframeTransitionObject>
           )}
         </group>
